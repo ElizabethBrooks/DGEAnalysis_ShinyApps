@@ -80,12 +80,16 @@ ui <- fluidPage(
         tabPanel(
           "Reference",
           tags$p(
-            "The data and background information was obtained from",
+            "The RNA-seq data and background information was obtained from",
             tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
             tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
           ),
           tags$p(
-            "A tutorial of the analysis performed in R is provided in the", 
+            "Gene tables were created by processing the RNA-seq data as described in the", 
+            tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
+          ),
+          tags$p(
+            "A tutorial of the analysis performed in this application is provided in the", 
             tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
           )
         )
