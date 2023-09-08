@@ -1,5 +1,6 @@
 # load packages 
 library(shiny)
+library(DT)
 library(shinythemes)
 library(ggplot2)
 library(ghibli)
@@ -33,51 +34,54 @@ ui <- fluidPage(
       # select a file
       fileInput("geneCountsTable", label = NULL,
                 multiple = FALSE),
-      # request analysis type
-      #selectInput(
-        #inputId = "analysisType",
-        #label = "Analysis Type",
-        #choices = c("pairwise", "ANOVA")
-      #),
+      # header for comparison selection
+      tags$p(
+        "Upload table with the experimental design (*.csv):"),
+      # select a file
+      fileInput("expDesignTable", label = NULL,
+                multiple = FALSE),
       # show panel depending on input file
       conditionalPanel(
-        condition = "output.fileUploaded",
-        # header for comparison selection
-        tags$p(
-          "Enter factors & levels for comparison:"),
-        # display table of sample IDs in order of header from input table
-        tableOutput(outputId = "sampleIDs"),
-        # horizontal line
-        tags$hr(),
+        condition = "output.countsUploaded && output.designUploaded",
         # request strings for factors and levels associated with samples
         # header for comparison selection
         tags$p(
-          "Choose factor levels for comparison:")
+          "Choose factor levels for comparison:"),
         # select variable for the first level
-        #selectInput(
-          #inputId = "levelOne",
-          #label = "First Level",
-          #choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
-          #selected = "cntrl_24h"
-        #),
+        selectInput(
+        inputId = "levelOne",
+        label = "First Level",
+        choices = c("cntrl.4h", "cntrl.24h", "treat.4h", "treat.24h"),
+        selected = "cntrl.4h"
+        ),
         # select variable for the second level
-        #selectInput(
-          #inputId = "levelTwo",
-          #label = "Second Level",
-          #choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
-          #selected = "treat_24h"
-        #)
+        selectInput(
+        inputId = "levelTwo",
+        label = "Second Level",
+        choices = c("treat.4h", "treat.24h", "cntrl.4h", "cntrl.24h"),
+        selected = "treat.4h"
+        ),
+        # horizontal line
+        tags$hr(),
+        # add section header
+        tags$p(
+          "Samples & Factors Levels:"),
+        # display design table
+        tableOutput(outputId = "designTable")
+        # display table of sample IDs in order of header from input table
+        #tableOutput(outputId = "sampleIDs")
+        #DTOutput("sampleTable")
       )
     ),
     
     # Output: Show plots
     mainPanel(
       # placeholder text
-      tags$p(
-        "Input a file of gene counts in the left-hand sidebar to begin..."),
+      #tags$p(
+      #  "Input a file of gene counts in the left-hand sidebar to begin..."),
       # show panel depending on input file
       conditionalPanel(
-        condition = "output.fileUploaded",
+        condition = "output.countsUploaded && output.designUploaded",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -112,6 +116,10 @@ ui <- fluidPage(
             tags$p(
               "Differentially Expressed Genes"),
             downloadButton("pairwiseResults", "Download"),
+            tags$hr(),
+            tags$p(
+              align="center",
+              HTML("<b>Results Exploration</b>")),
             plotOutput(outputId = "MD"),
             plotOutput(outputId = "volcano")),
           tabPanel(
@@ -139,7 +147,7 @@ ui <- fluidPage(
 # Define server 
 server <- function(input, output, session) {
   ##
-  # Data
+  # Data Setup
   ##
   
   # retrieve the vector of colors associated with PonyoMedium
@@ -156,41 +164,91 @@ server <- function(input, output, session) {
   })
   
   # check if file has been uploaded
-  output$fileUploaded <- reactive({
+  output$countsUploaded <- reactive({
     return(!is.null(inputGeneCounts()))
   })
-  outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+  outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
   
-  # render sample IDs from input table header
-  output$sampleIDs <- renderTable({
-    # require input data to render
-    req(inputGeneCounts())
-    # retrieve input gene coutns
+  # retrieve input data
+  inputExpDesign <- reactive({
+    # check for input
+    if(is.null(input$expDesignTable)) return(NULL)
+    # import grouping factor
+    targets <- read.csv(input$expDesignTable$datapath, row.names=1)
+    # setup a design matrix
+    factor(paste(targets[,1],targets[,2],sep="."))
+  })
+  
+  # check if file has been uploaded
+  output$designUploaded <- reactive({
+    return(!is.null(inputExpDesign()))
+  })
+  outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
+  
+  output$designTable <- renderTable({
+    # retrieve input design table
+    group <- inputExpDesign()
+    # retrieve input gene counts table
     geneCounts <- inputGeneCounts()
-    # add header string
-    samples <- c("Samples", colnames(geneCounts))
-    # display column names
-    samples
-  }, colnames = FALSE)
+    # retrieve column names
+    sampleNames <- colnames(geneCounts)
+    # create data frame
+    design <- data.frame(
+      Sample = sampleNames,
+      Factor.Level = group
+    )
+  })
+  
+  # render table of sample IDs
+  #output$sampleIDs <- renderTable({
+    # retrieve input gene counts table
+    #geneCounts <- inputGeneCounts()
+    # retrieve column names
+    #sampleNames <- colnames(geneCounts)
+    # add header
+    #c("Samples", sampleNames)
+  #}, colnames = FALSE)
+  
+  # update table of sample IDs and factors
+  #sampleValues <- reactiveValues(data = {
+    # read the column names of the input file
+    #samples <- colnames(inputGeneCounts())
+    #samples <- colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
+    #samples <- reactive({
+      #colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
+    #})
+    # create a data frame for storing the factors and levels for each sample
+    #input_data <- data.frame(
+      #Sample = samples(),
+      #Factor = rep("", length(samples()))
+    #)
+    # return data frame
+    #input_data
+  #})
+  
+  # output the data table based on the data frame (and make it editable)
+  #output$sampleTable <- renderDT({
+    # create data table
+    #DT::datatable(sampleValues$data, editable = TRUE)
+  #})
+  
+  # when there is any edit to a cell, write that edit to the initial data frame
+  #observeEvent(input$sampleTable_cell_edit, {
+    # get values
+    #info = input$sampleTable_cell_edit
+    #rowNum = as.numeric(info$row)
+    #colNum = as.numeric(info$col)
+    #cellVal = as.numeric(info$value)
+    # write values to reactive
+    #sampleValues$data[rowNum,colNum] <- cellVal
+  #})
   
   # render text with pairwise comparison
   output$pairwise <- renderText({
-    # require input data to render
-    req(inputGeneCounts())
     # create string with factor levels
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
-  
-  ##
-  # Pairwise Setup
-  ##
-  
-  ## TO-DO
-  ## have users enter in which condition each sample belongs to
-  ## retrieve sample names from input gene count table
-  # add grouping factor
-  group <- factor(c(rep("cntrl_4h",3), rep("treat_4h",3), rep("cntrl_24h",3), rep("treat_24h",3)))
-  
+
   ##
   # Data Normalization & Exploration
   ##
@@ -204,6 +262,8 @@ server <- function(input, output, session) {
     },
     # read in data
     content = function(file) {
+      # retrieve input design table
+      group <- inputExpDesign()
       # begin to construct the DGE list object
       geneCounts <- inputGeneCounts()
       list <- DGEList(counts=geneCounts,group=group)
@@ -216,8 +276,8 @@ server <- function(input, output, session) {
   
   # render plot of library sizes before normalization
   output$librarySizes <- renderPlot({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -227,8 +287,8 @@ server <- function(input, output, session) {
   
   # render table with number of filtered genes
   output$numNorm <- renderTable({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -240,8 +300,8 @@ server <- function(input, output, session) {
   
   # render MDS plot
   output$MDS <- renderPlot({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -265,8 +325,8 @@ server <- function(input, output, session) {
   
   # render heatmap of individual RNA-seq samples using moderated log CPM
   output$heatmap <- renderPlot({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -284,8 +344,8 @@ server <- function(input, output, session) {
   
   # render plot of dispersion estimates and biological coefficient of variation
   output$BCV <- renderPlot({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -307,8 +367,8 @@ server <- function(input, output, session) {
   
   # render table of DE genes
   pairwiseTest <- reactive({
-    # require input data to render
-    req(inputGeneCounts())
+    # retrieve input design table
+    group <- inputExpDesign()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
