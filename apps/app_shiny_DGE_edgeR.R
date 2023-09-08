@@ -10,10 +10,6 @@ library(ggplotify)
 library(ggpubr)
 
 
-# set the working directory
-#setwd("/Users/bamflappy/Desktop/NFCDSWorkshop_Fall2022-main/data")
-
-
 # Define UI 
 ui <- fluidPage(
   # view available themes
@@ -23,7 +19,7 @@ ui <- fluidPage(
   theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Differential Gene Expression (DGE) Analysis - Pairwise"),
+  titlePanel("Differential Gene Expression (DGE) Analysis"),
   
   # setup sidebar layout
   sidebarLayout(
@@ -37,79 +33,102 @@ ui <- fluidPage(
       # select a file
       fileInput("geneCountsTable", label = NULL,
                 multiple = FALSE),
-      
-      # horizontal line
-      tags$hr(),
-      # header for comparison selection
-      tags$p(
-        "Choose factor levels for comparison:"),
-      # select variable for the first level
-      selectInput(
-        inputId = "levelOne",
-        label = "First Level",
-        choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
-        selected = "cntrl_24h"
-      ),
-      # select variable for the second level
-      selectInput(
-        inputId = "levelTwo",
-        label = "Second Level",
-        choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
-        selected = "treat_24h"
+      # request analysis type
+      #selectInput(
+        #inputId = "analysisType",
+        #label = "Analysis Type",
+        #choices = c("pairwise", "ANOVA")
+      #),
+      # show panel depending on input file
+      conditionalPanel(
+        condition = "output.fileUploaded",
+        # header for comparison selection
+        tags$p(
+          "Enter factors & levels for comparison:"),
+        # display table of sample IDs in order of header from input table
+        tableOutput(outputId = "sampleIDs"),
+        # horizontal line
+        tags$hr(),
+        # request strings for factors and levels associated with samples
+        # header for comparison selection
+        tags$p(
+          "Choose factor levels for comparison:")
+        # select variable for the first level
+        #selectInput(
+          #inputId = "levelOne",
+          #label = "First Level",
+          #choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
+          #selected = "cntrl_24h"
+        #),
+        # select variable for the second level
+        #selectInput(
+          #inputId = "levelTwo",
+          #label = "Second Level",
+          #choices = c("cntrl_4h", "treat_4h", "cntrl_24h", "treat_24h"),
+          #selected = "treat_24h"
+        #)
       )
     ),
     
     # Output: Show plots
     mainPanel(
-      tabsetPanel(
-        type = "tabs",
-        tabPanel(
-          "Data Normalization & Exploration",
-          tags$p(
-            align="center",
-            HTML("<b>Data Normalization</b>")),
-          plotOutput(outputId = "librarySizes"),
-          tags$p(
-            "Number of Genes with Sufficiently Large Counts"),
-          tableOutput(outputId = "numNorm"),
-          tags$p(
-            "Normalized Gene Counts"),
-          downloadButton("cpmNorm", "Download"),
-          tags$hr(),
-          tags$p(
-            align="center",
-            HTML("<b>Data Exploration</b>")),
-          plotOutput(outputId = "MDS"),
-          plotOutput(outputId = "heatmap"),
-          plotOutput(outputId = "BCV")),
-        tabPanel(
-          "Pairwise Analysis", 
-          tags$p(
-            align="center",
-            HTML("<b>Pairwise Comparison</b>")),
-          span(textOutput(outputId = "pairwise"), align="center"),
-          tags$p(
-            "Number of Differentially Expressed Genes"),
-          tableOutput(outputId = "pairwiseSummary"),
-          tags$p(
-            "Differentially Expressed Genes"),
-          downloadButton("pairwiseResults", "Download"),
-          plotOutput(outputId = "MD"),
-          plotOutput(outputId = "volcano")),
-        tabPanel(
-          "Reference",
-          tags$p(
-            "The RNA-seq data and background information was obtained from",
-            tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
-            tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
-          ),
-          tags$p(
-            "Gene tables were created by processing the RNA-seq data as described in the", 
-            tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
-          ),
-          tags$p(
-            "A tutorial of the analysis performed in this application is provided in the", 
-            tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
+      # placeholder text
+      tags$p(
+        "Input a file of gene counts in the left-hand sidebar to begin..."),
+      # show panel depending on input file
+      conditionalPanel(
+        condition = "output.fileUploaded",
+        # set of tab panels
+        tabsetPanel(
+          type = "tabs",
+          tabPanel(
+            "Data Normalization & Exploration",
+            tags$p(
+              align="center",
+              HTML("<b>Data Normalization</b>")),
+            plotOutput(outputId = "librarySizes"),
+            tags$p(
+              "Number of Genes with Sufficiently Large Counts"),
+            tableOutput(outputId = "numNorm"),
+            tags$p(
+              "Normalized Gene Counts"),
+            downloadButton("cpmNorm", "Download"),
+            tags$hr(),
+            tags$p(
+              align="center",
+              HTML("<b>Data Exploration</b>")),
+            plotOutput(outputId = "MDS"),
+            plotOutput(outputId = "heatmap"),
+            plotOutput(outputId = "BCV")),
+          tabPanel(
+            "Pairwise Analysis", 
+            tags$p(
+              align="center",
+              HTML("<b>Pairwise Comparison</b>")),
+            span(textOutput(outputId = "pairwise"), align="center"),
+            tags$p(
+              "Number of Differentially Expressed Genes"),
+            tableOutput(outputId = "pairwiseSummary"),
+            tags$p(
+              "Differentially Expressed Genes"),
+            downloadButton("pairwiseResults", "Download"),
+            plotOutput(outputId = "MD"),
+            plotOutput(outputId = "volcano")),
+          tabPanel(
+            "Reference",
+            tags$p(
+              "The RNA-seq data and background information was obtained from",
+              tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
+              tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
+            ),
+            tags$p(
+              "Gene tables were created by processing the RNA-seq data as described in the", 
+              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
+            ),
+            tags$p(
+              "A tutorial of the analysis performed in this application is provided in the", 
+              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
+            )
           )
         )
       )
@@ -119,11 +138,6 @@ ui <- fluidPage(
 
 # Define server 
 server <- function(input, output, session) {
-  # render text with pairwise comparison
-  output$pairwise <- renderText({
-    paste(input$levelTwo, input$levelOne, sep = " vs ")
-  })
-  
   ##
   # Data
   ##
@@ -134,13 +148,37 @@ server <- function(input, output, session) {
   # retrieve input data
   inputGeneCounts <- reactive({
     # check for input
-    if (is.null(input$geneCountsTable)) {
-      return("")
-    }
+    if(is.null(input$geneCountsTable)) return(NULL)
     # read the file
     #read.csv(file = input$geneCountsTable$datapath, row.names=1)
     # test with subset of data
     head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 100)
+  })
+  
+  # check if file has been uploaded
+  output$fileUploaded <- reactive({
+    return(!is.null(inputGeneCounts()))
+  })
+  outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+  
+  # render sample IDs from input table header
+  output$sampleIDs <- renderTable({
+    # require input data to render
+    req(inputGeneCounts())
+    # retrieve input gene coutns
+    geneCounts <- inputGeneCounts()
+    # add header string
+    samples <- c("Samples", colnames(geneCounts))
+    # display column names
+    samples
+  }, colnames = FALSE)
+  
+  # render text with pairwise comparison
+  output$pairwise <- renderText({
+    # require input data to render
+    req(inputGeneCounts())
+    # create string with factor levels
+    paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
   
   ##
