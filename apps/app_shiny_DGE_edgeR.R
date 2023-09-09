@@ -71,7 +71,7 @@ ui <- fluidPage(
         #DTOutput("sampleTable")
       )
     ),
-    
+
     # Output: Show plots
     mainPanel(
       conditionalPanel(
@@ -91,9 +91,17 @@ ui <- fluidPage(
         tags$p(
           "Example Experimental Design Table:"),
         tableOutput(outputId = "exampleDesign")),
-      # show panel depending on input file
+      # show panel depending on output results
       conditionalPanel(
-        condition = "output.countsUploaded && output.designUploaded",
+        condition = "!output.resultsCompleted",
+        tags$p(
+          align="center",
+          HTML("<b>Processing...</b>")
+        )
+      ),
+      # show panel depending on output results
+      conditionalPanel(
+        condition = "output.resultsCompleted",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -198,9 +206,9 @@ server <- function(input, output, session) {
     # check data type
     #if(is.integer(input$geneCountsTable)){
       # read the file
-      read.csv(file = input$geneCountsTable$datapath, row.names=1)
+      #read.csv(file = input$geneCountsTable$datapath, row.names=1)
       # test with subset of data
-      #head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 100)
+      head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 1000)
     #} else {
       #return(NULL)
     #}
@@ -452,6 +460,12 @@ server <- function(input, output, session) {
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
   })  
+  
+  # check if results output
+  output$resultsCompleted <- reactive({
+    return(!is.null(pairwiseTest()))
+  })
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE)
   
   # render table of DE genes
   output$pairwiseSummary <- renderTable({
