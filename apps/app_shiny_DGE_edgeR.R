@@ -51,23 +51,21 @@ ui <- fluidPage(
         selectInput(
         inputId = "levelOne",
         label = "First Level",
-        choices = c("cntrl.4h", "cntrl.24h", "treat.4h", "treat.24h"),
-        selected = "cntrl.4h"
+        choices = c("")
         ),
         # select variable for the second level
         selectInput(
         inputId = "levelTwo",
         label = "Second Level",
-        choices = c("treat.4h", "treat.24h", "cntrl.4h", "cntrl.24h"),
-        selected = "treat.4h"
-        ),
+        choices = c("")
+        )
         # horizontal line
-        tags$hr(),
+        #tags$hr(),
         # add section header
-        tags$p(
-          "Samples & Factors Levels:"),
+        #tags$p(
+          #"Samples & Factors.Levels:"),
         # display design table
-        tableOutput(outputId = "designTable")
+        #tableOutput(outputId = "designTable")
         # display table of sample IDs in order of header from input table
         #tableOutput(outputId = "sampleIDs")
         #DTOutput("sampleTable")
@@ -76,9 +74,23 @@ ui <- fluidPage(
     
     # Output: Show plots
     mainPanel(
-      # placeholder text
-      #tags$p(
-      #  "Input a file of gene counts in the left-hand sidebar to begin..."),
+      conditionalPanel(
+        condition = "!output.countsUploaded && !output.designUploaded",
+        # placeholder text
+        tags$p(
+          align="center",
+          HTML("<b>Getting Started</b>")),
+        tags$p(
+          HTML("<b>Hello!</b>"),
+          HTML("Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar.")),
+        tags$hr(),
+        tags$p(
+          "Example Gene Counts Table:"),
+        tableOutput(outputId = "exampleCounts"),
+        tags$hr(),
+        tags$p(
+          "Example Experimental Design Table:"),
+        tableOutput(outputId = "exampleDesign")),
       # show panel depending on input file
       conditionalPanel(
         condition = "output.countsUploaded && output.designUploaded",
@@ -149,18 +161,49 @@ server <- function(input, output, session) {
   ##
   # Data Setup
   ##
-  
   # retrieve the vector of colors associated with PonyoMedium
   ghibli_colors <- ghibli_palette("PonyoMedium", type = "discrete")
   
+  # render example gene counts table
+  output$exampleCounts <- renderTable({
+    # create example counts table
+    exCountsTable <- data.frame(
+      Gene = c("gene-1", "gene-2", "gene-3"),
+      SampleOne = c(0, 0, 0),
+      SampleTwo = c(10, 20, 30),
+      SampleThree = c(111, 222, 333),
+      SampleFour = c(1, 2, 3),
+      SampleFive = c(0, 0, 0),
+      SampleSix = c(1000, 2000, 3000),
+      SampleSeven = c(11, 12, 13),
+      SampleEight = c(0, 0, 0)
+    )
+  })
+  
+  # render example gene counts table
+  output$exampleDesign <- renderTable({
+    # create example counts table
+    exDesignTable <- data.frame(
+      Sample = c("SampleOne", "SampleTwo", "SampleThree", "SampleFour", "SampleFive", "SampleSix", "SampleSeven", "SampleEight"),
+      Group = c("cntrl.high", "cntrl.high", "cntrl.low", "cntrl.low", "treat.high", "treat.high", "treat.low", "treat.low")
+    )
+  })
+  
   # retrieve input data
   inputGeneCounts <- reactive({
-    # check for input
-    if(is.null(input$geneCountsTable)) return(NULL)
-    # read the file
-    #read.csv(file = input$geneCountsTable$datapath, row.names=1)
-    # test with subset of data
-    head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 100)
+    # check the input table
+    if(is.null(input$geneCountsTable)){
+      return(NULL)
+    }
+    # check data type
+    #if(is.integer(input$geneCountsTable)){
+      # read the file
+      read.csv(file = input$geneCountsTable$datapath, row.names=1)
+      # test with subset of data
+      #head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 100)
+    #} else {
+      #return(NULL)
+    #}
   })
   
   # check if file has been uploaded
@@ -171,12 +214,20 @@ server <- function(input, output, session) {
   
   # retrieve input data
   inputExpDesign <- reactive({
-    # check for input
-    if(is.null(input$expDesignTable)) return(NULL)
-    # import grouping factor
-    targets <- read.csv(input$expDesignTable$datapath, row.names=1)
-    # setup a design matrix
-    factor(paste(targets[,1],targets[,2],sep="."))
+    # check the input table
+    if(is.null(input$expDesignTable)){
+      return(NULL)
+    } 
+    # check data type
+    #if(is.character(input$geneCountsTable)){
+      # import grouping factor
+      targets <- read.csv(input$expDesignTable$datapath, row.names=1)
+      # setup a design matrix
+      #factor(paste(targets[,1],targets[,2],sep="."))
+      factor(targets[,1])
+    #} else {
+      #return(NULL)
+    #}
   })
   
   # check if file has been uploaded
@@ -185,6 +236,24 @@ server <- function(input, output, session) {
   })
   outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
   
+  # update select inputs for comparisons
+  observe({
+    # retrieve input design table
+    group <- levels(inputExpDesign())
+  
+    # update and set the first select items
+    updateSelectInput(session, "levelOne",
+                      choices = group,
+    )
+    
+    # update and set the second select items
+    updateSelectInput(session, "levelTwo",
+                      choices = group,
+                      selected = tail(group, 1)
+    )
+  })
+  
+  # render experimental design table
   output$designTable <- renderTable({
     # retrieve input design table
     group <- inputExpDesign()
