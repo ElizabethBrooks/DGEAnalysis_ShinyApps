@@ -42,7 +42,7 @@ ui <- fluidPage(
                 multiple = FALSE),
       # show panel depending on input file
       conditionalPanel(
-        condition = "output.countsUploaded && output.designUploaded",
+        condition = "output.resultsCompleted && (output.countsUploaded && output.designUploaded)",
         # request strings for factors and levels associated with samples
         # header for comparison selection
         tags$p(
@@ -75,7 +75,7 @@ ui <- fluidPage(
     # Output: Show plots
     mainPanel(
       conditionalPanel(
-        condition = "!output.countsUploaded && !output.designUploaded",
+        condition = "!(output.countsUploaded && output.designUploaded)",
         # placeholder text
         tags$p(
           align="center",
@@ -93,7 +93,7 @@ ui <- fluidPage(
         tableOutput(outputId = "exampleDesign")),
       # show panel depending on output results
       conditionalPanel(
-        condition = "!output.resultsCompleted",
+        condition = "!output.resultsCompleted && (output.countsUploaded && output.designUploaded)",
         tags$p(
           align="center",
           HTML("<b>Processing...</b>")
@@ -102,6 +102,7 @@ ui <- fluidPage(
       # show panel depending on output results
       conditionalPanel(
         condition = "output.resultsCompleted",
+        #condition = "output.countsUploaded && output.designUploaded",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -141,6 +142,8 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Results Exploration</b>")),
             plotOutput(outputId = "MD"),
+            #imageOutput(outputId = "volcano")),
+            #uiOutput(outputId = "plotDone")),
             plotOutput(outputId = "volcano")),
           tabPanel(
             "Reference",
@@ -206,9 +209,9 @@ server <- function(input, output, session) {
     # check data type
     #if(is.integer(input$geneCountsTable)){
       # read the file
-      #read.csv(file = input$geneCountsTable$datapath, row.names=1)
+      read.csv(file = input$geneCountsTable$datapath, row.names=1)
       # test with subset of data
-      head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 1000)
+      #head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 1000)
     #} else {
       #return(NULL)
     #}
@@ -246,6 +249,8 @@ server <- function(input, output, session) {
   
   # update select inputs for comparisons
   observe({
+    # require input data
+    req(input$expDesignTable)
     # retrieve input design table
     group <- levels(inputExpDesign())
   
@@ -263,6 +268,9 @@ server <- function(input, output, session) {
   
   # render experimental design table
   output$designTable <- renderTable({
+    # require input data
+    req(input$expDesignTable)
+    req(input$geneCountsTable)
     # retrieve input design table
     group <- inputExpDesign()
     # retrieve input gene counts table
@@ -278,6 +286,8 @@ server <- function(input, output, session) {
   
   # render table of sample IDs
   #output$sampleIDs <- renderTable({
+    # require input data
+    #req(input$geneCountsTable)
     # retrieve input gene counts table
     #geneCounts <- inputGeneCounts()
     # retrieve column names
@@ -288,6 +298,8 @@ server <- function(input, output, session) {
   
   # update table of sample IDs and factors
   #sampleValues <- reactiveValues(data = {
+    # require input data
+    #req(input$geneCountsTable)
     # read the column names of the input file
     #samples <- colnames(inputGeneCounts())
     #samples <- colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
@@ -322,6 +334,8 @@ server <- function(input, output, session) {
   
   # render text with pairwise comparison
   output$pairwise <- renderText({
+    # require input data
+    req(input$expDesignTable)
     # create string with factor levels
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
@@ -330,6 +344,30 @@ server <- function(input, output, session) {
   # Data Normalization & Exploration
   ##
   
+  # reactive function for data normalization
+  normalizeData <- reactive({
+    # require input data
+    req(input$expDesignTable)
+    req(input$geneCountsTable)
+    # retrieve input design table
+    group <- inputExpDesign()
+    # begin to construct the DGE list object
+    geneCounts <- inputGeneCounts()
+    list <- DGEList(counts=geneCounts,group=group)
+  })
+  
+  # reactive function for normalized data filtering
+  filterNorm <- reactive({
+    # begin to construct the DGE list object
+    list <- normalizeData()
+    # filter the list of gene counts based on expression levels
+    keep <- filterByExpr(list)
+    # remove genes that are not expressed in either experimental condition
+    list <- list[keep, , keep.lib.sizes=FALSE]
+    # calculate scaling factors
+    list <- calcNormFactors(list)
+  })
+    
   # download table with number of filtered genes
   output$cpmNorm <- downloadHandler(
     # retrieve file name
@@ -339,11 +377,8 @@ server <- function(input, output, session) {
     },
     # read in data
     content = function(file) {
-      # retrieve input design table
-      group <- inputExpDesign()
       # begin to construct the DGE list object
-      geneCounts <- inputGeneCounts()
-      list <- DGEList(counts=geneCounts,group=group)
+      list <- normalizeData()
       # compute counts per million (CPM) using normalized library sizes
       normList <- cpm(list, normalized.lib.sizes=TRUE)
       # output table
@@ -353,22 +388,16 @@ server <- function(input, output, session) {
   
   # render plot of library sizes before normalization
   output$librarySizes <- renderPlot({
-    # retrieve input design table
-    group <- inputExpDesign()
     # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
+    list <- normalizeData()
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:12, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   })
   
   # render table with number of filtered genes
   output$numNorm <- renderTable({
-    # retrieve input design table
-    group <- inputExpDesign()
     # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
+    list <- normalizeData()
     # filter the list of gene counts based on expression levels
     keep <- filterByExpr(list)
     # view the number of filtered genes
@@ -379,15 +408,8 @@ server <- function(input, output, session) {
   output$MDS <- renderPlot({
     # retrieve input design table
     group <- inputExpDesign()
-    # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
-    # filter the list of gene counts based on expression levels
-    keep <- filterByExpr(list)
-    # remove genes that are not expressed in either experimental condition
-    list <- list[keep, , keep.lib.sizes=FALSE]
     # calculate scaling factors
-    list <- calcNormFactors(list)
+    list <- filterNorm()
     # vector of shape numbers for the MDS plot
     points <- c(0,1,15,16)
     # vector of colors for the MDS plot
@@ -402,17 +424,8 @@ server <- function(input, output, session) {
   
   # render heatmap of individual RNA-seq samples using moderated log CPM
   output$heatmap <- renderPlot({
-    # retrieve input design table
-    group <- inputExpDesign()
-    # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
-    # filter the list of gene counts based on expression levels
-    keep <- filterByExpr(list)
-    # remove genes that are not expressed in either experimental condition
-    list <- list[keep, , keep.lib.sizes=FALSE]
     # calculate scaling factors
-    list <- calcNormFactors(list)
+    list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # create heatmap of individual RNA-seq samples using moderated log CPM
@@ -421,17 +434,8 @@ server <- function(input, output, session) {
   
   # render plot of dispersion estimates and biological coefficient of variation
   output$BCV <- renderPlot({
-    # retrieve input design table
-    group <- inputExpDesign()
-    # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
-    # filter the list of gene counts based on expression levels
-    keep <- filterByExpr(list)
-    # remove genes that are not expressed in either experimental condition
-    list <- list[keep, , keep.lib.sizes=FALSE]
     # calculate scaling factors
-    list <- calcNormFactors(list)
+    list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
     # create BCV plot
@@ -444,24 +448,19 @@ server <- function(input, output, session) {
   
   # render table of DE genes
   pairwiseTest <- reactive({
-    # retrieve input design table
-    group <- inputExpDesign()
+    # require input data
+    req(input$levelOne)
+    req(input$levelTwo)
     # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    list <- DGEList(counts=geneCounts,group=group)
-    # filter the list of gene counts based on expression levels
-    keep <- filterByExpr(list)
-    # remove genes that are not expressed in either experimental condition
-    list <- list[keep, , keep.lib.sizes=FALSE]
     # calculate scaling factors
-    list <- calcNormFactors(list)
+    list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
   })  
   
-  # check if results output
+  # check if file has been uploaded
   output$resultsCompleted <- reactive({
     return(!is.null(pairwiseTest()))
   })
@@ -487,6 +486,8 @@ server <- function(input, output, session) {
   
   # render volcano plot
   output$volcano <- renderPlot({
+  #output$volcano <- renderImage({
+    #output$plotDone <<- renderUI({tags$input(type="hidden", value="TRUE")})
     # perform exact test
     tested <- pairwiseTest()
     # create a results table of DE genes
@@ -528,6 +529,9 @@ server <- function(input, output, session) {
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
     }
   )
+  
+  # don't suspend hidden output processes
+  #outputOptions(output, suspendWhenHidden=FALSE)
 }
 
 # create the Shiny app object 
