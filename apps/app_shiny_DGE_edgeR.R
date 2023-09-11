@@ -79,8 +79,19 @@ ui <- fluidPage(
       conditionalPanel(
         condition = "!(output.countsUploaded && output.designUploaded)",
         tags$h1("Getting Started", align = "center"),
-        HTML("<b>Hello!</b>"),
-        "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar.",
+        tags$br(),
+        tags$p(
+          HTML("<b>Hello!</b>"),
+          "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar."
+        ),
+        tags$br(),
+        tags$p(
+          "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
+        ),
+        tags$br(),
+        tags$p(
+          "Example gene counts and experimental design tables are displayed below."
+        ),
         tags$hr(),
         HTML("<b>Example</b> gene counts table of six samples and five genes:"),
         tableOutput(outputId = "exampleCountsOne"),
@@ -103,16 +114,20 @@ ui <- fluidPage(
       # error text
       conditionalPanel(
         condition = "!(output.countsCheck && output.designCheck) && (output.countsUploaded && output.designUploaded)",
-        tags$h1("Error", align="center"),
+        tags$h1(
+          "Error", 
+          align="center"
+        ),
+        tags$br(),
         tags$p(
           "The data in the uploaded file(s) are not of the correct type.",
         ),
         tags$br(),
         tags$p(
-          HTML("<b>First:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
         ),
         tags$p(
-          HTML("<b>Second:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
         ),
         tags$br(),
         tags$p(
@@ -122,16 +137,38 @@ ui <- fluidPage(
       # processing text
       conditionalPanel(
         condition = "!output.resultsCompleted && (output.countsCheck && output.designCheck)",
-        tags$h1("Processing", align="center"),
-        "The DGE analysis may take several moments depending on the size of the input gene count table."
+        tags$h1(
+          "Processing", 
+          align="center"
+        ),
+        tags$br(),
+        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
       ),
       # results text and plots
       conditionalPanel(
-        condition = "output.resultsCompleted",
-        #condition = "output.countsUploaded && output.designUploaded",
+        condition = "output.resultsCompleted && (output.countsCheck && output.designCheck)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
+          tabPanel(
+            "Tips",
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> Navigate to the different analysis results by clicking the tabs above.")
+            ),
+            tags$p(
+              HTML("<b>Tip 3:</b> It is possible to select or change the groups for pairwise comparisons in the left-hand sidebar.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
+            )
+          ),
           tabPanel(
             "Data Normalization & Exploration",
             tags$p(
@@ -153,7 +190,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Normalized Gene Counts:</b>")
+              HTML("<b>Normalized Gene Counts Table:</b>")
             ),
             downloadButton(outputId = "cpmNorm", label = "Download Table"),
             tags$p(
@@ -170,7 +207,7 @@ ui <- fluidPage(
             downloadButton(outputId = "downloadMDS", label = "Download Plot"),
             tags$p(
               "In a multidimensional scaling (MDS) plot the distances between samples approximate the expression differences.",
-              "The expression differences are calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples."
+              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples."
             ),
             tags$br(),
             plotOutput(outputId = "heatmap"),
@@ -196,18 +233,19 @@ ui <- fluidPage(
               textOutput(outputId = "pairwise"), 
               align="center"
             ),
+            tags$br(),
             tags$p(
-              HTML("<b>Number of Differentially Expressed Genes</b>")
+              HTML("<b>Number of Differentially Expressed Genes:</b>")
             ),
             tableOutput(outputId = "pairwiseSummary"),
             tags$br(),
             tags$p(
-              HTML("<b>Differentially Expressed Genes</b>")
+              HTML("<b>Differentially Expressed Genes Table:</b>")
             ),
             downloadButton(outputId = "pairwiseResults", label = "Download Table"),
             tags$p(
               "A comparison or contrast is a linear combination of means for a group.",
-              "Groups are selected in our data using the different levels of each factor to specify subsets of samples.",
+              "Groups were selected in our data using the different levels of each factor to specify subsets of samples.",
               "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
             ),
             tags$hr(),
@@ -233,23 +271,40 @@ ui <- fluidPage(
             tags$p(
               "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
             )
+          ),
+          tabPanel(
+            "Information",
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Information</b>")
+            ),
+            tags$p(
+              "This application for DGE analysis was created by",
+              tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
+              "."
+            ),
+            tags$p(
+              "The latest version of this application may be downloaded from",
+              tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps"),
+              "."
+            ),
+            tags$p(
+              "An example RNA-seq data set may be obtained from",
+              tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
+              tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), 
+              "."
+            ),
+            tags$p(
+              "Gene tables were may be created from RNA-seq data as described in ", 
+              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
+              "."
+            ),
+            tags$p(
+              "A tutorial of the biostatistical analysis performed in this application is provided in ", 
+              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
+              "."
+            )
           )
-          #tabPanel(
-            #"Reference",
-            #tags$p(
-              #"The RNA-seq data and background information was obtained from",
-              #tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
-              #tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
-            #),
-            #tags$p(
-              #"Gene tables were created by processing the RNA-seq data as described in the", 
-              #tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
-            #),
-            #tags$p(
-              #"A tutorial of the analysis performed in this application is provided in the", 
-              #tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
-            #)
-          #)
         )
       )
     )
@@ -327,9 +382,9 @@ server <- function(input, output, session) {
       return(NULL)
     }
     # read the file
-    #geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
     # test with subset of data
-    geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 4000)
+    #geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 4000)
   })
   
   # check if file has been uploaded
@@ -473,6 +528,9 @@ server <- function(input, output, session) {
   
   # render text with pairwise comparison
   output$pairwise <- renderText({
+    # require input data
+    req(input$levelOne)
+    req(input$levelTwo)
     # create string with factor levels
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
@@ -665,7 +723,7 @@ server <- function(input, output, session) {
   # check if file has been uploaded
   output$resultsCompleted <- reactive({
     if(is.null(pairwiseTest())){
-      return(NULL)
+      return(FALSE)
     }else{
       return(TRUE)
     }
