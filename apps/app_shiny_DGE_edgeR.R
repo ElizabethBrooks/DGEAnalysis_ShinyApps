@@ -46,18 +46,19 @@ ui <- fluidPage(
         # request strings for factors and levels associated with samples
         # header for comparison selection
         tags$p(
-          "Choose factor levels for comparison:"),
+          "Choose factor levels for comparison:"
+        ),
         # select variable for the first level
         selectInput(
-        inputId = "levelOne",
-        label = "First Level",
-        choices = c("")
+          inputId = "levelOne",
+          label = "First Level",
+          choices = c("")
         ),
         # select variable for the second level
         selectInput(
-        inputId = "levelTwo",
-        label = "Second Level",
-        choices = c("")
+          inputId = "levelTwo",
+          label = "Second Level",
+          choices = c("")
         )
         # horizontal line
         #tags$hr(),
@@ -79,25 +80,50 @@ ui <- fluidPage(
         # placeholder text
         tags$p(
           align="center",
-          HTML("<b>Getting Started</b>")),
-        tags$p(
-          HTML("<b>Hello!</b>"),
-          HTML("Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar.")),
+          HTML("<b>Getting Started</b>")
+        ),
+        HTML("<b>Hello!</b>"),
+        "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar.",
         tags$hr(),
-        tags$p(
-          "Example Gene Counts Table:"),
+        "Example Gene Counts Table:",
         tableOutput(outputId = "exampleCounts"),
         tags$hr(),
+        "Example Experimental Design Tables:",
+        fluidRow(
+          column(tableOutput(outputId = "exampleDesignOne"), width = 6),
+          column(tableOutput(outputId = "exampleDesignTwo"), width = 6)
+        )
+      ),
+      conditionalPanel(
+        condition = "!(output.countsCheck && output.designCheck) && (output.countsUploaded && output.designUploaded)",
+        # placeholder text
         tags$p(
-          "Example Experimental Design Table:"),
-        tableOutput(outputId = "exampleDesign")),
+          align="center",
+          HTML("<b>Error!</b>")
+        ),
+        tags$p(
+          "The data in the uploaded file(s) are not of the correct type.",
+        ),
+        tags$hr(),
+        tags$p(
+          HTML("<b>First:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+        ),
+        tags$p(
+          HTML("<b>Second:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+        ),
+        tags$hr(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        )
+      ),
       # show panel depending on output results
       conditionalPanel(
-        condition = "!output.resultsCompleted && (output.countsUploaded && output.designUploaded)",
+        condition = "!output.resultsCompleted && (output.countsCheck && output.designCheck)",
         tags$p(
           align="center",
           HTML("<b>Processing...</b>")
-        )
+        ),
+        "The DGE analysis may take several moments depending on the size of the input gene count table."
       ),
       # show panel depending on output results
       conditionalPanel(
@@ -110,41 +136,48 @@ ui <- fluidPage(
             "Data Normalization & Exploration",
             tags$p(
               align="center",
-              HTML("<b>Data Normalization</b>")),
+              HTML("<b>Data Normalization</b>")
+            ),
             plotOutput(outputId = "librarySizes"),
-            tags$p(
-              "Number of Genes with Sufficiently Large Counts"),
+            "Number of Genes with Sufficiently Large Counts",
             tableOutput(outputId = "numNorm"),
-            tags$p(
-              "Normalized Gene Counts"),
+            "Normalized Gene Counts",
             downloadButton("cpmNorm", "Download"),
             tags$hr(),
             tags$p(
               align="center",
-              HTML("<b>Data Exploration</b>")),
+              HTML("<b>Data Exploration</b>")
+            ),
             plotOutput(outputId = "MDS"),
             plotOutput(outputId = "heatmap"),
-            plotOutput(outputId = "BCV")),
+            plotOutput(outputId = "BCV")
+          ),
           tabPanel(
             "Pairwise Analysis", 
             tags$p(
               align="center",
-              HTML("<b>Pairwise Comparison</b>")),
+              HTML("<b>Pairwise Comparison</b>")
+            ),
             span(textOutput(outputId = "pairwise"), align="center"),
-            tags$p(
-              "Number of Differentially Expressed Genes"),
+            "Number of Differentially Expressed Genes",
             tableOutput(outputId = "pairwiseSummary"),
-            tags$p(
-              "Differentially Expressed Genes"),
+            "Differentially Expressed Genes",
             downloadButton("pairwiseResults", "Download"),
             tags$hr(),
             tags$p(
               align="center",
-              HTML("<b>Results Exploration</b>")),
+              HTML("<b>Results Exploration</b>")
+            ),
             plotOutput(outputId = "MD"),
-            #imageOutput(outputId = "volcano")),
-            #uiOutput(outputId = "plotDone")),
-            plotOutput(outputId = "volcano")),
+            #imageOutput(outputId = "volcano"),
+            #uiOutput(outputId = "plotDone"),
+            plotOutput("volcano"),
+                       #click = "volcano_click",
+                       #dblclick = "volcano_dblclick",
+                       #hover = "volcano_hover",
+                       #brush = "volcano_brush"),
+            verbatimTextOutput("volcanoInfo")
+          ),
           tabPanel(
             "Reference",
             tags$p(
@@ -191,30 +224,36 @@ server <- function(input, output, session) {
     )
   })
   
-  # render example gene counts table
-  output$exampleDesign <- renderTable({
+  # render first example gene counts table
+  output$exampleDesignOne <- renderTable({
     # create example counts table
     exDesignTable <- data.frame(
-      Sample = c("SampleOne", "SampleTwo", "SampleThree", "SampleFour", "SampleFive", "SampleSix", "SampleSeven", "SampleEight"),
-      Group = c("cntrl.high", "cntrl.high", "cntrl.low", "cntrl.low", "treat.high", "treat.high", "treat.low", "treat.low")
+      Sample = c("SampleOne", "SampleTwo", "SampleThree", "SampleFour", "SampleFive", "SampleSix"),
+      Group = c("cntrl", "cntrl", "cntrl", "treat", "treat", "treat")
+    )
+  })
+  
+  # render second example gene counts table
+  output$exampleDesignTwo <- renderTable({
+    # create example counts table
+    exDesignTable <- data.frame(
+      Individual = c("sample_1", "sample_2", "sample_3", "sample_4", "sample_5", "sample_6", "sample_7", "sample_8", "sample_9", "sample_10", "sample_11", "sample_12"),
+      Factor.Level = c("cntrl.high", "cntrl.high", "cntrl.high", "cntrl.low", "cntrl.low", "cntrl.low", "treat.high", "treat.high", "treat.high", "treat.low", "treat.low", "treat.low")
     )
   })
   
   # retrieve input data
   inputGeneCounts <- reactive({
+    # require input data
+    req(input$geneCountsTable)
     # check the input table
     if(is.null(input$geneCountsTable)){
       return(NULL)
     }
-    # check data type
-    #if(is.integer(input$geneCountsTable)){
-      # read the file
-      read.csv(file = input$geneCountsTable$datapath, row.names=1)
-      # test with subset of data
-      #head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 1000)
-    #} else {
-      #return(NULL)
-    #}
+    # read the file
+    #geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    # test with subset of data
+    geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 2000)
   })
   
   # check if file has been uploaded
@@ -223,42 +262,73 @@ server <- function(input, output, session) {
   })
   outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
   
+  
+  # check input counts type
+  countsType <- reactive({
+    # retrieve input gene counts
+    geneCounts <- inputGeneCounts()    
+    # loop over each data frame column
+    for(i in 1:ncol(geneCounts)) { 
+      # check data type
+      if(!is.integer(geneCounts[,i])){
+        return(NULL)
+      }
+    }
+    # return the counts table
+    geneCounts
+  })
+  
+  # check if file has been uploaded
+  output$countsCheck <- reactive({
+    return(!is.null(countsType()))
+  })
+  outputOptions(output, 'countsCheck', suspendWhenHidden=FALSE)
+  
   # retrieve input data
-  inputExpDesign <- reactive({
+  inputDesign <- reactive({
+    # require input data
+    req(input$expDesignTable)
     # check the input table
     if(is.null(input$expDesignTable)){
       return(NULL)
-    } 
-    # check data type
-    #if(is.character(input$geneCountsTable)){
-      # import grouping factor
-      targets <- read.csv(input$expDesignTable$datapath, row.names=1)
-      # setup a design matrix
-      #factor(paste(targets[,1],targets[,2],sep="."))
-      factor(targets[,1])
-    #} else {
-      #return(NULL)
-    #}
+    }
+    # import grouping factor
+    targets <- read.csv(input$expDesignTable$datapath, row.names=1)
   })
   
   # check if file has been uploaded
   output$designUploaded <- reactive({
-    return(!is.null(inputExpDesign()))
+    return(!is.null(inputDesign()))
   })
   outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
+    
+  # check input design type
+  designFactors <- reactive({
+    # retrieve input design
+    targets <- inputDesign()
+    # check data type of the first column of sample names
+    if(!is.character(targets[,1])){
+      return(NULL)
+    }
+    # setup a design matrix
+    #factor(paste(targets[,1],targets[,2],sep="."))
+    factor(targets[,1])
+  })
+  
+  # check if file has been uploaded
+  output$designCheck <- reactive({
+    return(!is.null(designFactors()))
+  })
+  outputOptions(output, 'designCheck', suspendWhenHidden=FALSE)
   
   # update select inputs for comparisons
   observe({
-    # require input data
-    req(input$expDesignTable)
     # retrieve input design table
-    group <- levels(inputExpDesign())
-  
+    group <- levels(designFactors())
     # update and set the first select items
     updateSelectInput(session, "levelOne",
                       choices = group,
     )
-    
     # update and set the second select items
     updateSelectInput(session, "levelTwo",
                       choices = group,
@@ -268,11 +338,8 @@ server <- function(input, output, session) {
   
   # render experimental design table
   output$designTable <- renderTable({
-    # require input data
-    req(input$expDesignTable)
-    req(input$geneCountsTable)
     # retrieve input design table
-    group <- inputExpDesign()
+    group <- designFactors()
     # retrieve input gene counts table
     geneCounts <- inputGeneCounts()
     # retrieve column names
@@ -286,8 +353,6 @@ server <- function(input, output, session) {
   
   # render table of sample IDs
   #output$sampleIDs <- renderTable({
-    # require input data
-    #req(input$geneCountsTable)
     # retrieve input gene counts table
     #geneCounts <- inputGeneCounts()
     # retrieve column names
@@ -298,8 +363,6 @@ server <- function(input, output, session) {
   
   # update table of sample IDs and factors
   #sampleValues <- reactiveValues(data = {
-    # require input data
-    #req(input$geneCountsTable)
     # read the column names of the input file
     #samples <- colnames(inputGeneCounts())
     #samples <- colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
@@ -334,8 +397,6 @@ server <- function(input, output, session) {
   
   # render text with pairwise comparison
   output$pairwise <- renderText({
-    # require input data
-    req(input$expDesignTable)
     # create string with factor levels
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
@@ -346,11 +407,8 @@ server <- function(input, output, session) {
   
   # reactive function for data normalization
   normalizeData <- reactive({
-    # require input data
-    req(input$expDesignTable)
-    req(input$geneCountsTable)
     # retrieve input design table
-    group <- inputExpDesign()
+    group <- designFactors()
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
@@ -407,7 +465,7 @@ server <- function(input, output, session) {
   # render MDS plot
   output$MDS <- renderPlot({
     # retrieve input design table
-    group <- inputExpDesign()
+    group <- designFactors()
     # calculate scaling factors
     list <- filterNorm()
     # vector of shape numbers for the MDS plot
@@ -446,7 +504,7 @@ server <- function(input, output, session) {
   # Pairwise Comparisons (Contrasts)
   ##
   
-  # render table of DE genes
+  # function to calculate table of DE genes
   pairwiseTest <- reactive({
     # require input data
     req(input$levelOne)
@@ -462,7 +520,11 @@ server <- function(input, output, session) {
   
   # check if file has been uploaded
   output$resultsCompleted <- reactive({
-    return(!is.null(pairwiseTest()))
+    if(!is.null(pairwiseTest())){
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
   })
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE)
   
@@ -498,10 +560,12 @@ server <- function(input, output, session) {
     resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < 0.05] <- "Up"
     # identify significantly down DE genes
     resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < 0.05] <- "Down"
+    # add column with -log10(FDR) values
+    resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # vector with a subset of colors associated with PonyoMedium
     ghibli_subset <- c(ghibli_colors[3], ghibli_colors[6], ghibli_colors[4])
     # create volcano plot
-    ggplot(data=resultsTbl, aes(x=logFC, y=-log10(FDR), color = topDE)) + 
+    ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
       geom_point() +
       theme_minimal() +
       scale_colour_discrete(type = ghibli_subset, breaks = c("Up", "Down")) +
@@ -509,6 +573,17 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
   })
+  
+  #output$volcanoInfo <- renderText({
+    # perform exact test
+    #tested <- pairwiseTest()
+    # create a results table of DE genes
+    #resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+    # add column with -log10(FDR) values
+    #resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
+    # With base graphics, need to tell it what the x and y variables are.
+    #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
+  #})
   
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
