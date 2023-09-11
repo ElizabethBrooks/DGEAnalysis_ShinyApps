@@ -289,6 +289,11 @@ ui <- fluidPage(
               "."
             ),
             tags$p(
+              "Example gene counts and experimental design tables are also provided on",
+              tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data"),
+              "."
+            ),
+            tags$p(
               "An example RNA-seq data set may be obtained from",
               tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
               tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), 

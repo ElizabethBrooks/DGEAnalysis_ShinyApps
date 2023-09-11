@@ -4,6 +4,8 @@ These are shiny applications for various differential gene expression (DGE) anal
 
 The latest version of this application may be downloaded from this repository.
 
+Example gene counts and experimental design tables are also provided in the [data directory](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) of this repository.
+
 An example RNA-seq data set may be obtained from [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0147651319302684) and [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/).
 
 
