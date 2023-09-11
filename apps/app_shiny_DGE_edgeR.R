@@ -75,57 +75,57 @@ ui <- fluidPage(
 
     # Output: Show plots
     mainPanel(
+      # getting started text
       conditionalPanel(
         condition = "!(output.countsUploaded && output.designUploaded)",
-        # placeholder text
-        tags$p(
-          align="center",
-          HTML("<b>Getting Started</b>")
-        ),
+        tags$h1("Getting Started", align = "center"),
         HTML("<b>Hello!</b>"),
         "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar.",
         tags$hr(),
-        "Example Gene Counts Table:",
-        tableOutput(outputId = "exampleCounts"),
+        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
+        tableOutput(outputId = "exampleCountsOne"),
+        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
+        tableOutput(outputId = "exampleCountsTwo"),
         tags$hr(),
-        "Example Experimental Design Tables:",
         fluidRow(
-          column(tableOutput(outputId = "exampleDesignOne"), width = 6),
-          column(tableOutput(outputId = "exampleDesignTwo"), width = 6)
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of six samples and one factor with two levels:"),
+            tableOutput(outputId = "exampleDesignOne"), 
+          ),
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of twelve samples and two factors each with two levels:"),
+            tableOutput(outputId = "exampleDesignTwo") 
+          ),
         )
       ),
+      # error text
       conditionalPanel(
         condition = "!(output.countsCheck && output.designCheck) && (output.countsUploaded && output.designUploaded)",
-        # placeholder text
-        tags$p(
-          align="center",
-          HTML("<b>Error!</b>")
-        ),
+        tags$h1("Error", align="center"),
         tags$p(
           "The data in the uploaded file(s) are not of the correct type.",
         ),
-        tags$hr(),
+        tags$br(),
         tags$p(
           HTML("<b>First:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
         ),
         tags$p(
           HTML("<b>Second:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
         ),
-        tags$hr(),
+        tags$br(),
         tags$p(
           "Please check that each of the input files were uploaded correctly in the left-hand side bar."
         )
       ),
-      # show panel depending on output results
+      # processing text
       conditionalPanel(
         condition = "!output.resultsCompleted && (output.countsCheck && output.designCheck)",
-        tags$p(
-          align="center",
-          HTML("<b>Processing...</b>")
-        ),
+        tags$h1("Processing", align="center"),
         "The DGE analysis may take several moments depending on the size of the input gene count table."
       ),
-      # show panel depending on output results
+      # results text and plots
       conditionalPanel(
         condition = "output.resultsCompleted",
         #condition = "output.countsUploaded && output.designUploaded",
@@ -139,18 +139,52 @@ ui <- fluidPage(
               HTML("<b>Data Normalization</b>")
             ),
             plotOutput(outputId = "librarySizes"),
-            "Number of Genes with Sufficiently Large Counts",
+            downloadButton(outputId = "downloadLibrarySizes", label = "Download Plot"),
+            tags$p(
+              "The plot of library sizes shows the sequencing library size for each sample before TMM normalization."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Number of Genes with Sufficiently Large Counts:</b>")
+            ),
             tableOutput(outputId = "numNorm"),
-            "Normalized Gene Counts",
-            downloadButton("cpmNorm", "Download"),
+            tags$p(
+              "Filtering is performed to remove genes that were identified as not sufficiently expressed under the experimental conditions."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Normalized Gene Counts:</b>")
+            ),
+            downloadButton(outputId = "cpmNorm", label = "Download Table"),
+            tags$p(
+              "Normalized values were calcuated in counts per million (CPM) using the normalized library sizes.",
+              "The normalization method used with edgeR was the Trimmed Mean of M-values (TMM).",
+              "Note that TMM normalization factors do not take into account library sizes."
+            ),
             tags$hr(),
             tags$p(
               align="center",
               HTML("<b>Data Exploration</b>")
             ),
             plotOutput(outputId = "MDS"),
+            downloadButton(outputId = "downloadMDS", label = "Download Plot"),
+            tags$p(
+              "In a multidimensional scaling (MDS) plot the distances between samples approximate the expression differences.",
+              "The expression differences are calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples."
+            ),
+            tags$br(),
             plotOutput(outputId = "heatmap"),
-            plotOutput(outputId = "BCV")
+            downloadButton(outputId = "downloadHeatmap", label = "Download Plot"),
+            tags$p(
+              "The heatmap uses hierarchical clustering of the individual samples by the log2 CPM expression values.",
+              "Furthermore, the log2 CPM that has undefined values avoided and poorly defined log fold changes (logFC) for low counts shrunk towards zero"
+            ),
+            tags$br(),
+            plotOutput(outputId = "BCV"),
+            downloadButton(outputId = "downloadBCV", label = "Download Plot"),
+            tags$p(
+              "The biological coefficient of variation (BCV) plot is the square root of the dispersion parameter under the negative binomial model and is equivalent to estimating the dispersions of the negative binomial model."
+            )
           ),
           tabPanel(
             "Pairwise Analysis", 
@@ -158,42 +192,64 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Pairwise Comparison</b>")
             ),
-            span(textOutput(outputId = "pairwise"), align="center"),
-            "Number of Differentially Expressed Genes",
+            span(
+              textOutput(outputId = "pairwise"), 
+              align="center"
+            ),
+            tags$p(
+              HTML("<b>Number of Differentially Expressed Genes</b>")
+            ),
             tableOutput(outputId = "pairwiseSummary"),
-            "Differentially Expressed Genes",
-            downloadButton("pairwiseResults", "Download"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Differentially Expressed Genes</b>")
+            ),
+            downloadButton(outputId = "pairwiseResults", label = "Download Table"),
+            tags$p(
+              "A comparison or contrast is a linear combination of means for a group.",
+              "Groups are selected in our data using the different levels of each factor to specify subsets of samples.",
+              "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
+            ),
             tags$hr(),
             tags$p(
               align="center",
               HTML("<b>Results Exploration</b>")
             ),
             plotOutput(outputId = "MD"),
+            downloadButton(outputId = "downloadMD", label = "Download Plot"),
+            tags$p(
+              "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
+            ),
+            tags$br(),
             #imageOutput(outputId = "volcano"),
             #uiOutput(outputId = "plotDone"),
-            plotOutput("volcano"),
+            plotOutput(outputId = "volcano"),
                        #click = "volcano_click",
                        #dblclick = "volcano_dblclick",
                        #hover = "volcano_hover",
                        #brush = "volcano_brush"),
-            verbatimTextOutput("volcanoInfo")
-          ),
-          tabPanel(
-            "Reference",
+            #verbatimTextOutput(outputId = "volcanoInfo")
+            downloadButton(outputId = "downloadVolcano", label = "Download Plot"),
             tags$p(
-              "The RNA-seq data and background information was obtained from",
-              tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
-              tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
-            ),
-            tags$p(
-              "Gene tables were created by processing the RNA-seq data as described in the", 
-              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
-            ),
-            tags$p(
-              "A tutorial of the analysis performed in this application is provided in the", 
-              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
+              "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
             )
           )
+          #tabPanel(
+            #"Reference",
+            #tags$p(
+              #"The RNA-seq data and background information was obtained from",
+              #tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
+              #tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), "."
+            #),
+            #tags$p(
+              #"Gene tables were created by processing the RNA-seq data as described in the", 
+              #tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), "."
+            #),
+            #tags$p(
+              #"A tutorial of the analysis performed in this application is provided in the", 
+              #tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), "."
+            #)
+          #)
         )
       )
     )
@@ -209,18 +265,38 @@ server <- function(input, output, session) {
   ghibli_colors <- ghibli_palette("PonyoMedium", type = "discrete")
   
   # render example gene counts table
-  output$exampleCounts <- renderTable({
+  output$exampleCountsOne <- renderTable({
     # create example counts table
     exCountsTable <- data.frame(
-      Gene = c("gene-1", "gene-2", "gene-3"),
-      SampleOne = c(0, 0, 0),
-      SampleTwo = c(10, 20, 30),
-      SampleThree = c(111, 222, 333),
-      SampleFour = c(1, 2, 3),
-      SampleFive = c(0, 0, 0),
-      SampleSix = c(1000, 2000, 3000),
-      SampleSeven = c(11, 12, 13),
-      SampleEight = c(0, 0, 0)
+      Gene = c("gene-1", "gene-2", "gene-3", "gene-4", "gene-5"),
+      SampleOne = c(0, 0, 0, 0, 0),
+      SampleTwo = c(10, 20, 30, 40, 50),
+      SampleThree = c(111, 222, 333, 444, 555),
+      SampleFour = c(1, 2, 3, 4, 5),
+      SampleFive = c(0, 0, 0, 0, 0),
+      SampleSix = c(1000, 2000, 3000, 4000, 5000),
+      SampleSeven = c(11, 12, 13, 14, 15),
+      SampleEight = c(0, 0, 0, 0, 0)
+    )
+  })
+  
+  # render example gene counts table
+  output$exampleCountsTwo <- renderTable({
+    # create example counts table
+    exCountsTable <- data.frame(
+      Gene = c("geneA", "geneB", "geneC"),
+      sample_1 = c(0, 0, 0),
+      sample_2 = c(10, 20, 30),
+      sample_3 = c(111, 222, 333),
+      sample_4 = c(1, 2, 3),
+      sample_5 = c(3, 3, 3),
+      sample_6 = c(1000, 2000, 3000),
+      sample_7 = c(11, 12, 13),
+      sample_8 = c(1, 1, 1),
+      sample_9 = c(123, 12, 1),
+      sample_10 = c(3, 32, 321),
+      sample_11 = c(33, 333, 33),
+      sample_12 = c(2, 2, 2)
     )
   })
   
@@ -253,7 +329,7 @@ server <- function(input, output, session) {
     # read the file
     #geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
     # test with subset of data
-    geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 2000)
+    geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 4000)
   })
   
   # check if file has been uploaded
@@ -448,9 +524,25 @@ server <- function(input, output, session) {
   output$librarySizes <- renderPlot({
     # begin to construct the DGE list object
     list <- normalizeData()
+    # save as png
+    png("librarySizesPlot.png")
+    # create barplot of library sizes before normalization
+    barplot(list$samples$lib.size*1e-6, names=1:12, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
+    # turn off the device
+    dev.off()
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:12, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   })
+  
+  # download handler for the volcano plot
+  output$downloadLibrarySizes <- downloadHandler(
+    filename = function() {
+      "librarySizesPlot.png"
+    },
+    content = function(file) {
+      file.copy("librarySizesPlot.png", file, overwrite=TRUE)
+    }
+  )
   
   # render table with number of filtered genes
   output$numNorm <- renderTable({
@@ -459,7 +551,7 @@ server <- function(input, output, session) {
     # filter the list of gene counts based on expression levels
     keep <- filterByExpr(list)
     # view the number of filtered genes
-    table(keep)
+    table(keep)[2]
   }, colnames = FALSE)
   
   # render MDS plot
@@ -472,13 +564,33 @@ server <- function(input, output, session) {
     points <- c(0,1,15,16)
     # vector of colors for the MDS plot
     colors <- rep(c(ghibli_colors[3], ghibli_colors[6]), 2)
+    # save as png
+    png("MDSPlot.png")
     # add extra space to right of plot area and change clipping to figure
     par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
     # MDS plot with distances approximating log2 fold changes
     plotMDS(list, col=colors[group], pch=points[group], main = "Multi-Dimensional Scaling (MDS) Plot")
     # place the legend outside the right side of the plot
-    legend("topright", inset=c(-0.4,0), legend=levels(group), pch=points, col=colors)
+    legend("topright", inset=c(-0.1,0), legend=levels(group), pch=points, col=colors)
+    # turn off the device
+    dev.off()
+    # add extra space to right of plot area and change clipping to figure
+    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    # MDS plot with distances approximating log2 fold changes
+    plotMDS(list, col=colors[group], pch=points[group], main = "Multi-Dimensional Scaling (MDS) Plot")
+    # place the legend outside the right side of the plot
+    legend("topright", inset=c(-0.1,0), legend=levels(group), pch=points, col=colors)
   })
+  
+  # download handler for the volcano plot
+  output$downloadMDS <- downloadHandler(
+    filename = function() {
+      "MDSPlot.png"
+    },
+    content = function(file) {
+      file.copy("MDSPlot.png", file, overwrite=TRUE)
+    }
+  )
   
   # render heatmap of individual RNA-seq samples using moderated log CPM
   output$heatmap <- renderPlot({
@@ -486,9 +598,25 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
+    # save the plot
+    png("heatmapPlot.png")
+    # create heatmap of individual RNA-seq samples using moderated log CPM
+    heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
+    # turn off the device
+    dev.off()
     # create heatmap of individual RNA-seq samples using moderated log CPM
     heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
   })
+  
+  # download handler for the volcano plot
+  output$downloadHeatmap <- downloadHandler(
+    filename = function() {
+      "heatmapPlot.png"
+    },
+    content = function(file) {
+      file.copy("heatmapPlot.png", file, overwrite=TRUE)
+    }
+  )
   
   # render plot of dispersion estimates and biological coefficient of variation
   output$BCV <- renderPlot({
@@ -496,9 +624,25 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
+    # save the plot
+    png("BCVPlot.png")
+    # create BCV plot
+    plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
+    # trun off the device
+    dev.off()
     # create BCV plot
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
   })
+  
+  # download handler for the volcano plot
+  output$downloadBCV <- downloadHandler(
+    filename = function() {
+      "BCVPlot.png"
+    },
+    content = function(file) {
+      file.copy("BCVPlot.png", file, overwrite=TRUE)
+    }
+  )
   
   ##
   # Pairwise Comparisons (Contrasts)
@@ -520,36 +664,59 @@ server <- function(input, output, session) {
   
   # check if file has been uploaded
   output$resultsCompleted <- reactive({
-    if(!is.null(pairwiseTest())){
-      return(TRUE)
+    if(is.null(pairwiseTest())){
+      return(NULL)
     }else{
-      return(FALSE)
+      return(TRUE)
     }
   })
-  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE)
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # render table of DE genes
   output$pairwiseSummary <- renderTable({
     # perform exact test
     tested <- pairwiseTest()
     # view the total number of differentially expressed genes at a p-value of 0.05
-    summary(decideTests(tested))
-  }, colnames = FALSE)
+    resultsSummary <- summary(decideTests(tested))
+    # create the results summary
+    resultsTable <- data.frame(
+      Direction = c("Down", "NotSig", "Up"),
+      Number = resultsSummary[,1]
+    )
+    # return the formatted results summary
+    resultsTable
+  })
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
   output$MD <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
+    # save as png
+    png("MDPlot.png")
+    # create MD plot
+    plotMD(tested, main = "Mean-Difference (MD) Plot")
+    # add blue lines to indicate 2-fold changes
+    abline(h=c(-1, 1), col="blue")
+    # close the device
+    dev.off()
     # create MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c(-1, 1), col="blue")
   })
   
+  # download handler for the volcano plot
+  output$downloadMD <- downloadHandler(
+    filename = function() {
+      "MDPlot.png"
+    },
+    content = function(file) {
+      file.copy("MDPlot.png", file, overwrite=TRUE)
+    }
+  )
+  
   # render volcano plot
   output$volcano <- renderPlot({
-  #output$volcano <- renderImage({
-    #output$plotDone <<- renderUI({tags$input(type="hidden", value="TRUE")})
     # perform exact test
     tested <- pairwiseTest()
     # create a results table of DE genes
@@ -565,15 +732,31 @@ server <- function(input, output, session) {
     # vector with a subset of colors associated with PonyoMedium
     ghibli_subset <- c(ghibli_colors[3], ghibli_colors[6], ghibli_colors[4])
     # create volcano plot
-    ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
+    volcanoPlotOut <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
       geom_point() +
       theme_minimal() +
       scale_colour_discrete(type = ghibli_subset, breaks = c("Up", "Down")) +
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
+    # save the plot
+    file = "volcanoPlot.png"
+    ggsave(file, plot = volcanoPlotOut, device = "png")
+    # display the plot
+    volcanoPlotOut
   })
   
+  # download handler for the volcano plot
+  output$downloadVolcano <- downloadHandler(
+    filename = function() {
+      "volcanoPlot.png"
+    },
+    content = function(file) {
+      file.copy("volcanoPlot.png", file, overwrite=TRUE)
+    }
+  )
+  
+  # render text from brushed plot points
   #output$volcanoInfo <- renderText({
     # perform exact test
     #tested <- pairwiseTest()
