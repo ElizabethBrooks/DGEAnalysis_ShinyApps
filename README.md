@@ -17,4 +17,4 @@ Gene tables were may be created from RNA-seq data as described in [Bioinformatic
 A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
 
 ## DGE Analysis Pipeline 
-![DGE Analysis Pipeline](RNASeqWorkflow_1Sep2023.png)
+![DGE Analysis Pipeline](RNASeqWorkflow_1Sep2023.jpg)
