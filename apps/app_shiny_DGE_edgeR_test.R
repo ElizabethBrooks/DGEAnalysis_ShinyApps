@@ -291,11 +291,12 @@ ui <- fluidPage(
                 #"Show results?",
                 #c("Yes" = "show", "No" = "noshow")
               #),
+              tags$hr(),
               # show glm results
               conditionalPanel(
                 condition = "output.pairwiseResultsCompleted",
                 #condition = "(input.runPairwise == 'show') && output.pairwiseResultsCompleted",
-                tags$hr(),
+                #tags$hr(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
                 ),
@@ -368,11 +369,11 @@ ui <- fluidPage(
               tags$p(
                 HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same is in the experimental design file and shown in the left-hand sidebar.")
               ),
+              tags$hr(),
               # show glm results
               conditionalPanel(
                 condition = "output.glmResultsCompleted",
                 #condition = "(input.runGLM == 'show') && output.glmResultsCompleted",
-                tags$hr(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
                 ),
@@ -468,7 +469,7 @@ ui <- fluidPage(
 # Define server 
 server <- function(input, output, session) {
   ##
-  # Example Data Setup
+  # Data Setup
   ##
   
   # render example gene counts table
@@ -525,10 +526,6 @@ server <- function(input, output, session) {
     )
   })
   
-  ##
-  # Data Setup
-  ##
-  
   # retrieve input data
   inputGeneCounts <- reactive({
     # require input data
@@ -540,6 +537,8 @@ server <- function(input, output, session) {
     }
     # read the file
     geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    # test with subset of data
+    #geneCounts <- head(read.csv(file = input$geneCountsTable$datapath, row.names=1), n = 4000)
   })
   
   # check if file has been uploaded
@@ -563,7 +562,13 @@ server <- function(input, output, session) {
     # return the counts table
     geneCounts
   })
-
+  
+  # check if file has been uploaded
+  #output$countsCheck <- reactive({
+    #return(!is.null(countsType()))
+  #})
+  #outputOptions(output, 'countsCheck', suspendWhenHidden=FALSE)
+  
   # retrieve input data
   inputDesign <- reactive({
     # require input data
@@ -603,7 +608,13 @@ server <- function(input, output, session) {
     #factor(paste(targets[,1],targets[,2],sep="."))
     factor(targets[,1])
   })
-
+  
+  # check if file has been uploaded
+  #output$designCheck <- reactive({
+    #return(!is.null(designFactors()))
+  #})
+  #outputOptions(output, 'designCheck', suspendWhenHidden=FALSE)
+  
   # compare input design and counts samples
   compareSamples <- reactive({
     # retrieve input design samples
@@ -629,6 +640,12 @@ server <- function(input, output, session) {
       return(TRUE) # there were mismatches
     }
   })
+  
+  # check if file has been uploaded
+  #output$compareCheck <- reactive({
+    #return(!is.null(compareSamples())) # if not null, all samples matched
+  #})
+  #outputOptions(output, 'compareCheck', suspendWhenHidden=FALSE)
   
   # check if file has been uploaded
   output$inputCheck <- reactive({
@@ -684,6 +701,50 @@ server <- function(input, output, session) {
       Factors = group
     )
   })
+  
+  # render table of sample IDs
+  #output$sampleIDs <- renderTable({
+    # retrieve input gene counts table
+    #geneCounts <- inputGeneCounts()
+    # retrieve column names
+    #sampleNames <- colnames(geneCounts)
+    # add header
+    #c("Samples", sampleNames)
+  #}, colnames = FALSE)
+  
+  # update table of sample IDs and factors
+  #sampleValues <- reactiveValues(data = {
+    # read the column names of the input file
+    #samples <- colnames(inputGeneCounts())
+    #samples <- colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
+    #samples <- reactive({
+      #colnames(read.csv(file = input$geneCountsTable$datapath, row.names=1))
+    #})
+    # create a data frame for storing the factors and levels for each sample
+    #input_data <- data.frame(
+      #Sample = samples(),
+      #Factor = rep("", length(samples()))
+    #)
+    # return data frame
+    #input_data
+  #})
+  
+  # output the data table based on the data frame (and make it editable)
+  #output$sampleTable <- renderDT({
+    # create data table
+    #DT::datatable(sampleValues$data, editable = TRUE)
+  #})
+  
+  # when there is any edit to a cell, write that edit to the initial data frame
+  #observeEvent(input$sampleTable_cell_edit, {
+    # get values
+    #info = input$sampleTable_cell_edit
+    #rowNum = as.numeric(info$row)
+    #colNum = as.numeric(info$col)
+    #cellVal = as.numeric(info$value)
+    # write values to reactive
+    #sampleValues$data[rowNum,colNum] <- cellVal
+  #})
 
   ##
   # Data Normalization & Exploration
@@ -742,6 +803,12 @@ server <- function(input, output, session) {
     list <- normalizeData()
     # retrieve the number of samples
     numSamples <- ncol(list)
+    # save as png
+    #png("librarySizesPlot.png")
+    # create barplot of library sizes before normalization
+    #barplot(list$samples$lib.size*1e-6, names=1:12, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
+    # turn off the device
+    #dev.off()
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   })
@@ -773,6 +840,18 @@ server <- function(input, output, session) {
     # calculate scaling factors
     list <- filterNorm()
     ## TO-DO: allow users to input shapes and colors or other features
+    ## retrieve the number of grouping levels
+    ##numLevels <- length(levels(group))
+    ## vector of shape numbers for the MDS plot
+    ##points <- c(0:numLevels,0:numLevels+15)
+    ## vector of colors for the MDS plot
+    ##colors <- rep(c(plotColorSubset[4], plotColorSubset[5]), 2)
+    ## add extra space to right of plot area and change clipping to figure
+    ##par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    ## MDS plot with distances approximating log2 fold changes
+    ##plotMDS(list, col=colors[group], pch=points[group], main = "Multi-Dimensional Scaling (MDS) Plot")
+    ## place the legend outside the right side of the plot
+    ##legend("topright", inset=c(-0.1,0), legend=levels(group), pch=points, col=colors)
     # retrieve the number of grouping levels
     #numLevels <- length(levels(group))
     # setup chapes
@@ -803,6 +882,12 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
+    # save the plot
+    #png("heatmapPlot.png")
+    # create heatmap of individual RNA-seq samples using moderated log CPM
+    #heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
+    # turn off the device
+    #dev.off()
     # create heatmap of individual RNA-seq samples using moderated log CPM
     heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
   })
@@ -823,6 +908,12 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
+    # save the plot
+    #png("BCVPlot.png")
+    # create BCV plot
+    #plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
+    # trun off the device
+    #dev.off()
     # create BCV plot
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
   })
@@ -843,8 +934,8 @@ server <- function(input, output, session) {
   
   # render text with pairwise comparison
   output$pairwiseComparison <- renderText({
-    # check analysis type
-    #if(input$analysisType != 'pairwise') return()
+    # check the analysis type
+    #if(analysisType$data != "pairwise") return()
     # require input data
     req(input$levelOne)
     req(input$levelTwo)
@@ -854,11 +945,12 @@ server <- function(input, output, session) {
   
   # function to calculate table of DE genes
   pairwiseTest <- reactive({
-    # check analysis type
-    #if(input$analysisType != 'pairwise') return()
+    # check the analysis type
+    #if(is.null(analysisType$data != "pairwise") return()
     # require input data
     req(input$levelOne)
     req(input$levelTwo)
+    # begin to construct the DGE list object
     # calculate scaling factors
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
@@ -896,6 +988,14 @@ server <- function(input, output, session) {
   output$pairwiseMD <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
+    # save as png
+    #png("pairwiseMDPlot.png")
+    # display the plot
+    #plotMD(tested, main = "Mean-Difference (MD) Plot")
+    # add blue lines to indicate 2-fold changes
+    #abline(h=c(-1, 1), col="blue")
+    # close the device
+    #dev.off()
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
@@ -934,6 +1034,9 @@ server <- function(input, output, session) {
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
+    # save the plot
+    #file = "pairwiseVolcanoPlot.png"
+    #ggsave(file, plot = volcanoPlotPairwise, device = "png")
     # display the plot
     volcanoPlotPairwise
   })
@@ -948,7 +1051,6 @@ server <- function(input, output, session) {
     }
   )
   
-  ## TO-DO: allow users to select plot points
   # render text from brushed plot points
   #output$volcanoInfo <- renderText({
     # perform exact test
@@ -987,8 +1089,6 @@ server <- function(input, output, session) {
   
   # reactive function to create the glm design
   glmDesign <- reactive({
-    # check analysis type
-    #if(input$analysisType != 'glm') return()
     # require input data
     req(input$compareExpression)
     # retrieve input design table
@@ -1017,6 +1117,10 @@ server <- function(input, output, session) {
   output$glmDispersions <- renderPlot({
     # retrieve the fitted glm
     fit <- glmFitting()
+    # save the plot
+    #png("glmDispersionsPlot.png")
+    #plotQLDisp(fit)
+    #dev.off()
     # return the plot
     plotQLDisp(fit)
   })
@@ -1091,6 +1195,14 @@ server <- function(input, output, session) {
   output$glmMD <- renderPlot({
     # perform glm test
     tested <- glmContrast()
+    # save as png
+    #png("glmMDPlot.png")
+    # display the plot
+    #plotMD(tested, main = "Mean-Difference (MD) Plot")
+    # add blue lines to indicate 2-fold changes
+    #abline(h=c(-1, 1), col="blue")
+    # close the device
+    #dev.off()
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
@@ -1129,6 +1241,9 @@ server <- function(input, output, session) {
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
+    # save the plot
+    #file = "glmVolcanoPlot.png"
+    #ggsave(file, plot = volcanoPlotGLM, device = "png")
     # display the plot
     volcanoPlotGLM
   })
@@ -1158,6 +1273,9 @@ server <- function(input, output, session) {
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
     }
   )
+  
+  # don't suspend hidden output processes
+  #outputOptions(output, suspendWhenHidden=FALSE)
 }
 
 # create the Shiny app object 
