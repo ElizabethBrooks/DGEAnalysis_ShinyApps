@@ -30,48 +30,54 @@ ui <- fluidPage(
       
       # header for file uploads
       tags$p(
-        "Upload table of gene counts (*.csv):"
-      ),
+        "Upload table of gene counts (*.csv):"),
       # select a file
-      fileInput(
-        "geneCountsTable", 
-        label = NULL,
-        multiple = FALSE
-      ),
+      fileInput("geneCountsTable", label = NULL,
+                multiple = FALSE),
       # header for comparison selection
       tags$p(
         "Upload table with the experimental design (*.csv):"),
       # select a file
-      fileInput(
-        "expDesignTable", 
-        label = NULL,
-        multiple = FALSE
-      ),
-      # show panel depending on input files
+      fileInput("expDesignTable", label = NULL,
+                multiple = FALSE),
+      # show panel depending on input file
       conditionalPanel(
-        condition = "output.countsCheck && output.designCheck",
+        condition = "output.resultsCompleted && (output.countsUploaded && output.designUploaded)",
+        # request strings for factors and levels associated with samples
+        # header for comparison selection
         tags$p(
-          "Select Analysis Type:"
+          "Choose factor levels for comparison:"
         ),
+        # select variable for the first level
         selectInput(
-          inputId = "analysisType",
-          label = "Analysis Type",
-          choices = list("pairwise", "glm")
+          inputId = "levelOne",
+          label = "First Level",
+          choices = c("")
+        ),
+        # select variable for the second level
+        selectInput(
+          inputId = "levelTwo",
+          label = "Second Level",
+          choices = c("")
         )
-        #actionButton("runPairwise", "Pairwise"),
-        #actionButton("runGLM", "GLM"),
-        #actionButton("reset", "Clear")
+        # horizontal line
+        #tags$hr(),
+        # add section header
+        #tags$p(
+          #"Samples & Factors.Levels:"),
+        # display design table
+        #tableOutput(outputId = "designTable")
+        # display table of sample IDs in order of header from input table
+        #tableOutput(outputId = "sampleIDs")
+        #DTOutput("sampleTable")
       )
     ),
 
     # Output: Show plots
     mainPanel(
-      
       # getting started text
       conditionalPanel(
-        condition = "!(output.countsUploaded && output.designUploaded) && (input.analysisType)",
-        #condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && ((input.runPairwise == 0) && (input.runGLM == 0) || (input.reset != 0)) && ((output.countsCheck && output.designCheck) || !(output.countsUploaded && output.designUploaded))",
-        #condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && (((input.runPairwise == 0) && (input.runGLM == 0)) || (input.reset != 0)) && (output.countsCheck && output.designCheck)",
+        condition = "!(output.countsUploaded && output.designUploaded)",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
@@ -105,7 +111,6 @@ ui <- fluidPage(
           ),
         )
       ),
-      
       # error text
       conditionalPanel(
         condition = "!(output.countsCheck && output.designCheck) && (output.countsUploaded && output.designUploaded)",
@@ -129,14 +134,9 @@ ui <- fluidPage(
           "Please check that each of the input files were uploaded correctly in the left-hand side bar."
         )
       ),
-      
       # processing text
       conditionalPanel(
-        condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && (output.countsCheck && output.designCheck)",
-        #condition = "(input.analysisType == 'pairwise' || input.analysisType == 'glm') && !(output.pairwiseResultsCompleted || output.glmResultsCompleted) && (output.countsCheck && output.designCheck)",
-        #condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && ((input.runPairwise != 0) || (input.runGLM != 0)) && (output.countsCheck && output.designCheck)",
-        #condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && (output.countsCheck && output.designCheck)  && (input.reset == 0)",
-        #condition = "!(output.pairwiseResultsCompleted || output.glmResultsCompleted) && ((input.runPairwise != 0) || (input.runGLM != 0)) && (input.reset == 0) && (output.countsCheck && output.designCheck)",
+        condition = "!output.resultsCompleted && (output.countsCheck && output.designCheck)",
         tags$h1(
           "Processing", 
           align="center"
@@ -144,14 +144,9 @@ ui <- fluidPage(
         tags$br(),
         "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
       ),
-      
       # results text and plots
       conditionalPanel(
-        condition = "(output.pairwiseResultsCompleted || output.glmResultsCompleted) && (output.countsCheck && output.designCheck)",
-        #condition = "(input.analysisType == 'pairwise' || input.analysisType == 'glm') && (output.pairwiseResultsCompleted || output.glmResultsCompleted) && (output.countsCheck && output.designCheck)",
-        #condition = "(output.pairwiseResultsCompleted || output.glmResultsCompleted) && ((input.runPairwise != 0) || (input.runGLM != 0)) && (output.countsCheck && output.designCheck)",
-        #condition = "(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        #condition = "(input.runPairwise != 0) || (input.runGLM != 0)",
+        condition = "output.resultsCompleted && (output.countsCheck && output.designCheck)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -174,8 +169,6 @@ ui <- fluidPage(
               HTML("<b>Tip 4:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
             )
           ),
-          
-          # data normalization and exploration tab
           tabPanel(
             "Data Normalization & Exploration",
             tags$p(
@@ -230,145 +223,55 @@ ui <- fluidPage(
               "The biological coefficient of variation (BCV) plot is the square root of the dispersion parameter under the negative binomial model and is equivalent to estimating the dispersions of the negative binomial model."
             )
           ),
-          
-          # analysis results tab
           tabPanel(
-            "Analysis Results", 
-            # show pairwise results
-            conditionalPanel(
-              condition = "input.analysisType == 'pairwise'",
-              tags$p(
-                align="center",
-                HTML("<b>Pairwise Comparison</b>")
-              ),
-              span(
-                textOutput(outputId = "pairwiseComparison"), 
-                align="center"
-              ),
-              tags$br(),
-              # request strings for factors and levels associated with samples
-              # header for comparison selection
-              tags$p(
-                "Choose factor levels for comparison:"
-              ),
-              # select variable for the first level
-              selectInput(
-                inputId = "levelOne",
-                label = "First Level",
-                choices = c("")
-              ),
-              # select variable for the second level
-              selectInput(
-                inputId = "levelTwo",
-                label = "Second Level",
-                choices = c("")
-              ),
-              # horizontal line
-              #tags$hr(),
-              # add section header
-              #tags$p(
-              #"Samples & Factors.Levels:"),
-              # display design table
-              #tableOutput(outputId = "designTable")
-              # display table of sample IDs in order of header from input table
-              #tableOutput(outputId = "sampleIDs")
-              #DTOutput("sampleTable")
-              tags$hr(),
-              tags$p(
-                HTML("<b>Number of Differentially Expressed Genes:</b>")
-              ),
-              tableOutput(outputId = "pairwiseSummary"),
-              tags$br(),
-              tags$p(
-                HTML("<b>Differentially Expressed Genes Table:</b>")
-              ),
-              downloadButton(outputId = "pairwiseResults", label = "Download Table"),
-              tags$p(
-                "A comparison or contrast is a linear combination of means for a group.",
-                "Groups were selected in our data using the different levels of each factor to specify subsets of samples.",
-                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
-              ),
-              tags$hr(),
-              tags$p(
-                align="center",
-                HTML("<b>Results Exploration</b>")
-              ),
-              plotOutput(outputId = "pairwiseMD"),
-              downloadButton(outputId = "downloadpairwiseMD", label = "Download Plot"),
-              tags$p(
-                "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
-              ),
-              tags$br(),
-              #imageOutput(outputId = "pairwiseVolcano"),
-              #uiOutput(outputId = "plotDone"),
-              plotOutput(outputId = "pairwiseVolcano"),
-                         #click = "pairwiseVolcano_click",
-                         #dblclick = "pairwiseVolcano_dblclick",
-                         #hover = "pairwiseVolcano_hover",
-                         #brush = "pairwiseVolcano_brush"),
-              #verbatimTextOutput(outputId = "pairwiseVolcanoInfo")
-              downloadButton(outputId = "downloadpairwiseVolcano", label = "Download Plot"),
-              tags$p(
-                "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
-              )
+            "Pairwise Analysis", 
+            tags$p(
+              align="center",
+              HTML("<b>Pairwise Comparison</b>")
             ),
-            # show glm results
-            conditionalPanel(
-              condition = "input.analysisType == 'glm'",
-              tags$p(
-                align="center",
-                HTML("<b>GLM Comparison</b>")
-              ),
-              span(
-                textOutput(outputId = "glmComparison"), 
-                align="center"
-              ),
-              tags$br(),
-              # request strings for factors and levels associated with samples
-              # header for comparison selection
-              tags$p(
-                "Enter expression for comparison:"
-              ),
-              # request text input
-              textInput("compareExpression", "Expression"),
-              tags$hr(),
-              tags$p(
-                HTML("<b>Number of Differentially Expressed Genes:</b>")
-              ),
-              tableOutput(outputId = "glmSummary"),
-              tags$br(),
-              tags$p(
-                HTML("<b>Differentially Expressed Genes Table:</b>")
-              ),
-              downloadButton(outputId = "glmResults", label = "Download Table"),
-              tags$p(
-                "A comparison or contrast is a linear combination of means for a group.",
-                "Groups were selected in our data using the different levels of each factor to specify subsets of samples.",
-                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
-              ),
-              tags$hr(),
-              tags$p(
-                align="center",
-                HTML("<b>Results Exploration</b>")
-              ),
-              tags$br(),
-              plotOutput(outputId = "glmDispersions"),
-              downloadButton(outputId = "downloadGLMDispersions", label = "Download Plot"),
-              plotOutput(outputId = "glmMD"),
-              downloadButton(outputId = "downloadGLMMD", label = "Download Plot"),
-              tags$p(
-                "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
-              ),
-              tags$br(),
-              plotOutput(outputId = "glmVolcano"),
-              downloadButton(outputId = "downloadGLMVolcano", label = "Download Plot"),
-              tags$p(
-                "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
-              )
+            span(
+              textOutput(outputId = "pairwise"), 
+              align="center"
             ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Number of Differentially Expressed Genes:</b>")
+            ),
+            tableOutput(outputId = "pairwiseSummary"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Differentially Expressed Genes Table:</b>")
+            ),
+            downloadButton(outputId = "pairwiseResults", label = "Download Table"),
+            tags$p(
+              "A comparison or contrast is a linear combination of means for a group.",
+              "Groups were selected in our data using the different levels of each factor to specify subsets of samples.",
+              "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
+            ),
+            tags$hr(),
+            tags$p(
+              align="center",
+              HTML("<b>Results Exploration</b>")
+            ),
+            plotOutput(outputId = "MD"),
+            downloadButton(outputId = "downloadMD", label = "Download Plot"),
+            tags$p(
+              "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
+            ),
+            tags$br(),
+            #imageOutput(outputId = "volcano"),
+            #uiOutput(outputId = "plotDone"),
+            plotOutput(outputId = "volcano"),
+                       #click = "volcano_click",
+                       #dblclick = "volcano_dblclick",
+                       #hover = "volcano_hover",
+                       #brush = "volcano_brush"),
+            #verbatimTextOutput(outputId = "volcanoInfo")
+            downloadButton(outputId = "downloadVolcano", label = "Download Plot"),
+            tags$p(
+              "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
+            )
           ),
-            
-          # information tab
           tabPanel(
             "Information",
             tags$p(
@@ -479,8 +382,7 @@ server <- function(input, output, session) {
   inputGeneCounts <- reactive({
     # require input data
     req(input$geneCountsTable)
-    # check the input table is not null
-    # and is a csv
+    # check the input table
     if(is.null(input$geneCountsTable)){
       return(NULL)
     }
@@ -522,8 +424,7 @@ server <- function(input, output, session) {
   inputDesign <- reactive({
     # require input data
     req(input$expDesignTable)
-    # check the input table is not null
-    # and is a csv
+    # check the input table
     if(is.null(input$expDesignTable)){
       return(NULL)
     }
@@ -555,31 +456,19 @@ server <- function(input, output, session) {
     return(!is.null(designFactors()))
   })
   outputOptions(output, 'designCheck', suspendWhenHidden=FALSE)
-
-  # update inputs for comparisons
+  
+  # update select inputs for comparisons
   observe({
     # retrieve input design table
     group <- levels(designFactors())
     # update and set the first select items
-    updateSelectInput(
-      session, 
-      "levelOne",
-      choices = group,
+    updateSelectInput(session, "levelOne",
+                      choices = group,
     )
     # update and set the second select items
-    updateSelectInput(
-      session, 
-      "levelTwo",
-      choices = group,
-      selected = tail(group, 1)
-    )
-    # create temporary expression
-    tmpExpression <- paste(head(group, 1), tail(group, 1), sep = "-")
-    # update and set the glm comparison expression
-    updateTextInput(
-      session,
-      "compareExpression",
-      value = tmpExpression
+    updateSelectInput(session, "levelTwo",
+                      choices = group,
+                      selected = tail(group, 1)
     )
   })
   
@@ -641,6 +530,15 @@ server <- function(input, output, session) {
     # write values to reactive
     #sampleValues$data[rowNum,colNum] <- cellVal
   #})
+  
+  # render text with pairwise comparison
+  output$pairwise <- renderText({
+    # require input data
+    req(input$levelOne)
+    req(input$levelTwo)
+    # create string with factor levels
+    paste(input$levelTwo, input$levelOne, sep = " vs ")
+  })
 
   ##
   # Data Normalization & Exploration
@@ -745,8 +643,6 @@ server <- function(input, output, session) {
     plotMDS(list, col=colors[group], pch=points[group], main = "Multi-Dimensional Scaling (MDS) Plot")
     # place the legend outside the right side of the plot
     legend("topright", inset=c(-0.1,0), legend=levels(group), pch=points, col=colors)
-    # turn off the device
-    dev.off()
   })
   
   # download handler for the volcano plot
@@ -815,21 +711,8 @@ server <- function(input, output, session) {
   # Pairwise Comparisons (Contrasts)
   ##
   
-  # render text with pairwise comparison
-  output$pairwiseComparison <- renderText({
-    # check the analysis type
-    #if(analysisType$data != "pairwise") return()
-    # require input data
-    req(input$levelOne)
-    req(input$levelTwo)
-    # create string with factor levels
-    paste(input$levelTwo, input$levelOne, sep = " vs ")
-  })
-  
   # function to calculate table of DE genes
   pairwiseTest <- reactive({
-    # check the analysis type
-    #if(is.null(analysisType$data != "pairwise") return()
     # require input data
     req(input$levelOne)
     req(input$levelTwo)
@@ -841,18 +724,18 @@ server <- function(input, output, session) {
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
   })  
-    
+  
   # check if file has been uploaded
-  output$pairwiseResultsCompleted <- reactive({
+  output$resultsCompleted <- reactive({
     if(is.null(pairwiseTest())){
       return(FALSE)
     }else{
       return(TRUE)
     }
   })
-  outputOptions(output, 'pairwiseResultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
-  # render results summary
+  # render table of DE genes
   output$pairwiseSummary <- renderTable({
     # perform exact test
     tested <- pairwiseTest()
@@ -868,35 +751,35 @@ server <- function(input, output, session) {
   })
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$pairwiseMD <- renderPlot({
+  output$MD <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
     # save as png
-    png("pairwiseMDPlot.png")
-    # display the plot
+    png("MDPlot.png")
+    # create MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c(-1, 1), col="blue")
     # close the device
     dev.off()
-    # return MD plot
+    # create MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c(-1, 1), col="blue")
   })
   
   # download handler for the volcano plot
-  output$downloadPairwiseMD <- downloadHandler(
+  output$downloadMD <- downloadHandler(
     filename = function() {
-      "pairwiseMDPlot.png"
+      "MDPlot.png"
     },
     content = function(file) {
-      file.copy("pairwiseMDPlot.png", file, overwrite=TRUE)
+      file.copy("MDPlot.png", file, overwrite=TRUE)
     }
   )
   
   # render volcano plot
-  output$pairwiseVolcano <- renderPlot({
+  output$volcano <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
     # create a results table of DE genes
@@ -912,7 +795,7 @@ server <- function(input, output, session) {
     # vector with a subset of colors associated with PonyoMedium
     ghibli_subset <- c(ghibli_colors[3], ghibli_colors[6], ghibli_colors[4])
     # create volcano plot
-    volcanoPlotPairwise <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
+    volcanoPlotOut <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
       geom_point() +
       theme_minimal() +
       scale_colour_discrete(type = ghibli_subset, breaks = c("Up", "Down")) +
@@ -920,19 +803,19 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
     # save the plot
-    file = "pairwiseVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotPairwise, device = "png")
+    file = "volcanoPlot.png"
+    ggsave(file, plot = volcanoPlotOut, device = "png")
     # display the plot
-    volcanoPlotPairwise
+    volcanoPlotOut
   })
   
   # download handler for the volcano plot
-  output$downloadPairwiseVolcano <- downloadHandler(
+  output$downloadVolcano <- downloadHandler(
     filename = function() {
-      "pairwiseVolcanoPlot.png"
+      "volcanoPlot.png"
     },
     content = function(file) {
-      file.copy("pairwiseVolcanoPlot.png", file, overwrite=TRUE)
+      file.copy("volcanoPlot.png", file, overwrite=TRUE)
     }
   )
   
@@ -947,213 +830,20 @@ server <- function(input, output, session) {
     # With base graphics, need to tell it what the x and y variables are.
     #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
-    
+  
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
       # setup output file name
       paste(
         paste(input$levelTwo, input$levelOne, sep = "_"),
-        "pairwiseTopDEGs.csv", 
-        sep = "_"
+        "topDEGs.csv", 
+        sep = "."
       )
     },
     content = function(file) {
       # perform exact test
       tested <- pairwiseTest()
-      # view results table of top 10 DE genes
-      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # output table
-      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
-    }
-  )
-  
-  ##
-  # GLM Fitting
-  ##
-  
-  # reactive function to create the glm design
-  glmDesign <- reactive({
-    # require input data
-    req(input$compareExpression)
-    # retrieve input design table
-    group <- designFactors()
-    # parametrize the experimental design with a one-way layout 
-    design <- model.matrix(~ 0 + group)
-    # add group names
-    colnames(design) <- levels(group)
-    # return design layout
-    design
-  })
-    
-  # reactive function for fitting the glm
-  glmFitting <- reactive({
-    # calculate scaling factors
-    list <- filterNorm()
-    # retrieve the experimental design 
-    design <- glmDesign()
-    # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
-    list <- estimateDisp(list, design, robust=TRUE)
-    # estimate the QL dispersions
-    glmQLFit(list, design, robust=TRUE)
-  })
-    
-  # render plot of QL dispersions
-  output$glmDispersions <- renderPlot({
-    # retrieve the fitted glm
-    fit <- glmFitting()
-    # save the plot
-    png("glmDispersionsPlot.png")
-    plotQLDisp(fit)
-    dev.off()
-    # return the plot
-    plotQLDisp(fit)
-  })
-    
-  # download handler for the volcano plot
-  output$downloadGLMDispersions <- downloadHandler(
-    filename = function() {
-      "glmDispersionsPlot.png"
-    },
-    content = function(file) {
-      file.copy("glmDispersionsPlot.png", file, overwrite=TRUE)
-    }
-  )
-    
-  ##
-  # GLM Contrasts
-  ##
-  
-  # render text with glm comparison
-  output$glmComparison <- renderText({
-    # retrieve input expression
-    glmExpression <<- input$compareExpression
-    # require input data
-    req(glmExpression)
-    # output string with comparison
-    glmExpression
-  })
-  
-  # reactive function to perform glm contrasts
-  glmContrast <- reactive({
-    # retrieve input expression
-    glmExpression <<- input$compareExpression
-    # require input data
-    req(glmExpression)
-    # retrieve the fitted glm
-    fit <- glmFitting()
-    # retrieve the experimental design 
-    design <- glmDesign()
-    # examine the overall effect of treatment
-    glmContrast <- makeContrasts(glmSet = glmExpression,
-                                   levels=design)
-    # look at genes with significant expression across all UV groups
-    glmTreat(fit, contrast=glmContrast)
-  })
-  
-  # check if file has been uploaded
-  output$glmResultsCompleted <- reactive({
-    if(is.null(glmContrast())){
-      return(FALSE)
-    }else{
-      return(TRUE)
-    }
-  })
-  outputOptions(output, 'glmResultsCompleted', suspendWhenHidden=FALSE, priority=0)
-  
-  # render table with the summary of results
-  output$glmSummary <- renderTable({
-    # perform glm test
-    tested <- glmContrast()
-    # view the total number of differentially expressed genes at a p-value of 0.05
-    resultsSummary <- summary(decideTests(tested))
-    # create the results summary
-    resultsTable <- data.frame(
-      Direction = c("Down", "NotSig", "Up"),
-      Number = resultsSummary[,1]
-    )
-    # return the formatted results summary
-    resultsTable
-  })
-  
-  # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$glmMD <- renderPlot({
-    # perform glm test
-    tested <- glmContrast()
-    # save as png
-    png("glmMDPlot.png")
-    # display the plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot")
-    # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
-    # close the device
-    dev.off()
-    # return MD plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot")
-    # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
-  })
-  
-  # download handler for the volcano plot
-  output$downloadGLMMD <- downloadHandler(
-    filename = function() {
-      "glmMDPlot.png"
-    },
-    content = function(file) {
-      file.copy("glmMDPlot.png", file, overwrite=TRUE)
-    }
-  )
-  
-  # render volcano plot
-  output$glmVolcano <- renderPlot({
-    # perform glm test
-    tested <- glmContrast()
-    # create a results table of DE genes
-    resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-    # add column for identifying direction of DE gene expression
-    resultsTbl$topDE <- "NA"
-    # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < 0.05] <- "Up"
-    # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < 0.05] <- "Down"
-    # add column with -log10(FDR) values
-    resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
-    # vector with a subset of colors associated with PonyoMedium
-    ghibli_subset <- c(ghibli_colors[3], ghibli_colors[6], ghibli_colors[4])
-    # create volcano plot
-    volcanoPlotGLM <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
-      geom_point() +
-      theme_minimal() +
-      scale_colour_discrete(type = ghibli_subset, breaks = c("Up", "Down")) +
-      ggtitle("Volcano Plot") +
-      theme(plot.title = element_text(hjust = 0.5)) +
-      theme(plot.title = element_text(face="bold"))
-    # save the plot
-    file = "glmVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotGLM, device = "png")
-    # display the plot
-    volcanoPlotGLM
-  })
-  
-  # download handler for the volcano plot
-  output$downloadGLMVolcano <- downloadHandler(
-    filename = function() {
-      "glmVolcanoPlot.png"
-    },
-    content = function(file) {
-      file.copy("glmVolcanoPlot.png", file, overwrite=TRUE)
-    }
-  )
-  
-  # download table with number of filtered genes
-  output$glmResults <- downloadHandler(
-    filename = function() {
-      # setup output file name
-      paste(input$compareExpression, "glmTopDEGs.csv", sep = "_")
-    },
-    content = function(file) {
-      # perform glm test
-      tested <- glmContrast()
       # view results table of top 10 DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # output table
