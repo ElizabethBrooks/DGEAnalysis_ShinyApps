@@ -23,8 +23,8 @@ ui <- fluidPage(
   # view available themes
   #shinythemes::themeSelector(),
   
-  # use the superhero theme
-  theme = shinytheme("superhero"),
+  # use a theme
+  theme = shinytheme("yeti"),
   
   # add application title
   titlePanel("Differential Gene Expression (DGE) Analysis"),
@@ -43,7 +43,8 @@ ui <- fluidPage(
       fileInput(
         "geneCountsTable", 
         label = NULL,
-        multiple = FALSE
+        multiple = FALSE,
+        accept = ".csv"
       ),
       # header for comparison selection
       tags$p(
@@ -52,11 +53,12 @@ ui <- fluidPage(
       fileInput(
         "expDesignTable", 
         label = NULL,
-        multiple = FALSE
+        multiple = FALSE,
+        accept = ".csv"
       ),
       # show panel depending on input files
       conditionalPanel(
-        condition = "output.inputCheck",
+        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$p(
           "Select Analysis Type:"
         ),
@@ -145,6 +147,9 @@ ui <- fluidPage(
         tags$p(
           HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
         ),
+        tags$p(
+          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+        ),
         tags$br(),
         tags$p(
           "Please check that each of the input files were uploaded correctly in the left-hand side bar."
@@ -157,7 +162,6 @@ ui <- fluidPage(
       # processing text
       conditionalPanel(
         condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        #condition = "(output.compareCheck && output.countsCheck && output.designCheck) && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$h1(
           "Processing", 
           align="center"
@@ -169,12 +173,12 @@ ui <- fluidPage(
       # results text and plots
       conditionalPanel(
         condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        #condition = "(output.compareCheck && output.countsCheck && output.designCheck) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
           tabPanel(
             "Tips",
+            tags$br(),
             tags$p(
               align="center",
               HTML("<b>Helpful Tips</b>")
@@ -189,7 +193,7 @@ ui <- fluidPage(
               HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
             ),
             tags$p(
-              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis on the <b>Analysis Results</b> tab above.")
+              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <b>Analysis Results</b> tab above.")
             ),
             tags$p(
               HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
@@ -199,6 +203,7 @@ ui <- fluidPage(
           # data normalization and exploration tab
           tabPanel(
             "Data Normalization & Exploration",
+            tags$br(),
             tags$p(
               align="center",
               HTML("<b>Data Normalization</b>")
@@ -259,6 +264,7 @@ ui <- fluidPage(
             # show pairwise results
             conditionalPanel(
               condition = "input.analysisType == 'pairwise'",
+              tags$br(),
               tags$p(
                 align="center",
                 HTML("<b>Pairwise Comparison</b>")
@@ -268,8 +274,6 @@ ui <- fluidPage(
                 align="center"
               ),
               tags$br(),
-              # request strings for factors and levels associated with samples
-              # header for comparison selection
               tags$p(
                 "Choose factor levels for comparison:"
               ),
@@ -285,16 +289,9 @@ ui <- fluidPage(
                 label = "Second Level",
                 choices = c("")
               ),
-              # radio button to toggle showing analysis results
-              #radioButtons(
-                #"runPairwise", 
-                #"Show results?",
-                #c("Yes" = "show", "No" = "noshow")
-              #),
               # show glm results
               conditionalPanel(
                 condition = "output.pairwiseResultsCompleted",
-                #condition = "(input.runPairwise == 'show') && output.pairwiseResultsCompleted",
                 tags$hr(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
@@ -320,8 +317,6 @@ ui <- fluidPage(
                   "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
                 ),
                 tags$br(),
-                #imageOutput(outputId = "pairwiseVolcano"),
-                #uiOutput(outputId = "plotDone"),
                 plotOutput(outputId = "pairwiseVolcano"),
                            #click = "pairwiseVolcano_click",
                            #dblclick = "pairwiseVolcano_dblclick",
@@ -337,6 +332,7 @@ ui <- fluidPage(
             # show glm comparison
             conditionalPanel(
               condition = "input.analysisType == 'glm'",
+              tags$br(),
               tags$p(
                 align="center",
                 HTML("<b>GLM Comparison</b>")
@@ -346,19 +342,10 @@ ui <- fluidPage(
                 align="center"
               ),
               tags$br(),
-              # request strings for factors and levels associated with samples
-              # header for comparison selection
               tags$p(
                 "Enter expression for comparison:"
               ),
-              # request text input
               textInput("compareExpression", "Expression"),
-              # radio button to toggle showing analysis results
-              #radioButtons(
-                #"runGLM", 
-                #"Show results?",
-                #c("Yes" = "show", "No" = "noshow")
-              #),
               tags$p(
                 "Valid expressions must consist of the factors contained in the input experimental design file, which is displayed in the left-hand sidebar.",
                 "Examples and a description of expressions for ANOVA-like tests is availble in the",
@@ -371,7 +358,6 @@ ui <- fluidPage(
               # show glm results
               conditionalPanel(
                 condition = "output.glmResultsCompleted",
-                #condition = "(input.runGLM == 'show') && output.glmResultsCompleted",
                 tags$hr(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
@@ -423,6 +409,7 @@ ui <- fluidPage(
           # information tab
           tabPanel(
             "Information",
+            tags$br(),
             tags$p(
               align="center",
               HTML("<b>Helpful Information</b>")
@@ -534,7 +521,6 @@ server <- function(input, output, session) {
     # require input data
     req(input$geneCountsTable)
     # check the input table is not null
-    ## TO-DO: and is a csv
     if(is.null(input$geneCountsTable)){
       return(NULL)
     }
@@ -569,7 +555,6 @@ server <- function(input, output, session) {
     # require input data
     req(input$expDesignTable)
     # check the input table is not null
-    ## TO-DO: and is a csv
     if(is.null(input$expDesignTable)){
       return(NULL)
     }
