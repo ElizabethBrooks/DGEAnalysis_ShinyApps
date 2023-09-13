@@ -353,7 +353,7 @@ ui <- fluidPage(
                 " (e.g., sections 3.2.6 & 4.4.9)."
               ),
               tags$p(
-                HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same is in the experimental design file and shown in the left-hand sidebar.")
+                HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same as in the experimental design file and shown in the left-hand sidebar.")
               ),
               # show glm results
               conditionalPanel(
