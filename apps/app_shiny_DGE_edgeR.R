@@ -312,7 +312,7 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 plotOutput(outputId = "pairwiseMD"),
-                downloadButton(outputId = "downloadpairwiseMD", label = "Download Plot"),
+                downloadButton(outputId = "downloadPairwiseMD", label = "Download Plot"),
                 tags$p(
                   "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
                 ),
@@ -323,7 +323,7 @@ ui <- fluidPage(
                            #hover = "pairwiseVolcano_hover",
                            #brush = "pairwiseVolcano_brush"),
                 #verbatimTextOutput(outputId = "pairwiseVolcanoInfo")
-                downloadButton(outputId = "downloadpairwiseVolcano", label = "Download Plot"),
+                downloadButton(outputId = "downloadPairwiseVolcano", label = "Download Plot"),
                 tags$p(
                   "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
                 )
@@ -376,18 +376,6 @@ ui <- fluidPage(
                 tags$hr(),
                 tags$p(
                   align="center",
-                  HTML("<b>Model Exploration</b>")
-                ),
-                tags$br(),
-                plotOutput(outputId = "glmDispersions"),
-                downloadButton(outputId = "downloadGLMDispersions", label = "Download Plot"),
-                tags$p(
-                  "Above is a plot of the genewise quasi-likelihood (QL) dispersion against the log2 CPM gene expression levels.",
-                  "Dispersion estimates are obtained after fitting negative binomial models and calculating dispersion estimates."
-                ),
-                tags$hr(),
-                tags$p(
-                  align="center",
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
@@ -401,6 +389,18 @@ ui <- fluidPage(
                 downloadButton(outputId = "downloadGLMVolcano", label = "Download Plot"),
                 tags$p(
                   "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
+                ),
+                tags$hr(),
+                tags$p(
+                  align="center",
+                  HTML("<b>Model Exploration</b>")
+                ),
+                tags$br(),
+                plotOutput(outputId = "glmDispersions"),
+                downloadButton(outputId = "downloadGLMDispersions", label = "Download Plot"),
+                tags$p(
+                  "Above is a plot of the genewise quasi-likelihood (QL) dispersion against the log2 CPM gene expression levels.",
+                  "Dispersion estimates are obtained after fitting negative binomial models and calculating dispersion estimates."
                 )
               )
             )
@@ -737,7 +737,7 @@ server <- function(input, output, session) {
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   })
   
-  # download handler for the volcano plot
+  # download handler for the bar plot
   output$downloadLibrarySizes <- downloadHandler(
     filename = function() {
       "librarySizesPlot.png"
@@ -786,7 +786,7 @@ server <- function(input, output, session) {
     plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
   })
   
-  # download handler for the volcano plot
+  # download handler for the MDS plot
   output$downloadMDS <- downloadHandler(
     filename = function() {
       "MDSPlot.png"
@@ -812,7 +812,7 @@ server <- function(input, output, session) {
     heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
   })
   
-  # download handler for the volcano plot
+  # download handler for the heatmap plot
   output$downloadHeatmap <- downloadHandler(
     filename = function() {
       "heatmapPlot.png"
@@ -838,7 +838,7 @@ server <- function(input, output, session) {
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
   })
   
-  # download handler for the volcano plot
+  # download handler for the BCV plot
   output$downloadBCV <- downloadHandler(
     filename = function() {
       "BCVPlot.png"
@@ -921,7 +921,7 @@ server <- function(input, output, session) {
     abline(h=c(-1, 1), col="blue")
   })
   
-  # download handler for the volcano plot
+  # download handler for the MD plot
   output$downloadPairwiseMD <- downloadHandler(
     filename = function() {
       "pairwiseMDPlot.png"
@@ -931,7 +931,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # render volcano plot
+  # create volcano plot
   output$pairwiseVolcano <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
@@ -1049,7 +1049,7 @@ server <- function(input, output, session) {
     plotQLDisp(fit)
   })
     
-  # download handler for the volcano plot
+  # download handler for the GLM dispersions plot
   output$downloadGLMDispersions <- downloadHandler(
     filename = function() {
       "glmDispersionsPlot.png"
@@ -1133,7 +1133,7 @@ server <- function(input, output, session) {
     abline(h=c(-1, 1), col="blue")
   })
   
-  # download handler for the volcano plot
+  # download handler for the GLM MD plot
   output$downloadGLMMD <- downloadHandler(
     filename = function() {
       "glmMDPlot.png"
@@ -1143,7 +1143,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # render volcano plot
+  # render GLM volcano plot
   output$glmVolcano <- renderPlot({
     # perform glm test
     tested <- glmContrast()
