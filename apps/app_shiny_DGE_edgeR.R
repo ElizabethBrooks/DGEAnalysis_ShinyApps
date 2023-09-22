@@ -727,8 +727,12 @@ server <- function(input, output, session) {
     list <- normalizeData()
     # retrieve the number of samples
     numSamples <- ncol(list)
+    # save the plot
+    png("librarySizesPlot.png")
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -764,12 +768,16 @@ server <- function(input, output, session) {
     #points <- c(1:numLevels-1)
     # setup colors
     colors <- as.numeric(group)
+    # save the plot
+    png("MDSPlot.png")
     # add extra space to right of plot area and change clipping to figure
     par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
     # MDS plot with distances approximating log2 fold changes
     plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
     # place the legend outside the right side of the plot
     #legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -788,8 +796,12 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
+    # save the plot
+    png("heatmapPlot.png")
     # create heatmap of individual RNA-seq samples using moderated log CPM
     heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -808,8 +820,12 @@ server <- function(input, output, session) {
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
+    # save the plot
+    png("BCVPlot.png")
     # create BCV plot
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -881,10 +897,14 @@ server <- function(input, output, session) {
   output$pairwiseMD <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
+    # save the plot
+    png("pairwiseMDPlot.png")
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c(-1, 1), col="blue")
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -919,6 +939,9 @@ server <- function(input, output, session) {
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
+    # save the plot
+    file = "pairwiseVolcanoPlot.png"
+    ggsave(file, plot = volcanoPlotPairwise, device = "png")
     # display the plot
     volcanoPlotPairwise
   })
@@ -1002,8 +1025,12 @@ server <- function(input, output, session) {
   output$glmDispersions <- renderPlot({
     # retrieve the fitted glm
     fit <- glmFitting()
+    # save the plot
+    png("glmDispersionsPlot.png")
     # return the plot
     plotQLDisp(fit)
+    # close
+    dev.off()
   })
     
   # download handler for the volcano plot
@@ -1076,10 +1103,14 @@ server <- function(input, output, session) {
   output$glmMD <- renderPlot({
     # perform glm test
     tested <- glmContrast()
+    # save the plot
+    png("glmMDPlot.png")
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c(-1, 1), col="blue")
+    # close
+    dev.off()
   })
   
   # download handler for the volcano plot
@@ -1114,6 +1145,9 @@ server <- function(input, output, session) {
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
+    # save the plot
+    file = "glmVolcanoPlot.png"
+    ggsave(file, plot = volcanoPlotGLM, device = "png")
     # display the plot
     volcanoPlotGLM
   })
