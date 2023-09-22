@@ -733,6 +733,8 @@ server <- function(input, output, session) {
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
     # close
     dev.off()
+    # create barplot of library sizes before normalization
+    barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   })
   
   # download handler for the volcano plot
@@ -778,6 +780,10 @@ server <- function(input, output, session) {
     #legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
     # close
     dev.off()
+    # add extra space to right of plot area and change clipping to figure
+    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    # MDS plot with distances approximating log2 fold changes
+    plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
   })
   
   # download handler for the volcano plot
@@ -802,6 +808,8 @@ server <- function(input, output, session) {
     heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
     # close
     dev.off()
+    # create heatmap of individual RNA-seq samples using moderated log CPM
+    heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
   })
   
   # download handler for the volcano plot
@@ -826,6 +834,8 @@ server <- function(input, output, session) {
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
     # close
     dev.off()
+    # create BCV plot
+    plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
   })
   
   # download handler for the volcano plot
@@ -905,6 +915,10 @@ server <- function(input, output, session) {
     abline(h=c(-1, 1), col="blue")
     # close
     dev.off()
+    # return MD plot
+    plotMD(tested, main = "Mean-Difference (MD) Plot")
+    # add blue lines to indicate 2-fold changes
+    abline(h=c(-1, 1), col="blue")
   })
   
   # download handler for the volcano plot
@@ -1031,6 +1045,8 @@ server <- function(input, output, session) {
     plotQLDisp(fit)
     # close
     dev.off()
+    # return the plot
+    plotQLDisp(fit)
   })
     
   # download handler for the volcano plot
@@ -1111,6 +1127,10 @@ server <- function(input, output, session) {
     abline(h=c(-1, 1), col="blue")
     # close
     dev.off()
+    # return MD plot
+    plotMD(tested, main = "Mean-Difference (MD) Plot")
+    # add blue lines to indicate 2-fold changes
+    abline(h=c(-1, 1), col="blue")
   })
   
   # download handler for the volcano plot
