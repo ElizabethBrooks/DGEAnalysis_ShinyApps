@@ -1,14 +1,11 @@
 # load packages 
 library(shiny)
-library(DT)
+#library(DT)
 library(shinythemes)
 library(ggplot2)
 library(rcartocolor)
-library(ggVennDiagram)
+#library(ggVennDiagram)
 library(edgeR)
-library(grid)
-library(ggplotify)
-library(ggpubr)
 require(dplyr)
 
 # color blind safe plotting palettes

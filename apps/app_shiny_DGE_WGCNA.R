@@ -1,6 +1,6 @@
 # load packages 
 library(shiny)
-library(DT)
+#library(DT)
 library(shinythemes)
 library(rcartocolor)
 library(WGCNA)
@@ -88,6 +88,171 @@ ui <- fluidPage(
     # Output: Show plots
     mainPanel(
       
+      # getting started text
+      conditionalPanel(
+        condition = "!(output.countsUploaded && output.designUploaded)",
+        tags$h1("Getting Started", align = "center"),
+        tags$br(),
+        tags$p(
+          HTML("<b>Hello!</b>"),
+          "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar."
+        ),
+        tags$br(),
+        tags$p(
+          "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
+        ),
+        tags$br(),
+        tags$p(
+          "Example gene counts and experimental design tables are displayed below."
+        ),
+        tags$hr(),
+        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
+        tableOutput(outputId = "exampleCountsOne"),
+        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
+        tableOutput(outputId = "exampleCountsTwo"),
+        tags$hr(),
+        fluidRow(
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of six samples and one factor with two levels:"),
+            tableOutput(outputId = "exampleDesignOne"), 
+          ),
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of twelve samples and two factors each with two levels:"),
+            tableOutput(outputId = "exampleDesignTwo") 
+          ),
+        )
+      ),
+      
+      # error text
+      conditionalPanel(
+        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        tags$h1(
+          "Error", 
+          align="center"
+        ),
+        tags$br(),
+        tags$p(
+          "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+        ),
+        tags$br(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        ),
+        tags$p(
+          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
+        ),
+      ),
+      
+      # processing text
+      conditionalPanel(
+        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        tags$h1(
+          "Processing", 
+          align="center"
+        ),
+        tags$br(),
+        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
+      ),
+      
+      # results text and plots
+      conditionalPanel(
+        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        # set of tab panels
+        tabsetPanel(
+          type = "tabs",
+          tabPanel(
+            "Tips",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> Navigate to the data exploration or analysis results by clicking the tabs above.")
+            ),
+            tags$p(
+              HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <b>Analysis Results</b> tab above.")
+            ),
+            tags$p(
+              HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
+            )
+          ),
+          
+          # data normalization and exploration tab
+          tabPanel(
+            "Analysis Results",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Analysis Results</b>")
+            ),
+            plotOutput(outputId = "clusterSamples"),
+            #downloadButton(outputId = "downloadClusterSamples", label = "Download Plot")
+          ),
+          
+          # information tab
+          tabPanel(
+            "Information",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Information</b>")
+            ),
+            tags$p(
+              "This application for DGE analysis was created by",
+              tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
+              "."
+            ),
+            tags$p(
+              "The latest version of this application may be downloaded from",
+              tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps"),
+              "."
+            ),
+            tags$p(
+              "Example gene counts and experimental design tables are also provided on",
+              tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data"),
+              "."
+            ),
+            tags$p(
+              "An example RNA-seq data set may be obtained from",
+              tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
+              tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), 
+              "."
+            ),
+            tags$p(
+              "Gene tables were may be created from RNA-seq data as described in ", 
+              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
+              "."
+            ),
+            tags$p(
+              "A tutorial of the biostatistical analysis performed in this application is provided in ", 
+              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
+              "."
+            )
+          )
+        )
+      )
     )
   )
 )
