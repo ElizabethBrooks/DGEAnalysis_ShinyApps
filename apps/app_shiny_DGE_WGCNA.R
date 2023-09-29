@@ -441,14 +441,14 @@ server <- function(input, output, session) {
     rownames(datExpr0) = names(geneCounts)
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
-    gsg$allOK
+    #gsg$allOK
     # remove the offending genes and samples from the data
     if (!gsg$allOK){
       # Optionally, print the gene and sample names that were removed:
-      if (sum(!gsg$goodGenes)>0)
-        printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")));
-      if (sum(!gsg$goodSamples)>0)
-        printFlush(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")));
+      #if (sum(!gsg$goodGenes)>0)
+        #printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")));
+      #if (sum(!gsg$goodSamples)>0)
+        #printFlush(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")));
       # Remove the offending genes and samples from the data:
       datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
     }
@@ -457,7 +457,7 @@ server <- function(input, output, session) {
   })
   
   # function to render clustering plot
-  samplesOutliers <- renderPlot({
+  output$samplesOutliers <- renderPlot({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
@@ -503,9 +503,8 @@ server <- function(input, output, session) {
     #nSamples = nrow(datExpr)
     # Form a data frame analogous to expression data that will hold the traits
     #samples = rownames(datExpr)
-    #traitRows = match(samples, allTraits$sample)
-    #datTraits = allTraits[traitRows, -1]
-    #rownames(datTraits) = allTraits[traitRows, 1]
+    #traitRows = match(samples, rownames(allTraits))
+    #datTraits = allTraits[traitRows,]
     # clean up memory
     #collectGarbage()
   #})
