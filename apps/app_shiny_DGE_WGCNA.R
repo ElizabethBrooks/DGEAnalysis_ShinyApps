@@ -260,6 +260,65 @@ ui <- fluidPage(
 # Define server 
 server <- function(input, output, session) {
   ##
+  # Example Data Setup
+  ##
+  
+  # render example gene counts table
+  output$exampleCountsOne <- renderTable({
+    # create example counts table
+    exCountsTable <- data.frame(
+      Gene = c("gene-1", "gene-2", "gene-3", "gene-4", "gene-5"),
+      SampleOne = c(0, 0, 0, 0, 0),
+      SampleTwo = c(10, 20, 30, 40, 50),
+      SampleThree = c(111, 222, 333, 444, 555),
+      SampleFour = c(1, 2, 3, 4, 5),
+      SampleFive = c(0, 0, 0, 0, 0),
+      SampleSix = c(1000, 2000, 3000, 4000, 5000),
+      SampleSeven = c(11, 12, 13, 14, 15),
+      SampleEight = c(0, 0, 0, 0, 0)
+    )
+  })
+  
+  # render example gene counts table
+  output$exampleCountsTwo <- renderTable({
+    # create example counts table
+    exCountsTable <- data.frame(
+      Gene = c("geneA", "geneB", "geneC"),
+      sample_1 = c(0, 0, 0),
+      sample_2 = c(10, 20, 30),
+      sample_3 = c(111, 222, 333),
+      sample_4 = c(1, 2, 3),
+      sample_5 = c(3, 3, 3),
+      sample_6 = c(1000, 2000, 3000),
+      sample_7 = c(11, 12, 13),
+      sample_8 = c(1, 1, 1),
+      sample_9 = c(123, 12, 1),
+      sample_10 = c(3, 32, 321),
+      sample_11 = c(33, 333, 33),
+      sample_12 = c(2, 2, 2)
+    )
+  })
+  
+  # render first example gene counts table
+  output$exampleDesignOne <- renderTable({
+    # create example counts table
+    exDesignTable <- data.frame(
+      Sample = c("SampleOne", "SampleTwo", "SampleThree", "SampleFour", "SampleFive", "SampleSix"),
+      Group = c("1", "1", "1", "2", "2", "2")
+    )
+  })
+  
+  # render second example gene counts table
+  output$exampleDesignTwo <- renderTable({
+    # create example counts table
+    exDesignTable <- data.frame(
+      Individual = c("sample_1", "sample_2", "sample_3", "sample_4", "sample_5", "sample_6", "sample_7", "sample_8", "sample_9", "sample_10", "sample_11", "sample_12"),
+      Treatment = c("1", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2", "2"),
+      Genotype = c("1", "1", "1", "2", "2", "2", "1", "1", "1", "2", "2", "2")
+    )
+  })
+  
+  ##
   # Data Setup
   ##
   

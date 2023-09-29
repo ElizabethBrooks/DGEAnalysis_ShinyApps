@@ -1,10 +1,8 @@
 # load packages 
 library(shiny)
-#library(DT)
 library(shinythemes)
 library(ggplot2)
 library(rcartocolor)
-#library(ggVennDiagram)
 library(edgeR)
 require(dplyr)
 
@@ -82,7 +80,7 @@ ui <- fluidPage(
         )
       )
     ),
-
+    
     # Output: Show plots
     mainPanel(
       
@@ -286,6 +284,21 @@ ui <- fluidPage(
                 label = "Second Level",
                 choices = c("")
               ),
+              sliderInput(
+                "logfcut", 
+                h4("Fold change cut off"), 
+                min=0, 
+                max=10, 
+                step=0.1,
+                value=1.2
+              ),
+              sliderInput(
+                "FDRcut",
+                h4("FDR cut off"),
+                min = 0, 
+                max = 0.1, 
+                value=0.05 
+              ),
               # show glm results
               conditionalPanel(
                 condition = "output.pairwiseResultsCompleted",
@@ -315,10 +328,10 @@ ui <- fluidPage(
                 ),
                 tags$br(),
                 plotOutput(outputId = "pairwiseVolcano"),
-                           #click = "pairwiseVolcano_click",
-                           #dblclick = "pairwiseVolcano_dblclick",
-                           #hover = "pairwiseVolcano_hover",
-                           #brush = "pairwiseVolcano_brush"),
+                #click = "pairwiseVolcano_click",
+                #dblclick = "pairwiseVolcano_dblclick",
+                #hover = "pairwiseVolcano_hover",
+                #brush = "pairwiseVolcano_brush"),
                 #verbatimTextOutput(outputId = "pairwiseVolcanoInfo")
                 downloadButton(outputId = "downloadPairwiseVolcano", label = "Download Plot"),
                 tags$p(
@@ -402,7 +415,7 @@ ui <- fluidPage(
               )
             )
           ),
-            
+          
           # information tab
           tabPanel(
             "Information",
@@ -546,7 +559,7 @@ server <- function(input, output, session) {
     # return the counts table
     geneCounts
   })
-
+  
   # retrieve input data
   inputDesign <- reactive({
     # require input data
@@ -564,7 +577,7 @@ server <- function(input, output, session) {
     return(!is.null(inputDesign()))
   })
   outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
-    
+  
   # check input design type
   designFactors <- reactive({
     # check if the input files are valid
@@ -585,7 +598,7 @@ server <- function(input, output, session) {
     #factor(paste(targets[,1],targets[,2],sep="."))
     factor(targets[,1])
   })
-
+  
   # compare input design and counts samples
   compareSamples <- reactive({
     # retrieve input design samples
@@ -624,7 +637,7 @@ server <- function(input, output, session) {
     return(TRUE)
   })
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
-
+  
   # update inputs for comparisons
   observe({
     # retrieve input design table
@@ -666,7 +679,7 @@ server <- function(input, output, session) {
       Factors = group
     )
   })
-
+  
   ##
   # Data Normalization & Exploration
   ##
@@ -699,7 +712,7 @@ server <- function(input, output, session) {
     # calculate scaling factors
     list <- calcNormFactors(list)
   })
-    
+  
   # download table with number of filtered genes
   output$cpmNorm <- downloadHandler(
     # retrieve file name
@@ -774,7 +787,7 @@ server <- function(input, output, session) {
     # MDS plot with distances approximating log2 fold changes
     plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
     # place the legend outside the right side of the plot
-    #legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
+    legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
     # close
     dev.off()
     # add extra space to right of plot area and change clipping to figure
@@ -874,7 +887,7 @@ server <- function(input, output, session) {
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
   })  
-    
+  
   # check if file has been uploaded
   output$pairwiseResultsCompleted <- reactive({
     if(is.null(pairwiseTest())){
@@ -890,7 +903,8 @@ server <- function(input, output, session) {
     # perform exact test
     tested <- pairwiseTest()
     # view the total number of differentially expressed genes at a p-value of 0.05
-    resultsSummary <- summary(decideTests(tested))
+    DGEgenes = decideTests(tested,p.value=input$FDRcut, lfc=input$logfcut)
+    resultsSummary <- summary(DGEgenes)
     # create the results summary
     resultsTable <- data.frame(
       Direction = c("Down", "NotSig", "Up"),
@@ -909,14 +923,15 @@ server <- function(input, output, session) {
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
     # close
     dev.off()
     # return MD plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot")
+    plotMD(tested, main = "Mean-Difference (MD) Plot", hl.col=c("red","blue"), hl.cex=c(1.5,1.5), p.value=input$FDRcut)
     # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
   })
+  
   
   # download handler for the MD plot
   output$downloadPairwiseMD <- downloadHandler(
@@ -937,9 +952,9 @@ server <- function(input, output, session) {
     # add column for identifying direction of DE gene expression
     resultsTbl$topDE <- "NA"
     # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < 0.05] <- "Up"
+    resultsTbl$topDE[resultsTbl$logFC > input$logfcut & resultsTbl$FDR < input$FDRcut] <- "Up"
     # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < 0.05] <- "Down"
+    resultsTbl$topDE[resultsTbl$logFC < (-1*input$logfcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
@@ -951,11 +966,12 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
     # save the plot
-    file = "pairwiseVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotPairwise, device = "png")
+    #file = "pairwiseVolcanoPlot.png"
+    #ggsave(file, plot = volcanoPlotPairwise, device = "png")
     # display the plot
     volcanoPlotPairwise
   })
+  
   
   # download handler for the volcano plot
   output$downloadPairwiseVolcano <- downloadHandler(
@@ -970,16 +986,16 @@ server <- function(input, output, session) {
   ## TO-DO: allow users to select plot points
   # render text from brushed plot points
   #output$volcanoInfo <- renderText({
-    # perform exact test
-    #tested <- pairwiseTest()
-    # create a results table of DE genes
-    #resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-    # add column with -log10(FDR) values
-    #resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
-    # With base graphics, need to tell it what the x and y variables are.
-    #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
+  # perform exact test
+  #tested <- pairwiseTest()
+  # create a results table of DE genes
+  #resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+  # add column with -log10(FDR) values
+  #resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
+  # With base graphics, need to tell it what the x and y variables are.
+  #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
-    
+  
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
@@ -1019,7 +1035,7 @@ server <- function(input, output, session) {
     # return design layout
     design
   })
-    
+  
   # reactive function for fitting the glm
   glmFitting <- reactive({
     # calculate scaling factors
@@ -1031,7 +1047,7 @@ server <- function(input, output, session) {
     # estimate the QL dispersions
     glmQLFit(list, design, robust=TRUE)
   })
-    
+  
   # render plot of QL dispersions
   output$glmDispersions <- renderPlot({
     # retrieve the fitted glm
@@ -1045,7 +1061,7 @@ server <- function(input, output, session) {
     # return the plot
     plotQLDisp(fit)
   })
-    
+  
   # download handler for the GLM dispersions plot
   output$downloadGLMDispersions <- downloadHandler(
     filename = function() {
@@ -1055,7 +1071,7 @@ server <- function(input, output, session) {
       file.copy("glmDispersionsPlot.png", file, overwrite=TRUE)
     }
   )
-    
+  
   ##
   # GLM Contrasts
   ##
@@ -1082,7 +1098,7 @@ server <- function(input, output, session) {
     design <- glmDesign()
     # examine the overall effect of treatment
     glmContrast <- makeContrasts(glmSet = glmExpression,
-                                   levels=design)
+                                 levels=design)
     # look at genes with significant expression across all UV groups
     glmTreat(fit, contrast=glmContrast)
   })
@@ -1102,7 +1118,7 @@ server <- function(input, output, session) {
     # perform glm test
     tested <- glmContrast()
     # view the total number of differentially expressed genes at a p-value of 0.05
-    resultsSummary <- summary(decideTests(tested))
+    resultsSummary <- summary(decideTests(tested), p.value=input$FDRcut, lfc=input$logfcut)
     # create the results summary
     resultsTable <- data.frame(
       Direction = c("Down", "NotSig", "Up"),
@@ -1121,13 +1137,13 @@ server <- function(input, output, session) {
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
     # close
     dev.off()
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c(-1, 1), col="blue")
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
   })
   
   # download handler for the GLM MD plot
@@ -1149,9 +1165,10 @@ server <- function(input, output, session) {
     # add column for identifying direction of DE gene expression
     resultsTbl$topDE <- "NA"
     # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < 0.05] <- "Up"
+    resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < input$FDRcut] <- "Up"
     # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < 0.05] <- "Down"
+    # identify significantly down DE genes
+    resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < input$FDRcut] <- "Down"
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
@@ -1163,8 +1180,8 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
     # save the plot
-    file = "glmVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotGLM, device = "png")
+    #file = "glmVolcanoPlot.png"
+    #ggsave(file, plot = volcanoPlotGLM, device = "png")
     # display the plot
     volcanoPlotGLM
   })
