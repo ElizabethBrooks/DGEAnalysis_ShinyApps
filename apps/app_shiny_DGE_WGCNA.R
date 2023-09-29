@@ -4,11 +4,10 @@ library(shiny)
 library(shinythemes)
 library(rcartocolor)
 library(WGCNA)
+require(dplyr)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
-
-
 
 # color blind safe plotting palettes
 # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
@@ -57,15 +56,7 @@ ui <- fluidPage(
       ),
       # show panel depending on input files
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        tags$p(
-          "Select Analysis Type:"
-        ),
-        selectInput(
-          inputId = "analysisType",
-          label = "Analysis Type",
-          choices = list("pairwise", "glm")
-        ),
+        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
         # horizontal line
         tags$hr(),
         fluidRow(
@@ -95,21 +86,16 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar."
+          "Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar."
         ),
         tags$br(),
         tags$p(
-          "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
+          "Note that the WGCNA analysis results and plots may take several moments to process depending on the size of the input gene counts table and experimental design."
         ),
         tags$br(),
         tags$p(
-          "Example gene counts and experimental design tables are displayed below."
+          "Example experimental design and gene counts tables are displayed below."
         ),
-        tags$hr(),
-        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
-        tableOutput(outputId = "exampleCountsOne"),
-        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
-        tableOutput(outputId = "exampleCountsTwo"),
         tags$hr(),
         fluidRow(
           column(
@@ -122,7 +108,12 @@ ui <- fluidPage(
             HTML("<b>Example</b> experimental design table of twelve samples and two factors each with two levels:"),
             tableOutput(outputId = "exampleDesignTwo") 
           ),
-        )
+        ),
+        tags$hr(),
+        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
+        tableOutput(outputId = "exampleCountsOne"),
+        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
+        tableOutput(outputId = "exampleCountsTwo")
       ),
       
       # error text
@@ -159,19 +150,19 @@ ui <- fluidPage(
       ),
       
       # processing text
-      conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        tags$h1(
-          "Processing", 
-          align="center"
-        ),
-        tags$br(),
-        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
-      ),
+      #conditionalPanel(
+        #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        #tags$h1(
+          #"Processing", 
+          #align="center"
+        #),
+        #tags$br(),
+        #"The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
+      #),
       
       # results text and plots
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -189,13 +180,7 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> Navigate to the data exploration or analysis results by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
-            ),
-            tags$p(
-              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <b>Analysis Results</b> tab above.")
-            ),
-            tags$p(
-              HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
+              HTML("<b>Tip 3:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
             )
           ),
           
@@ -207,8 +192,8 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Analysis Results</b>")
             ),
-            plotOutput(outputId = "clusterSamples"),
-            #downloadButton(outputId = "downloadClusterSamples", label = "Download Plot")
+            plotOutput(outputId = "samplesOutliers")
+            #plotOutput(outputId = "clusterSamples")
           ),
           
           # information tab
@@ -321,28 +306,7 @@ server <- function(input, output, session) {
   ##
   # Data Setup
   ##
-  
-  #Set working directory
-  #workingDir = args[1];
-  #workingDir="/Users/bamflappy/PfrenderLab/OLYM_dMelUV/KAP4/ensembl/GCA_021134715.1/biostatistics/NetworkAnalysis/WGCN_tolerance_WGCNA"
-  #setwd(workingDir)
-  
-  #Import normalized gene count data
-  #inputTable <- read.csv(file=args[2], row.names="gene")
-  #inputTable <- read.csv(file="/Users/bamflappy/PfrenderLab/OLYM_dMelUV/KAP4/ensembl/GCA_021134715.1/biostatistics/DEAnalysis/Genotypes/glmQLF_normalizedCounts.csv", row.names="gene", header=TRUE)
-  
-  #Subset input counts by genotype or factor
-  #inputTable_subset <- inputTable[,args[3]:args[4]]
-  #inputTable_subset <- inputTable[,1:24]
-  
-  # retrieve subsetTag tag
-  #tag <- args[5]
-  #tag <- "OLYM"
-  
-  # load in the trait data
-  #allTraits = read.csv(args[6])
-  #allTraits = read.csv("/Users/bamflappy/Repos/TranscriptomeAnalysisPipeline_DaphniaUVTolerance/InputData/expDesign_treatment_WGCNA_Olympics.csv")
-  
+
   # retrieve input data
   inputGeneCounts <- reactive({
     # require input data
@@ -461,15 +425,23 @@ server <- function(input, output, session) {
   
   # reactive function to prepare data
   prepareData <- reactive({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # begin to construct the DGE list object
+    geneCounts <- inputGeneCounts()
     # transpose each subset
-    datExpr0 = data = as.data.frame(t(inputTable_subset))
-    names(datExpr0) = rownames(inputTable_subset)
-    rownames(datExpr0) = names(inputTable_subset)
-    
+    datExpr0 = data = as.data.frame(t(geneCounts))
+    names(datExpr0) = rownames(geneCounts)
+    rownames(datExpr0) = names(geneCounts)
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
     gsg$allOK
-    
     # remove the offending genes and samples from the data
     if (!gsg$allOK){
       # Optionally, print the gene and sample names that were removed:
@@ -480,18 +452,20 @@ server <- function(input, output, session) {
       # Remove the offending genes and samples from the data:
       datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
     }
+    # return the expression data
+    datExpr0
   })
   
   # function to render clustering plot
-  clusterSamples <- renderPlot({
+  samplesOutliers <- renderPlot({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
-    exportFile <- paste(tag, "sampleClustering.png", sep="_")
-    png(file = exportFile, width = 12, height = 9, units="in", res=150)
+    #exportFile <- paste(tag, "sampleClustering.png", sep="_")
+    #png(file = exportFile, width = 12, height = 9, units="in", res=150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
@@ -499,51 +473,58 @@ server <- function(input, output, session) {
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
     #abline(h = 15, col = "red")
-    dev.off()
+    #dev.off()
   })
-  
-  ## TO-DO: allow users to specify cutoff
-  # Determine cluster under the line
-  #clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
-  #table(clust)
-  # clust 1 contains the samples we want to keep.
-  #keepSamples = (clust==1)
   
   # reactive function to prepare trait data
-  traitData <- reactive({
+  #traitData <- reactive({
+    # check if the input files are valid
+    #if(is.null(inputGeneCounts())) {
+      #return(NULL)
+    #}else if(is.null(inputDesign())) {
+      #return(NULL)
+    #}else if(is.null(compareSamples())) {
+      #return(NULL)
+    #}
+    # retrieve input design table
+    #allTraits <- inputDesign()
     # retrieve prepared data
-    datExpr0 <- prepareData()
+    #datExpr0 <- prepareData()
+    ## TO-DO: allow users to specify cutoff
+    # Determine cluster under the line
+    #clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
+    #table(clust)
+    # clust 1 contains the samples we want to keep.
+    #keepSamples = (clust==1)
     # filter out samples
-    datExpr <- datExpr0
+    #datExpr <- datExpr0
     #datExpr = datExpr0[keepSamples, ]
-    nGenes = ncol(datExpr)
-    nSamples = nrow(datExpr)
-    
+    #nGenes = ncol(datExpr)
+    #nSamples = nrow(datExpr)
     # Form a data frame analogous to expression data that will hold the traits
-    samples = rownames(datExpr)
-    traitRows = match(samples, allTraits$sample)
-    datTraits = allTraits[traitRows, -1]
-    rownames(datTraits) = allTraits[traitRows, 1]
-    
+    #samples = rownames(datExpr)
+    #traitRows = match(samples, allTraits$sample)
+    #datTraits = allTraits[traitRows, -1]
+    #rownames(datTraits) = allTraits[traitRows, 1]
     # clean up memory
-    collectGarbage()
-  })
+    #collectGarbage()
+  #})
   
   # function to render updated clustering plot
-  clusterSamples <- renderPlot({
+  #clusterSamples <- renderPlot({
     # Re-cluster samples
-    exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
-    png(file = exportFile, width = 10, height = 7, units="in", res=150)
-    sizeGrWindow(10,7)
-    sampleTree2 = hclust(dist(datExpr), method = "average")
+    #exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
+    #png(file = exportFile, width = 10, height = 7, units="in", res=150)
+    #sizeGrWindow(10,7)
+    #sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
-    traitColors = numbers2colors(datTraits, signed = FALSE)
+    #traitColors = numbers2colors(datTraits, signed = FALSE)
     # Plot the sample dendrogram and the colors underneath.
-    plotDendroAndColors(sampleTree2, traitColors,
-                        groupLabels = names(datTraits),
-                        main = "Sample dendrogram and trait heatmap")
-    dev.off()
-  })
+    #plotDendroAndColors(sampleTree2, traitColors,
+                        #groupLabels = names(datTraits),
+                        #main = "Sample dendrogram and trait heatmap")
+    #dev.off()
+  #})
   
   
 }
