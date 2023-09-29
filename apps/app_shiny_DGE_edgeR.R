@@ -59,24 +59,15 @@ ui <- fluidPage(
         ),
         selectInput(
           inputId = "analysisType",
-          label = "Analysis Type",
+          label = NULL,
           choices = list("pairwise", "glm")
         ),
         # horizontal line
         tags$hr(),
         fluidRow(
-          # organize tables with columns
-          column(
-            width = 2,
-            # display table of sample IDs in order of header from input table
-            tableOutput(outputId = "sampleIDs")
-            #DTOutput("sampleTable")
-          ),
-          column(
-            width = 2,
-            # display input design table
-            tableOutput(outputId = "designTable")
-          )
+          align = "center",
+          # display input design table
+          tableOutput(outputId = "designTable")
         )
       )
     ),
@@ -590,12 +581,11 @@ server <- function(input, output, session) {
     }
     # retrieve input design
     targets <- inputDesign()
-    # check data type of the first column of sample names
-    if(!is.character(targets[,1])){
+    # check data type of the sample names
+    if(!is.character(rownames(targets))){
       return(NULL)
     }
     # setup a design matrix
-    #factor(paste(targets[,1],targets[,2],sep="."))
     factor(targets[,1])
   })
   

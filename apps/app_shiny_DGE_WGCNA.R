@@ -56,22 +56,13 @@ ui <- fluidPage(
       ),
       # show panel depending on input files
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
-        # horizontal line
+        #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        condition = "(output.countsUploaded && output.designUploaded)",
         tags$hr(),
         fluidRow(
-          # organize tables with columns
-          column(
-            width = 2,
-            # display table of sample IDs in order of header from input table
-            tableOutput(outputId = "sampleIDs")
-            #DTOutput("sampleTable")
-          ),
-          column(
-            width = 2,
-            # display input design table
-            tableOutput(outputId = "designTable")
-          )
+          align = "center",
+          # display input design table
+          tableOutput(outputId = "designTable")
         )
       )
     ),
@@ -117,37 +108,37 @@ ui <- fluidPage(
       ),
       
       # error text
-      conditionalPanel(
-        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
-        tags$h1(
-          "Error", 
-          align="center"
-        ),
-        tags$br(),
-        tags$p(
-          "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
-        ),
-        tags$br(),
-        tags$p(
-          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
-        ),
-        tags$p(
-          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
-        ),
-        tags$p(
-          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
-        ),
-        tags$p(
-          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
-        ),
-        tags$br(),
-        tags$p(
-          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
-        ),
-        tags$p(
-          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
-        ),
-      ),
+      #conditionalPanel(
+        #condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        #tags$h1(
+          #"Error", 
+          #align="center"
+        #),
+        #tags$br(),
+        #tags$p(
+          #"The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        #),
+        #tags$br(),
+        #tags$p(
+          #HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+        #),
+        #tags$p(
+          #HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+        #),
+        #tags$p(
+          #HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+        #),
+        #tags$p(
+          #HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+        #),
+        #tags$br(),
+        #tags$p(
+          #"Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        #),
+        #tags$p(
+          #HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
+        #),
+      #),
       
       # processing text
       #conditionalPanel(
@@ -419,6 +410,29 @@ server <- function(input, output, session) {
   })
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
+  # render experimental design table
+  output$designTable <- renderTable({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # retrieve input gene counts table
+    geneCounts <- inputGeneCounts()
+    # retrieve column names
+    sampleNames <- colnames(geneCounts)
+    # retrieve input design table
+    allTraits <- inputDesign()
+    # create data frame
+    design <- data.frame(
+      Sample = sampleNames,
+      Factors = allTraits
+    )
+  })
+  
   ##
   # Data Prep
   ##
@@ -510,7 +524,7 @@ server <- function(input, output, session) {
   #})
   
   # function to render updated clustering plot
-  #clusterSamples <- renderPlot({
+  #output$clusterSamples <- renderPlot({
     # Re-cluster samples
     #exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
     #png(file = exportFile, width = 10, height = 7, units="in", res=150)
