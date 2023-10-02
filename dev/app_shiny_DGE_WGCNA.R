@@ -20,7 +20,8 @@ ui <- fluidPage(
   #shinythemes::themeSelector(),
   
   # use a theme
-  theme = shinytheme("yeti"),
+  #theme = shinytheme("yeti"),
+  theme = shinytheme("superhero"),
   
   # add application title
   titlePanel("Weighted Gene Co-Expression Network Analysis (WGCNA)"),
@@ -181,6 +182,8 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Analysis Results</b>")
             ),
+            textOutput(outputId = "testSamples"),
+            textOutput(outputId = "testGenes"),
             plotOutput(outputId = "samplesOutliers")
             #plotOutput(outputId = "clusterSamples")
           ),
@@ -435,6 +438,67 @@ server <- function(input, output, session) {
   # Data Prep
   ##
   
+  # render text with gene test results
+  output$testGenes <- renderText({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # begin to construct the DGE list object
+    geneCounts <- inputGeneCounts()
+    # transpose each subset
+    datExpr0 = data = as.data.frame(t(geneCounts))
+    names(datExpr0) = rownames(geneCounts)
+    rownames(datExpr0) = names(geneCounts)
+    #Check the genes across all samples
+    gsg = goodSamplesGenes(datExpr0, verbose = 3)
+    # remove the offending genes and samples from the data
+    if (!gsg$allOK){
+      # Optionally, print the gene and sample names that were removed:
+      if (sum(!gsg$goodGenes)>0){
+        print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
+      }else{
+        print("Input normalized counts for the genes are good.")
+      }
+    }else{
+      print("Input normalized counts for the genes are good.")
+    }
+  })
+  
+  # render text with sample test results
+  output$testSamples <- renderText({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # begin to construct the DGE list object
+    geneCounts <- inputGeneCounts()
+    # transpose each subset
+    datExpr0 = data = as.data.frame(t(geneCounts))
+    names(datExpr0) = rownames(geneCounts)
+    rownames(datExpr0) = names(geneCounts)
+    #Check the genes across all samples
+    gsg = goodSamplesGenes(datExpr0, verbose = 3)
+    # remove the offending genes and samples from the data
+    if (!gsg$allOK){
+      if (sum(!gsg$goodSamples)>0){
+        print(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
+      }else{
+        print("Input normalized counts for the samples are good.")
+      }
+    }else{
+      print("Input normalized counts for the samples are good.")
+    }
+  })
+  
   # reactive function to prepare data
   prepareData <- reactive({
     # check if the input files are valid
@@ -453,14 +517,8 @@ server <- function(input, output, session) {
     rownames(datExpr0) = names(geneCounts)
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
-    #gsg$allOK
     # remove the offending genes and samples from the data
     if (!gsg$allOK){
-      # Optionally, print the gene and sample names that were removed:
-      #if (sum(!gsg$goodGenes)>0)
-        #printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")));
-      #if (sum(!gsg$goodSamples)>0)
-        #printFlush(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")));
       # Remove the offending genes and samples from the data:
       datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
     }
