@@ -184,8 +184,8 @@ ui <- fluidPage(
             ),
             textOutput(outputId = "testSamples"),
             textOutput(outputId = "testGenes"),
-            plotOutput(outputId = "samplesOutliers")
-            #plotOutput(outputId = "clusterSamples")
+            plotOutput(outputId = "samplesOutliers"),
+            plotOutput(outputId = "clusterSamples")
           ),
           
           # information tab
@@ -547,19 +547,19 @@ server <- function(input, output, session) {
   })
   
   # reactive function to prepare trait data
-  #traitData <- reactive({
+  traitData <- reactive({
     # check if the input files are valid
-    #if(is.null(inputGeneCounts())) {
-      #return(NULL)
-    #}else if(is.null(inputDesign())) {
-      #return(NULL)
-    #}else if(is.null(compareSamples())) {
-      #return(NULL)
-    #}
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
     # retrieve input design table
-    #allTraits <- inputDesign()
+    allTraits <- inputDesign()
     # retrieve prepared data
-    #datExpr0 <- prepareData()
+    datExpr0 <- prepareData()
     ## TO-DO: allow users to specify cutoff
     # Determine cluster under the line
     #clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
@@ -569,31 +569,37 @@ server <- function(input, output, session) {
     # filter out samples
     #datExpr <- datExpr0
     #datExpr = datExpr0[keepSamples, ]
-    #nGenes = ncol(datExpr)
-    #nSamples = nrow(datExpr)
+    nGenes = ncol(datExpr0)
+    nSamples = nrow(datExpr0)
     # Form a data frame analogous to expression data that will hold the traits
-    #samples = rownames(datExpr)
-    #traitRows = match(samples, rownames(allTraits))
-    #datTraits = allTraits[traitRows,]
+    samples = rownames(datExpr0)
+    traitRows = match(samples, rownames(allTraits))
+    datTraits = allTraits[traitRows,]
     # clean up memory
     #collectGarbage()
-  #})
+    # return the trait data
+    datTraits
+  })
   
   # function to render updated clustering plot
-  #output$clusterSamples <- renderPlot({
+  output$clusterSamples <- renderPlot({
+    # retrieve prepared data
+    datExpr <- prepareData()
+    # retrieve the trait data
+    datTraits <- traitData()
     # Re-cluster samples
     #exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
     #png(file = exportFile, width = 10, height = 7, units="in", res=150)
-    #sizeGrWindow(10,7)
-    #sampleTree2 = hclust(dist(datExpr), method = "average")
+    sizeGrWindow(10,7)
+    sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
-    #traitColors = numbers2colors(datTraits, signed = FALSE)
+    traitColors = numbers2colors(datTraits, signed = FALSE)
     # Plot the sample dendrogram and the colors underneath.
-    #plotDendroAndColors(sampleTree2, traitColors,
-                        #groupLabels = names(datTraits),
-                        #main = "Sample dendrogram and trait heatmap")
+    plotDendroAndColors(sampleTree2, traitColors,
+                        groupLabels = names(datTraits),
+                        main = "Sample dendrogram and trait heatmap")
     #dev.off()
-  #})
+  })
   
   
 }
