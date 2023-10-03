@@ -476,8 +476,8 @@ server <- function(input, output, session) {
     }
   })
   
-  # render text with sample test results
-  output$testSamples <- renderText({
+  # reactive function to setup the data
+  setupData <- reactive({
     # check if the input files are valid
     if(is.null(inputGeneCounts())) {
       return(NULL)
@@ -492,8 +492,41 @@ server <- function(input, output, session) {
     datExpr0 = data = as.data.frame(t(geneCounts))
     names(datExpr0) = rownames(geneCounts)
     rownames(datExpr0) = names(geneCounts)
+    # return the expression data
+    datExpr0
+  })
+  
+  # reactive function to check the data
+  checkData <- reactive({
+    # retrieve setup data
+    datExpr0 <- setupData()
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
+    # return the data check results
+    gsg
+  })
+  
+  # reactive function to prepare the data
+  prepareData <- reactive({
+    # retrieve checked data
+    datExpr0 <- setupData()
+    # retrieve checked data results
+    gsg <- checkData()
+    # remove the offending genes and samples from the data
+    if (!gsg$allOK){
+      # Remove the offending genes and samples from the data:
+      datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
+    }
+    # return the expression data
+    datExpr0
+  })
+  
+  # render text with sample test results
+  output$testSamples <- renderText({
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve checked data results
+    gsg <- checkData()
     # remove the offending genes and samples from the data
     if (!gsg$allOK){
       if (sum(!gsg$goodSamples)>0){
@@ -504,33 +537,6 @@ server <- function(input, output, session) {
     }else{
       print("Input normalized counts for the samples are good.")
     }
-  })
-  
-  # reactive function to prepare data
-  prepareData <- reactive({
-    # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }else if(is.null(inputDesign())) {
-      return(NULL)
-    }else if(is.null(compareSamples())) {
-      return(NULL)
-    }
-    # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
-    # transpose each subset
-    datExpr0 = data = as.data.frame(t(geneCounts))
-    names(datExpr0) = rownames(geneCounts)
-    rownames(datExpr0) = names(geneCounts)
-    #Check the genes across all samples
-    gsg = goodSamplesGenes(datExpr0, verbose = 3)
-    # remove the offending genes and samples from the data
-    if (!gsg$allOK){
-      # Remove the offending genes and samples from the data:
-      datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
-    }
-    # return the expression data
-    datExpr0
   })
   
   # function to render clustering plot
@@ -613,8 +619,13 @@ server <- function(input, output, session) {
   # Pick Soft Thresholding Powers
   ##
   
-  ## TO-DO: change mclapply to lapply in WGCNA package
-  # https://groups.google.com/g/shiny-discuss/c/EHXP2OpKLjk
+  # reactive function to select soft powers
+  selectPowers <- reactive({
+    # Choose a set of soft-thresholding powers
+    powers = c(c(1:10), seq(from = 12, to=36, by=2))
+    # return the powers
+    powers
+  })
   
   # reactive function to set powers
   setPowers <- reactive({
@@ -622,8 +633,8 @@ server <- function(input, output, session) {
     datExpr <- prepareData()
     # retrieve the trait data
     datTraits <- traitData()
-    # Choose a set of soft-thresholding powers
-    powers = c(c(1:10), seq(from = 12, to=36, by=2))
+    # retrieve selected powers
+    powers <- selectPowers()
     # Call the network topology analysis function
     sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
     # return powers
@@ -632,12 +643,10 @@ server <- function(input, output, session) {
   
   # render plot with scale independence and mean connectivity
   output$plotThreshold <- renderPlot({
-    # retrieve prepared data
-    #datExpr <- prepareData()
-    # retrieve the trait data
-    #datTraits <- traitData()
     # retrieve soft thresholding powers
     sft <- setPowers()
+    # retrieve selected powers
+    powers <- selectPowers()
     # Plot the results
     cex1 = 0.9
     #exportFile <- paste(genotype, "SoftPowers.png", sep="_")
