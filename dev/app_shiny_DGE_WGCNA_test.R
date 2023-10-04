@@ -78,9 +78,9 @@ ui <- fluidPage(
       
       textOutput(outputId = "testSamples"),
       textOutput(outputId = "testGenes"),
-      imageOutput(outputId = "samplesOutliers"),
-      imageOutput(outputId = "clusterSamples"),
-      imageOutput(outputId = "plotThreshold")
+      imageOutput(outputId = "samplesOutliers", height="50%", width="50%"),
+      imageOutput(outputId = "clusterSamples", height="50%", width="50%"),
+      imageOutput(outputId = "plotThreshold", height="50%", width="50%")
     )
   )
 )
@@ -374,7 +374,7 @@ server <- function(input, output, session) {
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
     exportFile <- "sampleClustering.png"
-    png(file = exportFile, width = 12, height = 9, units="in", res=150)
+    png(file = exportFile, width = 12, height = 9, units = "in", res = 150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
@@ -384,7 +384,7 @@ server <- function(input, output, session) {
     #abline(h = 15, col = "red")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "This is alternate text", height = "900px")
   }, deleteFile = TRUE)
   
   # reactive function to prepare trait data
@@ -422,7 +422,7 @@ server <- function(input, output, session) {
     datTraits <- traitData()
     # Re-cluster samples
     exportFile <- "sampleDendrogram_traitHeatmap.png"
-    png(file = exportFile, width = 10, height = 7, units="in", res=150)
+    png(file = exportFile, width = 10, height = 7, units = "in", res = 150)
     sizeGrWindow(10,7)
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -433,7 +433,7 @@ server <- function(input, output, session) {
                         main = "Sample dendrogram and trait heatmap")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "This is alternate text", height = "700px")
   }, deleteFile = TRUE)
   
   
@@ -466,7 +466,7 @@ server <- function(input, output, session) {
     # Plot the results
     cex1 = 0.9
     exportFile <- "SoftPowers.png"
-    png(file = exportFile, wi = 9, he = 5, units="in", res=150)
+    png(file = exportFile, wi = 9, he = 5, units = "in", res = 150)
     sizeGrWindow(9, 5)
     par(mfrow = c(1,2))
     # Scale-free topology fit index as a function of the soft-thresholding power
@@ -485,7 +485,7 @@ server <- function(input, output, session) {
     text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
   

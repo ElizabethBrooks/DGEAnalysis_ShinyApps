@@ -145,19 +145,17 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Analysis Results</b>")
             ),
-            plotOutput(outputId = "testBasicPlot"),
-            plotOutput(outputId = "testGGPlot"),
             textOutput(outputId = "testSamples"),
             textOutput(outputId = "testGenes"),
-            plotOutput(outputId = "samplesOutliers"),
-            plotOutput(outputId = "clusterSamples"),
-            plotOutput(outputId = "plotThreshold"),
+            imageOutput(outputId = "samplesOutliers", height="50%", width="50%"),
+            imageOutput(outputId = "clusterSamples", height="50%", width="50%"),
+            imageOutput(outputId = "plotThreshold", height="50%", width="50%"),
             tableOutput(outputId = "moduleTable"),
             tableOutput(outputId = "colorsTable"),
-            plotOutput(outputId = "plotEigengenes"),
-            plotOutput(outputId = "plotTrimmedDendro"),
-            plotOutput(outputId = "plotColorDendro"),
-            plotOutput(outputId = "hclustPlot")
+            imageOutput(outputId = "plotEigengenes", height="50%", width="50%"),
+            imageOutput(outputId = "plotTrimmedDendro", height="50%", width="50%"),
+            imageOutput(outputId = "plotColorDendro", height="50%", width="50%"),
+            imageOutput(outputId = "hclustPlot", height="50%", width="50%")
           )
         )
       )
@@ -167,18 +165,6 @@ ui <- fluidPage(
 
 # Define server 
 server <- function(input, output, session) {
-  ## TO-DO: remove after testing
-  output$testBasicPlot <- renderPlot({
-    plot(mtcars$wt, mtcars$mpg, main="Scatterplot Example",
-         xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-  })
-  
-  ## TO-DO: remove after testing
-  output$testGGPlot <- renderPlot({
-    ggplot(mtcars, aes(x = drat, y = mpg)) +
-      geom_point()
-  })
-  
   ##
   # Example Data Setup
   ##
@@ -438,8 +424,6 @@ server <- function(input, output, session) {
     datExpr0 <- setupData()
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
-    # return the data check results
-    gsg
   })
   
   # reactive function to prepare the data
@@ -476,15 +460,15 @@ server <- function(input, output, session) {
   })
   
   # function to render clustering plot
-  output$samplesOutliers <- renderPlot({
+  output$samplesOutliers <- renderImage({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
-    #exportFile <- paste(tag, "sampleClustering.png", sep="_")
-    #png(file = exportFile, width = 12, height = 9, units="in", res=150)
+    exportFile <- "sampleClustering.png"
+    png(file = exportFile, width = 12, height = 9, units="in", res=150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
@@ -492,8 +476,10 @@ server <- function(input, output, session) {
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
     #abline(h = 15, col = "red")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "900px")
+  }, deleteFile = TRUE)
   
   # reactive function to prepare trait data
   traitData <- reactive({
@@ -531,14 +517,14 @@ server <- function(input, output, session) {
   })
   
   # function to render updated clustering plot
-  output$clusterSamples <- renderPlot({
+  output$clusterSamples <- renderImage({
     # retrieve prepared data
     datExpr <- prepareData()
     # retrieve the trait data
     datTraits <- traitData()
     # Re-cluster samples
-    #exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
-    #png(file = exportFile, width = 10, height = 7, units="in", res=150)
+    exportFile <- "sampleDendrogram_traitHeatmap.png"
+    png(file = exportFile, width = 10, height = 7, units="in", res=150)
     sizeGrWindow(10,7)
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -547,8 +533,10 @@ server <- function(input, output, session) {
     plotDendroAndColors(sampleTree2, traitColors,
                         groupLabels = names(datTraits),
                         main = "Sample dendrogram and trait heatmap")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "700px")
+  }, deleteFile = TRUE)
   
   
   ##
@@ -559,8 +547,6 @@ server <- function(input, output, session) {
   selectPowers <- reactive({
     # Choose a set of soft-thresholding powers
     powers = c(c(1:10), seq(from = 12, to=36, by=2))
-    # return the powers
-    powers
   })
   
   # reactive function to pick powers
@@ -573,20 +559,18 @@ server <- function(input, output, session) {
     powers <- selectPowers()
     # Call the network topology analysis function
     sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
-    # return powers
-    sft
   })
   
   # render plot with scale independence and mean connectivity
-  output$plotThreshold <- renderPlot({
+  output$plotThreshold <- renderImage({
     # retrieve soft thresholding powers
     sft <- pickPowers()
     # retrieve selected powers
     powers <- selectPowers()
     # Plot the results
     cex1 = 0.9
-    #exportFile <- paste(genotype, "SoftPowers.png", sep="_")
-    #png(file = exportFile, wi = 9, he = 5, units="in", res=150)
+    exportFile <- "SoftPowers.png"
+    png(file = exportFile, wi = 9, he = 5, units="in", res=150)
     sizeGrWindow(9, 5)
     par(mfrow = c(1,2))
     # Scale-free topology fit index as a function of the soft-thresholding power
@@ -603,7 +587,10 @@ server <- function(input, output, session) {
          xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
          main = paste("Mean connectivity"))
     text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
+  }, deleteFile = TRUE)
   
   
   ##
@@ -653,18 +640,19 @@ server <- function(input, output, session) {
   })
   
   # function to render hierarchical clustering plot
-  output$hclustPlot <- renderPlot({
+  output$hclustPlot <- renderImage({
     # retrieve gene tree
     geneTree <- createGeneTree()
     # Plot the resulting clustering tree (dendrogram)
-    #exportFile <- paste(genotype, minModuleSize, sep="_")
-    #exportFile <- paste(exportFile, "geneClustering.png", sep="_")
-    #png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    exportFile <- "geneClustering.png"
+    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
     sizeGrWindow(12,9)
     plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
          labels = FALSE, hang = 0.04)
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "900px")
+  }, deleteFile = TRUE)
   
   # reactive function to identify modules
   findModules <- reactive({
@@ -705,22 +693,23 @@ server <- function(input, output, session) {
   })
   
   # function to render plot of dendorgram with colors
-  output$plotColorDendro <- renderPlot({
+  output$plotColorDendro <- renderImage({
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
     dynamicColors <- convertLabels()
     # Plot the dendrogram and colors underneath
-    #exportFile <- paste(genotype, minModuleSize, sep="_")
-    #exportFile <- paste(exportFile, "dynamicTreeCut.png", sep="_")
-    #png(file = exportFile, wi = 8, he = 6, units="in", res=150)
+    exportFile <- "dynamicTreeCut.png"
+    png(file = exportFile, wi = 8, he = 6, units="in", res=150)
     sizeGrWindow(8,6)
     plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                         dendroLabels = FALSE, hang = 0.03,
                         addGuide = TRUE, guideHang = 0.05,
                         main = "Gene dendrogram and module colors")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "600px")
+  }, deleteFile = TRUE)
   
   # reactive function to calculate eigengenes
   calcEigengenes <- reactive({
@@ -738,22 +727,23 @@ server <- function(input, output, session) {
   })
   
   # function to plot the clustering of eigengenes
-  output$plotEigengenes <- renderPlot({
+  output$plotEigengenes <- renderImage({
     # retrieve eigengenes
     METree <- calcEigengenes()
     # retrieve eigengene threshold
     MEDissThres <- eigengeneThreshold()
     # Plot the result
-    #exportFile <- paste(genotype, minModuleSize, sep="_")
-    #exportFile <- paste(exportFile, "clusteringME.png", sep="_")
-    #png(file = exportFile, wi = 7, he = 6, units="in", res=150)
+    exportFile <- "clusteringME.png"
+    png(file = exportFile, wi = 7, he = 6, units="in", res=150)
     sizeGrWindow(7, 6)
     plot(METree, main = "Clustering of module eigengenes",
          xlab = "", sub = "")
     # Plot the cut line into the dendrogram
     abline(h=MEDissThres, col = "red")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "600px")
+  }, deleteFile = TRUE)
   
   # reactive function to merge module colors
   mergeColors <- reactive({
@@ -784,7 +774,7 @@ server <- function(input, output, session) {
   })
   
   # function to plot the trimmed dendrogram
-  output$plotTrimmedDendro <- renderPlot({
+  output$plotTrimmedDendro <- renderImage({
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
@@ -793,16 +783,17 @@ server <- function(input, output, session) {
     mergedColors <- mergeColors()
     # plot the gene dendrogram again, with the 
     # original and merged module colors underneath
-    #exportFile <- paste(genotype, minModuleSize, sep="_")
-    #exportFile <- paste(exportFile, "geneDendro-3.png", sep="_")
-    #png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    exportFile <- "geneDendro-3.png"
+    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
     sizeGrWindow(12, 9)
     plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                         c("Dynamic Tree Cut", "Merged dynamic"),
                         dendroLabels = FALSE, hang = 0.03,
                         addGuide = TRUE, guideHang = 0.05)
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text", height = "900px")
+  }, deleteFile = TRUE)
   
   # reactive function to retrieve eigengenes
   retrieveEigengenes <- reactive({
