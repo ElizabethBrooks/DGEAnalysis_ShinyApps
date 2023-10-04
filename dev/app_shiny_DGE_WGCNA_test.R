@@ -78,8 +78,8 @@ ui <- fluidPage(
       
       textOutput(outputId = "testSamples"),
       textOutput(outputId = "testGenes"),
-      #plotOutput(outputId = "samplesOutliers"),
-      plotOutput(outputId = "clusterSamples"),
+      imageOutput(outputId = "samplesOutliers"),
+      imageOutput(outputId = "clusterSamples"),
       imageOutput(outputId = "plotThreshold")
     )
   )
@@ -330,8 +330,6 @@ server <- function(input, output, session) {
     datExpr0 <- setupData()
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
-    # return the data check results
-    gsg
   })
   
   # reactive function to prepare the data
@@ -368,15 +366,15 @@ server <- function(input, output, session) {
   })
   
   # function to render clustering plot
-  output$samplesOutliers <- renderPlot({
+  output$samplesOutliers <- renderImage({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
-    #exportFile <- paste(tag, "sampleClustering.png", sep="_")
-    #png(file = exportFile, width = 12, height = 9, units="in", res=150)
+    exportFile <- "sampleClustering.png"
+    png(file = exportFile, width = 12, height = 9, units="in", res=150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
@@ -384,8 +382,10 @@ server <- function(input, output, session) {
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
     #abline(h = 15, col = "red")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = TRUE)
   
   # reactive function to prepare trait data
   traitData <- reactive({
@@ -415,14 +415,14 @@ server <- function(input, output, session) {
   })
   
   # function to render updated clustering plot
-  output$clusterSamples <- renderPlot({
+  output$clusterSamples <- renderImage({
     # retrieve prepared data
     datExpr <- prepareData()
     # retrieve the trait data
     datTraits <- traitData()
     # Re-cluster samples
-    #exportFile <- paste(tag, "sampleDendrogram_traitHeatmap.png", sep="_")
-    #png(file = exportFile, width = 10, height = 7, units="in", res=150)
+    exportFile <- "sampleDendrogram_traitHeatmap.png"
+    png(file = exportFile, width = 10, height = 7, units="in", res=150)
     sizeGrWindow(10,7)
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -431,8 +431,10 @@ server <- function(input, output, session) {
     plotDendroAndColors(sampleTree2, traitColors,
                         groupLabels = names(datTraits),
                         main = "Sample dendrogram and trait heatmap")
-    #dev.off()
-  })
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = TRUE)
   
   
   ##
@@ -457,19 +459,33 @@ server <- function(input, output, session) {
   
   # render plot with scale independence and mean connectivity
   output$plotThreshold <- renderImage({
-    # A temp file to save the output. It will be deleted after renderImage
-    #     # sends it, because deleteFile=TRUE.
-         outfile <- tempfile(fileext='.png')
-    # 
-    #     # Generate a png
-         png(outfile, width=400, height=400)
-         plot(mtcars$wt, mtcars$mpg, main="Scatterplot Example",
-              xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
-         dev.off()
-    # 
-    #     # Return a list
-         list(src = outfile,
-              alt = "This is alternate text")
+    # retrieve soft thresholding powers
+    sft <- pickPowers()
+    # retrieve selected powers
+    powers <- selectPowers()
+    # Plot the results
+    cex1 = 0.9
+    exportFile <- "SoftPowers.png"
+    png(file = exportFile, wi = 9, he = 5, units="in", res=150)
+    sizeGrWindow(9, 5)
+    par(mfrow = c(1,2))
+    # Scale-free topology fit index as a function of the soft-thresholding power
+    plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+         xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+         main = paste("Scale independence"));
+    text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+         labels=powers,cex=cex1,col="red");
+    # this line corresponds to using an R^2 cut-off of h
+    abline(h=0.80,col="red")
+    abline(h=0.90,col="blue")
+    # Mean connectivity as a function of the soft-thresholding power
+    plot(sft$fitIndices[,1], sft$fitIndices[,5],
+         xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+         main = paste("Mean connectivity"))
+    text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
   }, deleteFile = TRUE)
   
   
