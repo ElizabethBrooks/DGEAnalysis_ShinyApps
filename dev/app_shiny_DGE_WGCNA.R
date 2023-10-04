@@ -5,6 +5,7 @@ library(shinythemes)
 library(rcartocolor)
 library(WGCNA)
 require(dplyr)
+library(ggplot2)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
@@ -112,50 +113,6 @@ ui <- fluidPage(
         tableOutput(outputId = "exampleCountsTwo")
       ),
       
-      # error text
-      #conditionalPanel(
-        #condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
-        #tags$h1(
-          #"Error", 
-          #align="center"
-        #),
-        #tags$br(),
-        #tags$p(
-          #"The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
-        #),
-        #tags$br(),
-        #tags$p(
-          #HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
-        #),
-        #tags$p(
-          #HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
-        #),
-        #tags$p(
-          #HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
-        #),
-        #tags$p(
-          #HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
-        #),
-        #tags$br(),
-        #tags$p(
-          #"Please check that each of the input files were uploaded correctly in the left-hand side bar."
-        #),
-        #tags$p(
-          #HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
-        #),
-      #),
-      
-      # processing text
-      #conditionalPanel(
-        #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
-        #tags$h1(
-          #"Processing", 
-          #align="center"
-        #),
-        #tags$br(),
-        #"The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
-      #),
-      
       # results text and plots
       conditionalPanel(
         condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
@@ -188,52 +145,19 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Analysis Results</b>")
             ),
+            plotOutput(outputId = "testBasicPlot"),
+            plotOutput(outputId = "testGGPlot"),
             textOutput(outputId = "testSamples"),
             textOutput(outputId = "testGenes"),
             plotOutput(outputId = "samplesOutliers"),
             plotOutput(outputId = "clusterSamples"),
-            plotOutput(outputId = "plotThreshold")
-          ),
-          
-          # information tab
-          tabPanel(
-            "Information",
-            tags$br(),
-            tags$p(
-              align="center",
-              HTML("<b>Helpful Information</b>")
-            ),
-            tags$p(
-              "This application for DGE analysis was created by",
-              tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
-              "."
-            ),
-            tags$p(
-              "The latest version of this application may be downloaded from",
-              tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps"),
-              "."
-            ),
-            tags$p(
-              "Example gene counts and experimental design tables are also provided on",
-              tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data"),
-              "."
-            ),
-            tags$p(
-              "An example RNA-seq data set may be obtained from",
-              tags$a("ScienceDirect", href = "https://www.sciencedirect.com/science/article/pii/S0147651319302684"), "and",
-              tags$a("NCBI", href = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/"), 
-              "."
-            ),
-            tags$p(
-              "Gene tables were may be created from RNA-seq data as described in ", 
-              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
-              "."
-            ),
-            tags$p(
-              "A tutorial of the biostatistical analysis performed in this application is provided in ", 
-              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
-              "."
-            )
+            plotOutput(outputId = "plotThreshold"),
+            tableOutput(outputId = "moduleTable"),
+            tableOutput(outputId = "colorsTable"),
+            plotOutput(outputId = "plotEigengenes"),
+            plotOutput(outputId = "plotTrimmedDendro"),
+            plotOutput(outputId = "plotColorDendro"),
+            plotOutput(outputId = "hclustPlot")
           )
         )
       )
@@ -243,6 +167,18 @@ ui <- fluidPage(
 
 # Define server 
 server <- function(input, output, session) {
+  ## TO-DO: remove after testing
+  output$testBasicPlot <- renderPlot({
+    plot(mtcars$wt, mtcars$mpg, main="Scatterplot Example",
+         xlab="Car Weight ", ylab="Miles Per Gallon ", pch=19)
+  })
+  
+  ## TO-DO: remove after testing
+  output$testGGPlot <- renderPlot({
+    ggplot(mtcars, aes(x = drat, y = mpg)) +
+      geom_point()
+  })
+  
   ##
   # Example Data Setup
   ##
@@ -627,12 +563,12 @@ server <- function(input, output, session) {
     powers
   })
   
-  # reactive function to set powers
-  setPowers <- reactive({
+  # reactive function to pick powers
+  pickPowers <- reactive({
     # retrieve prepared data
     datExpr <- prepareData()
     # retrieve the trait data
-    datTraits <- traitData()
+    #datTraits <- traitData()
     # retrieve selected powers
     powers <- selectPowers()
     # Call the network topology analysis function
@@ -644,7 +580,7 @@ server <- function(input, output, session) {
   # render plot with scale independence and mean connectivity
   output$plotThreshold <- renderPlot({
     # retrieve soft thresholding powers
-    sft <- setPowers()
+    sft <- pickPowers()
     # retrieve selected powers
     powers <- selectPowers()
     # Plot the results
@@ -670,6 +606,215 @@ server <- function(input, output, session) {
   })
   
   
+  ##
+  # Network Construction
+  ##
+  
+  ## TO-DO: allow user input
+  # reactive function to set soft powers
+  setPowers <- reactive({
+    # set the soft thresholding power
+    softPower = 9
+  })
+  
+  ## TO-DO: allow user input
+  # reactive function to set min module size
+  setSize <- reactive({
+    # We like large modules, so we set the minimum module size relatively high:
+    minModuleSize = 60
+  })
+  
+  ## TO-DO: allow user input
+  # reactive function to set eigengene threshold
+  eigengeneThreshold <- reactive({
+    # choose a height cut of 0.25, corresponding to correlation of 0.75, to merge
+    MEDissThres = 0.25
+  })
+  
+  # reactive function to create TOMs
+  createTOM <- reactive({
+    # retrieve prepared data
+    datExpr <- prepareData()
+    # retrieve input soft power
+    softPower <- setPowers()
+    # determine adjacency
+    adjacency = adjacency(datExpr, power = softPower)
+    # Turn adjacency into topological overlap
+    TOM = TOMsimilarity(adjacency)
+    dissTOM = 1-TOM
+  })
+  
+  # reactive function to create the gene tree
+  createGeneTree <- reactive({
+    # retrieve TOM
+    dissTOM <- createTOM()
+    # Call the hierarchical clustering function
+    geneTree = hclust(as.dist(dissTOM), method = "average")
+  })
+  
+  # function to render hierarchical clustering plot
+  output$hclustPlot <- renderPlot({
+    # retrieve gene tree
+    geneTree <- createGeneTree()
+    # Plot the resulting clustering tree (dendrogram)
+    #exportFile <- paste(genotype, minModuleSize, sep="_")
+    #exportFile <- paste(exportFile, "geneClustering.png", sep="_")
+    #png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    sizeGrWindow(12,9)
+    plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
+         labels = FALSE, hang = 0.04)
+    #dev.off()
+  })
+  
+  # reactive function to identify modules
+  findModules <- reactive({
+    # retrieve gene tree
+    geneTree <- createGeneTree()
+    # retrieve TOM
+    dissTOM <- createTOM()
+    # retrieve module size
+    minModuleSize <- setSize()
+    # Module identification using dynamic tree cut:
+    dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                                deepSplit = 2, pamRespectsDendro = FALSE,
+                                minClusterSize = minModuleSize)
+  })
+  
+  # function to render table of modules
+  output$moduleTable <- renderTable({
+    # retrieve modules
+    dynamicMods <- findModules()
+    # return table
+    table(dynamicMods)
+  })
+  
+  # reactive function to convert module labels
+  convertLabels <- reactive({
+    # retrieve modules
+    dynamicMods <- findModules()
+    # Convert numeric lables into colors
+    dynamicColors = labels2colors(dynamicMods)
+  })
+  
+  # function to render table of colors
+  output$colorsTable <- renderTable({
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # return table
+    table(dynamicColors)
+  })
+  
+  # function to render plot of dendorgram with colors
+  output$plotColorDendro <- renderPlot({
+    # retrieve gene tree
+    geneTree <- createGeneTree()
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # Plot the dendrogram and colors underneath
+    #exportFile <- paste(genotype, minModuleSize, sep="_")
+    #exportFile <- paste(exportFile, "dynamicTreeCut.png", sep="_")
+    #png(file = exportFile, wi = 8, he = 6, units="in", res=150)
+    sizeGrWindow(8,6)
+    plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
+                        dendroLabels = FALSE, hang = 0.03,
+                        addGuide = TRUE, guideHang = 0.05,
+                        main = "Gene dendrogram and module colors")
+    #dev.off()
+  })
+  
+  # reactive function to calculate eigengenes
+  calcEigengenes <- reactive({
+    # retrieve prepared data
+    datExpr <- prepareData()
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # Calculate eigengenes
+    MEList = moduleEigengenes(datExpr, colors = dynamicColors)
+    MEs = MEList$eigengenes
+    # Calculate dissimilarity of module eigengenes
+    MEDiss = 1-cor(MEs);
+    # Cluster module eigengenes
+    METree = hclust(as.dist(MEDiss), method = "average");
+  })
+  
+  # function to plot the clustering of eigengenes
+  output$plotEigengenes <- renderPlot({
+    # retrieve eigengenes
+    METree <- calcEigengenes()
+    # retrieve eigengene threshold
+    MEDissThres <- eigengeneThreshold()
+    # Plot the result
+    #exportFile <- paste(genotype, minModuleSize, sep="_")
+    #exportFile <- paste(exportFile, "clusteringME.png", sep="_")
+    #png(file = exportFile, wi = 7, he = 6, units="in", res=150)
+    sizeGrWindow(7, 6)
+    plot(METree, main = "Clustering of module eigengenes",
+         xlab = "", sub = "")
+    # Plot the cut line into the dendrogram
+    abline(h=MEDissThres, col = "red")
+    #dev.off()
+  })
+  
+  # reactive function to merge module colors
+  mergeColors <- reactive({
+    # retrieve prepared data
+    datExpr <- prepareData()
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # retrieve eigengene threshold
+    MEDissThres <- eigengeneThreshold()
+    # Call an automatic merging function
+    merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
+    # The merged module colors
+    mergedColors = merge$colors
+  })
+  
+  # reactive function to merge module eigengenes
+  mergeEigengenes <- reactive({
+    # retrieve prepared data
+    datExpr <- prepareData()
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # retrieve eigengene threshold
+    MEDissThres <- eigengeneThreshold()
+    # Call an automatic merging function
+    merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
+    # Eigengenes of the new merged modules:
+    mergedMEs = merge$newMEs
+  })
+  
+  # function to plot the trimmed dendrogram
+  output$plotTrimmedDendro <- renderPlot({
+    # retrieve gene tree
+    geneTree <- createGeneTree()
+    # retrieve modules
+    dynamicColors <- convertLabels()
+    # retrieve merged colors
+    mergedColors <- mergeColors()
+    # plot the gene dendrogram again, with the 
+    # original and merged module colors underneath
+    #exportFile <- paste(genotype, minModuleSize, sep="_")
+    #exportFile <- paste(exportFile, "geneDendro-3.png", sep="_")
+    #png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    sizeGrWindow(12, 9)
+    plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
+                        c("Dynamic Tree Cut", "Merged dynamic"),
+                        dendroLabels = FALSE, hang = 0.03,
+                        addGuide = TRUE, guideHang = 0.05)
+    #dev.off()
+  })
+  
+  # reactive function to retrieve eigengenes
+  retrieveEigengenes <- reactive({
+    # retrieve merged colors
+    mergedColors <- mergeColors()
+    # Rename to moduleColors
+    moduleColors = mergedColors
+    # Construct numerical labels corresponding to the colors
+    colorOrder = c("grey", standardColors(50));
+    moduleLabels = match(moduleColors, colorOrder)-1;
+    MEs = mergedMEs;
+  })
   
 }
 
