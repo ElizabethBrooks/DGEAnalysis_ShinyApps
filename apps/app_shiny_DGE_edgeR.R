@@ -222,11 +222,19 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Data Exploration</b>")
             ),
+            plotOutput(outputId = "PCA"),
+            downloadButton(outputId = "downloadPCA", label = "Download Plot"),
+            tags$p(
+              "In a principal component analysis (PCA) plot the distances between samples approximate the expression differences.",
+              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples and the same genes were selected for all comparisons.",
+              "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
+            ),
+            tags$br(),
             plotOutput(outputId = "MDS"),
             downloadButton(outputId = "downloadMDS", label = "Download Plot"),
             tags$p(
               "In a multidimensional scaling (MDS) plot the distances between samples approximate the expression differences.",
-              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples.",
+              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples and the top genes were selected separately for each pairwise comparison.",
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
@@ -750,6 +758,45 @@ server <- function(input, output, session) {
     # view the number of filtered genes
     table(keep)[2]
   }, colnames = FALSE)
+  
+  # render PCA plot
+  output$PCA <- renderPlot({
+    # retrieve input design table
+    group <- designFactors()
+    # calculate scaling factors
+    list <- filterNorm()
+    ## TO-DO: allow users to input shapes and colors or other features
+    # retrieve the number of grouping levels
+    #numLevels <- length(levels(group))
+    # setup chapes
+    #points <- c(1:numLevels-1)
+    # setup colors
+    colors <- as.numeric(group)
+    # save the plot
+    png("PCAPlot.png")
+    # add extra space to right of plot area and change clipping to figure
+    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    # PCA plot with distances approximating log2 fold changes
+    plotMDS(list, col=colors, gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
+    # place the legend outside the right side of the plot
+    legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
+    # close
+    dev.off()
+    # add extra space to right of plot area and change clipping to figure
+    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    # PCA plot with distances approximating log2 fold changes
+    plotMDS(list, col=colors, gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
+  })
+  
+  # download handler for the PCA plot
+  output$downloadPCA <- downloadHandler(
+    filename = function() {
+      "PCAPlot.png"
+    },
+    content = function(file) {
+      file.copy("PCAPlot.png", file, overwrite=TRUE)
+    }
+  )
   
   # render MDS plot
   output$MDS <- renderPlot({
