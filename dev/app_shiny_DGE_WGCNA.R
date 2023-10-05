@@ -1,11 +1,9 @@
 # load packages 
 library(shiny)
-#library(DT)
 library(shinythemes)
 library(rcartocolor)
 library(WGCNA)
 require(dplyr)
-library(ggplot2)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
@@ -113,9 +111,53 @@ ui <- fluidPage(
         tableOutput(outputId = "exampleCountsTwo")
       ),
       
+      # error text
+      conditionalPanel(
+        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        tags$h1(
+          "Error", 
+          align="center"
+        ),
+        tags$br(),
+        tags$p(
+          "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+        ),
+        tags$br(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        ),
+        tags$p(
+          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
+        ),
+      ),
+      
+      # processing text
+      conditionalPanel(
+        condition = "output.inputCheck && !output.resultsCompleted",
+        tags$h1(
+          "Processing", 
+          align="center"
+        ),
+        tags$br(),
+        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
+      ),
+      
       # results text and plots
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        condition = "output.inputCheck && output.resultsCompleted",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -137,25 +179,99 @@ ui <- fluidPage(
             )
           ),
           
-          # data normalization and exploration tab
+          # data cleaning tab
           tabPanel(
-            "Analysis Results",
+            "Data Cleaning",
             tags$br(),
             tags$p(
               align="center",
-              HTML("<b>Analysis Results</b>")
+              HTML("<b>Data Input and Cleaning</b>")
             ),
-            textOutput(outputId = "testSamples"),
-            textOutput(outputId = "testGenes"),
+            tags$br(),
             imageOutput(outputId = "samplesOutliers", height="50%", width="50%"),
             imageOutput(outputId = "clusterSamples", height="50%", width="50%"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Sample data check:</b>")
+            ),
+            textOutput(outputId = "testSamples"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Gene data check:</b>")
+            ),
+            textOutput(outputId = "testGenes")
+          ),
+          
+          # network construction tab
+          tabPanel(
+            "Network Construction",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Network Construction and Module Detection</b>")
+            ),
+            tags$br(),
             imageOutput(outputId = "plotThreshold", height="50%", width="50%"),
-            tableOutput(outputId = "moduleTable"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Enter soft thresholding power:</b>")
+            ),
+            numericInput("setPowers", "Power", value=6),
+            tags$br(),
+            tags$p(
+              HTML("<b>Enter minimum module size:</b>")
+            ),
+            numericInput("setSize", "Size", value=30),
+            #tags$br(),
+            #tags$p(
+              #HTML("<b>Module number labels and sizes:</b>")
+            #),
+            #tableOutput(outputId = "moduleTable"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Module color labels and sizes:</b>")
+            ),
             tableOutput(outputId = "colorsTable"),
+            tags$br(),
             imageOutput(outputId = "plotEigengenes", height="50%", width="50%"),
             imageOutput(outputId = "plotTrimmedDendro", height="50%", width="50%"),
             imageOutput(outputId = "plotColorDendro", height="50%", width="50%"),
             imageOutput(outputId = "hclustPlot", height="50%", width="50%")
+          ),
+          
+          # information tab
+          tabPanel(
+            "Information",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Information</b>")
+            ),
+            tags$p(
+              "This application for DGE analysis was created by",
+              tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
+              "."
+            ),
+            tags$p(
+              "The latest version of this application may be downloaded from",
+              tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps"),
+              "."
+            ),
+            tags$p(
+              "Example gene counts and experimental design tables are also provided on",
+              tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data/WGCNA"),
+              "."
+            ),
+            tags$p(
+              "Normalized gene tables were may be created from RNA-seq data as described in ", 
+              tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
+              "."
+            ),
+            tags$p(
+              "A tutorial of the network analysis performed in this application is provided in ", 
+              tags$a("Tutorials for the WGCNA Package", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/Tutorials/index.html"), 
+              "."
+            )
           )
         )
       )
@@ -223,6 +339,7 @@ server <- function(input, output, session) {
       Genotype = c("1", "1", "1", "2", "2", "2", "1", "1", "1", "2", "2", "2")
     )
   })
+  
   
   ##
   # Data Setup
@@ -363,8 +480,46 @@ server <- function(input, output, session) {
     )
   })
   
+  # update inputs
+  observe({
+    ## TO-DO: update from data
+    # set the soft thresholding power
+    softPower = 6
+    # update soft powers
+    updateNumericInput(
+      session,
+      "setPowers",
+      value = softPower
+    )
+    ## TO-DO: update from data
+    # we like large modules, so we set the minimum module size relatively high
+    minModuleSize = 30
+    # update min module size
+    updateNumericInput(
+      session,
+      "setSize",
+      value = minModuleSize
+    )
+  })
+  
+  ## TO-DO: consider allowing user input
+  # reactive function to set eigengene threshold
+  eigengeneThreshold <- reactive({
+    # choose a height cut of 0.25, corresponding to correlation of 0.75, to merge
+    MEDissThres = 0.25
+  })
+  
+  ## TO-DO: consider allowing user input
+  # reactive function to select soft powers
+  selectPowers <- reactive({
+    # Choose a set of soft-thresholding powers
+    #powers = c(c(1:10), seq(from = 12, to=36, by=2))
+    powers = c(c(1:10), seq(from = 12, to=20, by=2))
+  })
+  
+  
   ##
-  # Data Prep
+  # Data Input and Cleaning
   ##
   
   # render text with gene test results
@@ -540,14 +695,8 @@ server <- function(input, output, session) {
   
   
   ##
-  # Pick Soft Thresholding Powers
+  # Network Construction and Module Detection
   ##
-  
-  # reactive function to select soft powers
-  selectPowers <- reactive({
-    # Choose a set of soft-thresholding powers
-    powers = c(c(1:10), seq(from = 12, to=36, by=2))
-  })
   
   # reactive function to pick powers
   pickPowers <- reactive({
@@ -592,38 +741,14 @@ server <- function(input, output, session) {
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
-  
-  ##
-  # Network Construction
-  ##
-  
-  ## TO-DO: allow user input
-  # reactive function to set soft powers
-  setPowers <- reactive({
-    # set the soft thresholding power
-    softPower = 9
-  })
-  
-  ## TO-DO: allow user input
-  # reactive function to set min module size
-  setSize <- reactive({
-    # We like large modules, so we set the minimum module size relatively high:
-    minModuleSize = 60
-  })
-  
-  ## TO-DO: allow user input
-  # reactive function to set eigengene threshold
-  eigengeneThreshold <- reactive({
-    # choose a height cut of 0.25, corresponding to correlation of 0.75, to merge
-    MEDissThres = 0.25
-  })
-  
   # reactive function to create TOMs
   createTOM <- reactive({
+    # require input data
+    req(input$setPowers)
     # retrieve prepared data
     datExpr <- prepareData()
     # retrieve input soft power
-    softPower <- setPowers()
+    softPower <- input$setPowers
     # determine adjacency
     adjacency = adjacency(datExpr, power = softPower)
     # Turn adjacency into topological overlap
@@ -656,12 +781,14 @@ server <- function(input, output, session) {
   
   # reactive function to identify modules
   findModules <- reactive({
+    # require input data
+    req(input$setSize)
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve TOM
     dissTOM <- createTOM()
     # retrieve module size
-    minModuleSize <- setSize()
+    minModuleSize <- input$setSize
     # Module identification using dynamic tree cut:
     dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
                                 deepSplit = 2, pamRespectsDendro = FALSE,
@@ -799,6 +926,8 @@ server <- function(input, output, session) {
   retrieveEigengenes <- reactive({
     # retrieve merged colors
     mergedColors <- mergeColors()
+    # retrieve merged eigengenes
+    mergedMEs <- mergeEigengenes()
     # Rename to moduleColors
     moduleColors = mergedColors
     # Construct numerical labels corresponding to the colors
@@ -806,6 +935,37 @@ server <- function(input, output, session) {
     moduleLabels = match(moduleColors, colorOrder)-1;
     MEs = mergedMEs;
   })
+  
+  # reactive function to retrieve eigengene expression values
+  eigengeneExpression <- reactive({
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve module eigengenes
+    MEs <- retrieveEigengenes()
+    # transpose each subset
+    datExpr0 = data = as.data.frame(t(MEs))
+    names(datExpr0) = rownames(MEs)
+    rownames(datExpr0) = names(MEs)
+    # add a column for the row names
+    datExpr0 <- cbind(gene = rownames(datExpr0), datExpr0)
+    rownames(datExpr0) <- NULL
+    # return expression data
+    datExpr0
+    # export the expression data as a csv file
+    #exportFile <- "eigengeneExpression.csv"
+    #write.table(datExpr0, file=exportFile, sep=",", row.names=FALSE)
+  })
+  
+  # check if file has been uploaded
+  output$resultsCompleted <- reactive({
+    if(is.null(eigengeneExpression())){
+      return(FALSE)
+    }else{
+      return(TRUE)
+    }
+  })
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  
   
 }
 
