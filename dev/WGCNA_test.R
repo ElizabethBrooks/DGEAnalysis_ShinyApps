@@ -17,7 +17,7 @@ options(stringsAsFactors = FALSE)
 # Any error here may be ignored but you may want to update WGCNA if you see one.
 # Caution: skip this line if you run RStudio or other third-party R environments.
 # See note above.
-enableWGCNAThreads()
+#enableWGCNAThreads()
 
 
 ##
