@@ -1246,7 +1246,7 @@ server <- function(input, output, session) {
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the GLM MD plot
   output$downloadGLMMD <- downloadHandler(
