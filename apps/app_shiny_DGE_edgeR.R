@@ -54,6 +54,7 @@ ui <- fluidPage(
       # show panel depending on input files
       conditionalPanel(
         condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        tags$hr(),
         tags$p(
           "Select Analysis Type:"
         ),
@@ -62,8 +63,29 @@ ui <- fluidPage(
           label = NULL,
           choices = list("pairwise", "glm")
         ),
-        # horizontal line
         tags$hr(),
+        tags$p(
+          "Set Cut Offs:"
+        ),
+        sliderInput(
+          "logfcut", 
+          h4("Fold change cut off"), 
+          min=0, 
+          max=10, 
+          step=0.1,
+          value=1.2
+        ),
+        sliderInput(
+          "FDRcut",
+          h4("FDR cut off"),
+          min = 0, 
+          max = 0.1, 
+          value=0.05 
+        ),
+        tags$hr(),
+        tags$p(
+          "Design Table:"
+        ),
         fluidRow(
           align = "center",
           # display input design table
@@ -282,21 +304,6 @@ ui <- fluidPage(
                 inputId = "levelTwo",
                 label = "Second Level",
                 choices = c("")
-              ),
-              sliderInput(
-                "logfcut", 
-                h4("Fold change cut off"), 
-                min=0, 
-                max=10, 
-                step=0.1,
-                value=1.2
-              ),
-              sliderInput(
-                "FDRcut",
-                h4("FDR cut off"),
-                min = 0, 
-                max = 0.1, 
-                value=0.05 
               ),
               # show glm results
               conditionalPanel(
@@ -526,7 +533,7 @@ server <- function(input, output, session) {
   # Data Setup
   ##
   
-  # retrieve input data
+  # reactive function to retrieve input data
   inputGeneCounts <- reactive({
     # require input data
     req(input$geneCountsTable)
@@ -539,14 +546,14 @@ server <- function(input, output, session) {
   })
   
   # check if file has been uploaded
-  output$countsUploaded <- reactive({
+  output$countsUploaded <- function(){
     return(!is.null(inputGeneCounts()))
-  })
+  }
   outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
   
   
   # check input counts type
-  countsType <- reactive({
+  countsType <- function(){
     # retrieve input gene counts
     geneCounts <- inputGeneCounts()    
     # loop over each data frame column
@@ -558,9 +565,9 @@ server <- function(input, output, session) {
     }
     # return the counts table
     geneCounts
-  })
+  }
   
-  # retrieve input data
+  # reactive function to retrieve input data
   inputDesign <- reactive({
     # require input data
     req(input$expDesignTable)
@@ -573,13 +580,13 @@ server <- function(input, output, session) {
   })
   
   # check if file has been uploaded
-  output$designUploaded <- reactive({
+  output$designUploaded <- function(){
     return(!is.null(inputDesign()))
-  })
+  }
   outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
   
   # check input design type
-  designFactors <- reactive({
+  designFactors <- function(){
     # check if the input files are valid
     if(is.null(inputGeneCounts())) {
       return(NULL)
@@ -596,10 +603,10 @@ server <- function(input, output, session) {
     }
     # setup a design matrix
     factor(targets[,1])
-  })
+  }
   
   # compare input design and counts samples
-  compareSamples <- reactive({
+  compareSamples <- function(){
     # retrieve input design samples
     targets <- inputDesign()
     designSamples <- data.frame(ID1 = targets[,1])
@@ -622,10 +629,10 @@ server <- function(input, output, session) {
     }else{
       return(TRUE) # there were mismatches
     }
-  })
+  }
   
   # check if file has been uploaded
-  output$inputCheck <- reactive({
+  output$inputCheck <- function(){
     if(is.null(inputGeneCounts())) {
       return(NULL)
     }else if(is.null(inputDesign())) {
@@ -634,7 +641,7 @@ server <- function(input, output, session) {
       return(NULL)
     }
     return(TRUE)
-  })
+  }
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
   # update inputs for comparisons
@@ -683,8 +690,8 @@ server <- function(input, output, session) {
   # Data Normalization & Exploration
   ##
   
-  # reactive function for data normalization
-  normalizeData <- reactive({
+  # function for data normalization
+  normalizeData <- function(){
     # check if the input files are valid
     if(is.null(inputGeneCounts())) {
       return(NULL)
@@ -698,10 +705,10 @@ server <- function(input, output, session) {
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     list <- DGEList(counts=geneCounts,group=group)
-  })
+  }
   
-  # reactive function for normalized data filtering
-  filterNorm <- reactive({
+  # function for normalized data filtering
+  filterNorm <- function(){
     # begin to construct the DGE list object
     list <- normalizeData()
     # filter the list of gene counts based on expression levels
@@ -710,7 +717,7 @@ server <- function(input, output, session) {
     list <- list[keep, , keep.lib.sizes=FALSE]
     # calculate scaling factors
     list <- calcNormFactors(list)
-  })
+  }
   
   # download table with number of filtered genes
   output$cpmNorm <- downloadHandler(
@@ -730,22 +737,26 @@ server <- function(input, output, session) {
     }
   )
   
-  # render plot of library sizes before normalization
-  output$librarySizes <- renderImage({
+  # plot of library sizes before normalization
+  createLibrarySizes <- function(){
     # begin to construct the DGE list object
     list <- normalizeData()
     # retrieve the number of samples
     numSamples <- ncol(list)
+    # create barplot of library sizes before normalization
+    barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
+  }
+    
+  # render plot of library sizes before normalization
+  output$librarySizes <- renderImage({
     # save the plot
     exportFile <- "librarySizesPlot.png"
     png(exportFile)
-    # create barplot of library sizes before normalization
-    barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
-    # close
+    createLibrarySizes()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the bar plot
   output$downloadLibrarySizes <- downloadHandler(
@@ -753,7 +764,10 @@ server <- function(input, output, session) {
       "librarySizesPlot.png"
     },
     content = function(file) {
-      file.copy("librarySizesPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createLibrarySizes()
+      dev.off()
     }
   )
   
@@ -767,8 +781,8 @@ server <- function(input, output, session) {
     table(keep)[2]
   }, colnames = FALSE)
   
-  # render PCA plot
-  output$PCA <- renderImage({
+  # PCA plot
+  createPCA <- function(){
     # retrieve input design table
     group <- designFactors()
     # calculate scaling factors
@@ -779,9 +793,6 @@ server <- function(input, output, session) {
     # setup colors and points
     colors <- plotColors[1:length(stringLevels)]
     #points <- c(0:length(unique(stringLevels)))
-    # save the plot
-    exportFile <- "PCAPlot.png"
-    png(exportFile)
     # add extra space to right of plot area and change clipping to figure
     par(mar=c(6.5, 5.5, 5.5, 9.5), xpd=TRUE)
     # PCA plot with distances approximating log2 fold changes
@@ -790,11 +801,18 @@ server <- function(input, output, session) {
     # place the legend outside the right side of the plot
     #legend("topright", inset=c(-0.5,0), legend=levels(group), pch=points, col=colors)
     legend("topright", inset=c(-0.5,0), legend=levels(group), fill=colors)
-    # close
+  }
+  
+  # render PCA plot
+  output$PCA <- renderImage({
+    # save the plot
+    exportFile <- "PCAPlot.png"
+    png(exportFile)
+    createPCA()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the PCA plot
   output$downloadPCA <- downloadHandler(
@@ -802,12 +820,15 @@ server <- function(input, output, session) {
       "PCAPlot.png"
     },
     content = function(file) {
-      file.copy("PCAPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createPCA()
+      dev.off()
     }
   )
   
-  # render MDS plot
-  output$MDS <- renderImage({
+  # MDS plot
+  createMDS <- function(){
     # retrieve input design table
     group <- designFactors()
     # calculate scaling factors
@@ -818,9 +839,6 @@ server <- function(input, output, session) {
     # setup colors and points
     colors <- plotColors[1:length(stringLevels)]
     #points <- c(0:length(unique(stringLevels)))
-    # save the plot
-    exportFile <- "MDSPlot.png"
-    png(exportFile)
     # add extra space to right of plot area and change clipping to figure
     par(mar=c(6.5, 5.5, 5.5, 9.5), xpd=TRUE)
     # PCA plot with distances approximating log2 fold changes
@@ -829,11 +847,18 @@ server <- function(input, output, session) {
     # place the legend outside the right side of the plot
     #legend("topright", inset=c(-0.5,0), legend=levels(group), pch=points, col=colors)
     legend("topright", inset=c(-0.5,0), legend=levels(group), fill=colors)
-    # close
+  }
+  
+  # render MDS plot
+  output$MDS <- renderImage({
+    # save the plot
+    exportFile <- "MDSPlot.png"
+    png(exportFile)
+    createMDS()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the MDS plot
   output$downloadMDS <- downloadHandler(
@@ -841,26 +866,33 @@ server <- function(input, output, session) {
       "MDSPlot.png"
     },
     content = function(file) {
-      file.copy("MDSPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createMDS()
+      dev.off()
     }
   )
   
-  # render heatmap of individual RNA-seq samples using moderated log CPM
-  output$heatmap <- renderImage({
+  # heatmap of individual RNA-seq samples using moderated log CPM
+  createHeatmap <- function(){
     # calculate scaling factors
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
+    # create heatmap of individual RNA-seq samples using moderated log CPM
+    heatmap(logcpm, main = "Heatmap of RNA-seq Samples")
+  }
+  
+  # render heatmap of individual RNA-seq samples using moderated log CPM
+  output$heatmap <- renderImage({
     # save the plot
     exportFile <- "heatmapPlot.png"
     png(exportFile)
-    # create heatmap of individual RNA-seq samples using moderated log CPM
-    heatmap(logcpm, main = "Heatmap of RNA-seq Samples")
-    # close
+    createHeatmap()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the heatmap plot
   output$downloadHeatmap <- downloadHandler(
@@ -868,26 +900,33 @@ server <- function(input, output, session) {
       "heatmapPlot.png"
     },
     content = function(file) {
-      file.copy("heatmapPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createHeatmap()
+      dev.off()
     }
   )
   
-  # render plot of dispersion estimates and biological coefficient of variation
-  output$BCV <- renderImage({
+  # plot of dispersion estimates and biological coefficient of variation
+  createBCV <- function(){
     # calculate scaling factors
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
+    # create BCV plot
+    plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
+  }
+  
+  # render plot of dispersion estimates and biological coefficient of variation
+  output$BCV <- renderImage({
     # save the plot
     exportFile <- "BCVPlot.png"
     png(exportFile)
-    # create BCV plot
-    plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
-    # close
+    createBCV()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the BCV plot
   output$downloadBCV <- downloadHandler(
@@ -895,7 +934,10 @@ server <- function(input, output, session) {
       "BCVPlot.png"
     },
     content = function(file) {
-      file.copy("BCVPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createBCV()
+      dev.off()
     }
   )
   
@@ -914,7 +956,7 @@ server <- function(input, output, session) {
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
   
-  # function to calculate table of DE genes
+  # reactive function to calculate table of DE genes
   pairwiseTest <- reactive({
     # check analysis type
     #if(input$analysisType != 'pairwise') return()
@@ -930,13 +972,13 @@ server <- function(input, output, session) {
   })  
   
   # check if file has been uploaded
-  output$pairwiseResultsCompleted <- reactive({
+  output$pairwiseResultsCompleted <- function(){
     if(is.null(pairwiseTest())){
       return(FALSE)
     }else{
       return(TRUE)
     }
-  })
+  }
   outputOptions(output, 'pairwiseResultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # render results summary
@@ -955,22 +997,26 @@ server <- function(input, output, session) {
     resultsTable
   })
   
-  # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$pairwiseMD <- renderImage({
+  # plot of log-fold change against log-counts per million with DE genes highlighted
+  createPairwiseMD <- function(){
     # perform exact test
     tested <- pairwiseTest()
-    # save the plot
-    exportFile <- "pairwiseMDPlot.png"
-    png(exportFile)
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
-    # close
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue") 
+  }
+  
+  # render plot of log-fold change against log-counts per million with DE genes highlighted
+  output$pairwiseMD <- renderImage({
+    # save the plot
+    exportFile <- "pairwiseMDPlot.png"
+    png(exportFile)
+    createPairwiseMD()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   
   # download handler for the MD plot
@@ -979,12 +1025,15 @@ server <- function(input, output, session) {
       "pairwiseMDPlot.png"
     },
     content = function(file) {
-      file.copy("pairwiseMDPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createPairwiseMD()
+      dev.off()
     }
   )
   
   # create volcano plot
-  output$pairwiseVolcano <- renderPlot({
+  plotPairwiseVolcano <- function(){
     # perform exact test
     tested <- pairwiseTest()
     # create a results table of DE genes
@@ -998,18 +1047,18 @@ server <- function(input, output, session) {
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
-    volcanoPlotPairwise <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
+    ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
       geom_point() +
       theme_minimal() +
       scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down")) +
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
-    # save the plot
-    file = "pairwiseVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotPairwise, device = "png")
-    # display the plot
-    volcanoPlotPairwise 
+  }
+  
+  # render volcano plot
+  output$pairwiseVolcano <- renderPlot({
+    plotPairwiseVolcano()
   })
   
   
@@ -1019,7 +1068,9 @@ server <- function(input, output, session) {
       "pairwiseVolcanoPlot.png"
     },
     content = function(file) {
-      file.copy("pairwiseVolcanoPlot.png", file, overwrite=TRUE)
+      # save the plot
+      volcanoPlotPairwise <- plotPairwiseVolcano()
+      ggsave(file, plot = volcanoPlotPairwise, device = "png")
     }
   )
   
@@ -1076,8 +1127,8 @@ server <- function(input, output, session) {
     design
   })
   
-  # reactive function for fitting the glm
-  glmFitting <- reactive({
+  # function for fitting the glm
+  glmFitting <- function(){
     # calculate scaling factors
     list <- filterNorm()
     # retrieve the experimental design 
@@ -1086,22 +1137,26 @@ server <- function(input, output, session) {
     list <- estimateDisp(list, design, robust=TRUE)
     # estimate the QL dispersions
     glmQLFit(list, design, robust=TRUE)
-  })
+  }
+  
+  # plot of QL dispersions
+  createGLMDispersions <- function(){
+    # retrieve the fitted glm
+    fit <- glmFitting()
+    # return the plot
+    plotQLDisp(fit)
+  }
   
   # render plot of QL dispersions
   output$glmDispersions <- renderImage({
-    # retrieve the fitted glm
-    fit <- glmFitting()
     # save the plot
     exportFile <- "glmDispersionsPlot.png"
     png(exportFile)
-    # return the plot
-    plotQLDisp(fit)
-    # close
+    createGLMDispersions()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
-  }, deleteFile = FALSE)
+  }, deleteFile = TRUE)
   
   # download handler for the GLM dispersions plot
   output$downloadGLMDispersions <- downloadHandler(
@@ -1109,7 +1164,10 @@ server <- function(input, output, session) {
       "glmDispersionsPlot.png"
     },
     content = function(file) {
-      file.copy("glmDispersionsPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createGLMDispersions()
+      dev.off()
     }
   )
   
@@ -1127,8 +1185,8 @@ server <- function(input, output, session) {
     glmExpression
   })
   
-  # reactive function to perform glm contrasts
-  glmContrast <- reactive({
+  # function to perform glm contrasts
+  glmContrast <- function(){
     # set the current expression as a global value
     glmExpression <<- input$compareExpression
     # require input data
@@ -1142,16 +1200,16 @@ server <- function(input, output, session) {
                                  levels=design)
     # look at genes with significant expression across all UV groups
     glmTreat(fit, contrast=glmContrast)
-  })
+  }
   
   # check if file has been uploaded
-  output$glmResultsCompleted <- reactive({
+  output$glmResultsCompleted <- function(){
     if(is.null(glmContrast())){
       return(FALSE)
     }else{
       return(TRUE)
     }
-  })
+  }
   outputOptions(output, 'glmResultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # render table with the summary of results
@@ -1169,18 +1227,22 @@ server <- function(input, output, session) {
     resultsTable
   })
   
-  # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$glmMD <- renderImage({
+  # plot of log-fold change against log-counts per million with DE genes highlighted
+  createGLMMD <- function(){
     # perform glm test
     tested <- glmContrast()
-    # save the plot
-    exportFile <- "glmMDPlot.png"
-    png(exportFile)
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
-    # close
+    abline(h=c((-1*input$logfcut), input$logfcut), col="blue") 
+  }
+  
+  # render plot of log-fold change against log-counts per million with DE genes highlighted
+  output$glmMD <- renderImage({
+    # save the plot
+    exportFile <- "glmMDPlot.png"
+    png(exportFile)
+    createGLMMD()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text")
@@ -1192,12 +1254,15 @@ server <- function(input, output, session) {
       "glmMDPlot.png"
     },
     content = function(file) {
-      file.copy("glmMDPlot.png", file, overwrite=TRUE)
+      # save the plot
+      png(file)
+      createGLMMD()
+      dev.off()
     }
   )
   
-  # render GLM volcano plot
-  output$glmVolcano <- renderPlot({
+  # create GLM volcano plot
+  plotGLMVolcano <- function(){
     # perform glm test
     tested <- glmContrast()
     # create a results table of DE genes
@@ -1212,18 +1277,18 @@ server <- function(input, output, session) {
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
-    volcanoPlotGLM <- ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
+    ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
       geom_point() +
       theme_minimal() +
       scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down")) +
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
-    # save the plot
-    file = "glmVolcanoPlot.png"
-    ggsave(file, plot = volcanoPlotGLM, device = "png")
-    # display the plot
-    volcanoPlotGLM 
+  }
+  
+  # render GLM volcano plot
+  output$glmVolcano <- renderPlot({
+    plotGLMVolcano()
   })
   
   # download handler for the volcano plot
@@ -1232,7 +1297,9 @@ server <- function(input, output, session) {
       "glmVolcanoPlot.png"
     },
     content = function(file) {
-      file.copy("glmVolcanoPlot.png", file, overwrite=TRUE)
+      # save the plot
+      volcanoPlotGLM <- plotGLMVolcano()
+      ggsave(file, plot = volcanoPlotGLM, device = "png")
     }
   )
   
