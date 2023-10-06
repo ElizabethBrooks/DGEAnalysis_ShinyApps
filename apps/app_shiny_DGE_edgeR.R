@@ -68,7 +68,7 @@ ui <- fluidPage(
           "Set Cut Offs:"
         ),
         sliderInput(
-          "logfcut", 
+          "LFCcut", 
           tags$p("Fold Change Cut Off"), 
           min=0, 
           max=10, 
@@ -986,7 +986,7 @@ server <- function(input, output, session) {
     # perform exact test
     tested <- pairwiseTest()
     # view the total number of differentially expressed genes at a p-value of 0.05
-    DGEgenes = decideTests(tested,p.value=input$FDRcut, lfc=input$logfcut)
+    DGEgenes = decideTests(tested,p.value=input$FDRcut, lfc=input$LFCcut)
     resultsSummary <- summary(DGEgenes)
     # create the results summary
     resultsTable <- data.frame(
@@ -1004,7 +1004,7 @@ server <- function(input, output, session) {
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue") 
+    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
   }
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
@@ -1041,9 +1041,9 @@ server <- function(input, output, session) {
     # add column for identifying direction of DE gene expression
     resultsTbl$topDE <- "NA"
     # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > input$logfcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
     # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < (-1*input$logfcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
@@ -1217,7 +1217,7 @@ server <- function(input, output, session) {
     # perform glm test
     tested <- glmContrast()
     # view the total number of differentially expressed genes at a p-value of 0.05
-    resultsSummary <- summary(decideTests(tested), p.value=input$FDRcut, lfc=input$logfcut)
+    resultsSummary <- summary(decideTests(tested), p.value=input$FDRcut, lfc=input$LFCcut)
     # create the results summary
     resultsTable <- data.frame(
       Direction = c("Down", "NotSig", "Up"),
@@ -1234,7 +1234,7 @@ server <- function(input, output, session) {
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue") 
+    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
   }
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
