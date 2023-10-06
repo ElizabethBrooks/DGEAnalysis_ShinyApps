@@ -1,11 +1,9 @@
 # load packages 
 library(shiny)
-#library(DT)
 library(shinythemes)
 library(rcartocolor)
 library(WGCNA)
 require(dplyr)
-library(ggplot2)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
@@ -27,8 +25,8 @@ ui <- fluidPage(
   #shinythemes::themeSelector(),
   
   # use a theme
-  #theme = shinytheme("yeti"),
-  theme = shinytheme("superhero"),
+  theme = shinytheme("yeti"),
+  #theme = shinytheme("superhero"),
   
   # add application title
   titlePanel("Weighted Gene Co-Expression Network Analysis (WGCNA)"),
@@ -76,11 +74,148 @@ ui <- fluidPage(
     # Output: Show plots
     mainPanel(
       
-      textOutput(outputId = "testSamples"),
-      textOutput(outputId = "testGenes"),
-      imageOutput(outputId = "samplesOutliers", height="50%", width="50%"),
-      imageOutput(outputId = "clusterSamples", height="50%", width="50%"),
-      imageOutput(outputId = "plotThreshold", height="50%", width="50%")
+      # getting started text
+      conditionalPanel(
+        condition = "!(output.countsUploaded && output.designUploaded)",
+        tags$h1("Getting Started", align = "center"),
+        tags$br(),
+        tags$p(
+          HTML("<b>Hello!</b>"),
+          "Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar."
+        ),
+        tags$br(),
+        tags$p(
+          "Note that the WGCNA analysis results and plots may take several moments to process depending on the size of the input gene counts table and experimental design."
+        ),
+        tags$br(),
+        tags$p(
+          "Example experimental design and gene counts tables are displayed below."
+        ),
+        tags$hr(),
+        fluidRow(
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of six samples and one factor with two levels:"),
+            tableOutput(outputId = "exampleDesignOne"), 
+          ),
+          column(
+            width = 6,
+            HTML("<b>Example</b> experimental design table of twelve samples and two factors each with two levels:"),
+            tableOutput(outputId = "exampleDesignTwo") 
+          ),
+        ),
+        tags$hr(),
+        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
+        tableOutput(outputId = "exampleCountsOne"),
+        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
+        tableOutput(outputId = "exampleCountsTwo")
+      ),
+      
+      # error text
+      conditionalPanel(
+        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        tags$h1(
+          "Error", 
+          align="center"
+        ),
+        tags$br(),
+        tags$p(
+          "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+        ),
+        tags$br(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        ),
+        tags$p(
+          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
+        ),
+      ),
+      
+      # results text and plots
+      conditionalPanel(
+        condition = "output.inputCheck",
+        # set of tab panels
+        tabsetPanel(
+          type = "tabs",
+          tabPanel(
+            "Tips",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> Navigate to the data exploration or analysis results by clicking the tabs above.")
+            ),
+            tags$p(
+              HTML("<b>Tip 3:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
+            )
+          ),
+          
+          # data cleaning tab
+          tabPanel(
+            "Data Cleaning",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Data Input and Cleaning</b>")
+            ),
+            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "setCutHeight", 
+                  tags$p("Branch Cut Height"), 
+                  value=0,
+                  min=0, 
+                  max=50, 
+                  step=1
+                ),
+                sliderInput(
+                  "setMinSize", 
+                  tags$p("Minimum Branch Cluster Size"), 
+                  value=1,
+                  min=1, 
+                  max=100, 
+                  step=1
+                )
+              ),
+              column(
+                width = 6,
+                imageOutput(outputId = "samplesOutliers", height="100%", width="100%")
+              )
+            ),
+            imageOutput(outputId = "clusterSamples", height="100%", width="100%"),
+            tags$hr(),
+            tags$p(
+              HTML("<b>Sample data check:</b>")
+            ),
+            textOutput(outputId = "testSamples"),
+            tags$br(),
+            tags$p(
+              HTML("<b>Gene data check:</b>")
+            ),
+            textOutput(outputId = "testGenes")
+          )
+        )
+      )
     )
   )
 )
@@ -146,10 +281,11 @@ server <- function(input, output, session) {
     )
   })
   
+  
   ##
   # Data Setup
   ##
-
+  
   # retrieve input data
   inputGeneCounts <- reactive({
     # require input data
@@ -285,12 +421,21 @@ server <- function(input, output, session) {
     )
   })
   
+  
   ##
-  # Data Prep
+  # Data Input and Cleaning
   ##
   
   # render text with gene test results
   output$testGenes <- renderText({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     # transpose each subset
@@ -314,6 +459,14 @@ server <- function(input, output, session) {
   
   # reactive function to setup the data
   setupData <- reactive({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
     # begin to construct the DGE list object
     geneCounts <- inputGeneCounts()
     # transpose each subset
@@ -365,47 +518,101 @@ server <- function(input, output, session) {
     }
   })
   
-  # function to render clustering plot
-  output$samplesOutliers <- renderImage({
+  # function to cluster samples
+  createSampleTree <- reactive({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
+  })
+  
+  # update inputs
+  observe({
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
+    # create test cut height value
+    testValue <- max(sampleTree$height)/2
+    # update sample cut height slider
+    updateSliderInput(
+      session,
+      "setCutHeight", 
+      value=testValue,
+      min=min(sampleTree$height), 
+      max=max(sampleTree$height),
+      step=1
+    )
+    # update cluster size slider
+    updateSliderInput(
+      session,
+      "setMinSize", 
+      value=1,
+      min=1, 
+      max=length(sampleTree$height),
+      step=1
+    )
+  })
+
+  # function to render clustering plot
+  output$samplesOutliers <- renderImage({
+    # require input data
+    req(input$setCutHeight)
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
     exportFile <- "sampleClustering.png"
-    png(file = exportFile, width = 12, height = 9, units = "in", res = 150)
+    png(file = exportFile, width = 12, height = 9, units="in", res=150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
     plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
-    #abline(h = 15, col = "red")
+    abline(h = input$setCutHeight, col = "red")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "900px")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # reactive function to filter expression data
+  filterData <- reactive({
+    # require input data
+    req(input$setCutHeight)
+    req(input$setMinSize)
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
+    # Determine cluster under the line
+    clust = cutreeStatic(sampleTree, cutHeight = input$setCutHeight, minSize = input$setMinSize)
+    #table(clust)
+    # clust 1 contains the samples we want to keep.
+    keepSamples = (clust==1)
+    # filter out samples
+    datExpr <- datExpr0
+    datExpr = datExpr0[keepSamples, ]
+  })
   
   # reactive function to prepare trait data
   traitData <- reactive({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
     # retrieve input design table
     allTraits <- inputDesign()
     # retrieve prepared data
-    datExpr0 <- prepareData()
-    ## TO-DO: allow users to specify cutoff
-    # Determine cluster under the line
-    #clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
-    #table(clust)
-    # clust 1 contains the samples we want to keep.
-    #keepSamples = (clust==1)
-    # filter out samples
-    #datExpr <- datExpr0
-    #datExpr = datExpr0[keepSamples, ]
-    nGenes = ncol(datExpr0)
-    nSamples = nrow(datExpr0)
+    datExpr <- filterData()
+    nGenes = ncol(datExpr)
+    nSamples = nrow(datExpr)
     # Form a data frame analogous to expression data that will hold the traits
-    samples = rownames(datExpr0)
+    samples = rownames(datExpr)
     traitRows = match(samples, rownames(allTraits))
     datTraits = allTraits[traitRows,]
     # clean up memory
@@ -417,12 +624,12 @@ server <- function(input, output, session) {
   # function to render updated clustering plot
   output$clusterSamples <- renderImage({
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve the trait data
     datTraits <- traitData()
     # Re-cluster samples
     exportFile <- "sampleDendrogram_traitHeatmap.png"
-    png(file = exportFile, width = 10, height = 7, units = "in", res = 150)
+    png(file = exportFile, width = 10, height = 7, units="in", res=150)
     sizeGrWindow(10,7)
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -431,58 +638,6 @@ server <- function(input, output, session) {
     plotDendroAndColors(sampleTree2, traitColors,
                         groupLabels = names(datTraits),
                         main = "Sample dendrogram and trait heatmap")
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "700px")
-  }, deleteFile = TRUE)
-  
-  
-  ##
-  # Pick Soft Thresholding Powers
-  ##
-  
-  # reactive function to select soft powers
-  selectPowers <- reactive({
-    # Choose a set of soft-thresholding powers
-    powers = c(c(1:10), seq(from = 12, to=36, by=2))
-  })
-  
-  # reactive function to pick powers
-  pickPowers <- reactive({
-    # retrieve prepared data
-    datExpr <- prepareData()
-    # retrieve selected powers
-    powers <- selectPowers()
-    # Call the network topology analysis function
-    sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
-  })
-  
-  # render plot with scale independence and mean connectivity
-  output$plotThreshold <- renderImage({
-    # retrieve soft thresholding powers
-    sft <- pickPowers()
-    # retrieve selected powers
-    powers <- selectPowers()
-    # Plot the results
-    cex1 = 0.9
-    exportFile <- "SoftPowers.png"
-    png(file = exportFile, wi = 9, he = 5, units = "in", res = 150)
-    sizeGrWindow(9, 5)
-    par(mfrow = c(1,2))
-    # Scale-free topology fit index as a function of the soft-thresholding power
-    plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-         xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
-         main = paste("Scale independence"));
-    text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-         labels=powers,cex=cex1,col="red");
-    # this line corresponds to using an R^2 cut-off of h
-    abline(h=0.80,col="red")
-    abline(h=0.90,col="blue")
-    # Mean connectivity as a function of the soft-thresholding power
-    plot(sft$fitIndices[,1], sft$fitIndices[,5],
-         xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
-         main = paste("Mean connectivity"))
-    text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")

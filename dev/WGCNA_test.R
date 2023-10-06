@@ -72,14 +72,14 @@ par(mar = c(0,4,2,0))
 plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
      cex.axis = 1.5, cex.main = 2)
 # Plot a line to show the cut
-#abline(h = 15, col = "red")
+abline(h = sampleTree$height[1], col = "red")
 dev.off()
 
 # Determine cluster under the line
-#clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
-#table(clust)
+clust = cutreeStatic(sampleTree, cutHeight = sampleTree$height[1], minSize = 1)
+table(clust)
 # clust 1 contains the samples we want to keep.
-#keepSamples = (clust==1)
+keepSamples = (clust==1)
 
 # filter out samples
 datExpr <- datExpr0

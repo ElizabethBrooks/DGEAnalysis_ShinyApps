@@ -63,6 +63,9 @@ ui <- fluidPage(
         #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
         condition = "(output.countsUploaded && output.designUploaded)",
         tags$hr(),
+        tags$p(
+          "Design Table:"
+        ),     
         fluidRow(
           align = "center",
           # display input design table
@@ -111,9 +114,20 @@ ui <- fluidPage(
         tableOutput(outputId = "exampleCountsTwo")
       ),
       
+      # loading text
+      #conditionalPanel(
+        #condition = "(output.countsUploaded && output.designUploaded) && !output.resultsCompleted",
+        #tags$h1(
+          #"Loading", 
+          #align="center"
+        #),
+        #tags$br(),
+        #"The network analysis results and plots may take several moments to load depending on the size of the input gene counts or experimental design tables."
+      #),
+      
       # error text
       conditionalPanel(
-        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        condition = "(output.countsUploaded && output.designUploaded) && !output.inputCheck",
         tags$h1(
           "Error", 
           align="center"
@@ -152,7 +166,7 @@ ui <- fluidPage(
           align="center"
         ),
         tags$br(),
-        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
+        "The network analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
       ),
       
       # results text and plots
@@ -188,16 +202,49 @@ ui <- fluidPage(
               HTML("<b>Data Input and Cleaning</b>")
             ),
             tags$br(),
-            imageOutput(outputId = "samplesOutliers", height="100%", width="100%"),
-            imageOutput(outputId = "clusterSamples", height="100%", width="100%"),
-            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "setCutHeight", 
+                  tags$p("Branch Cut Height"), 
+                  value=0,
+                  min=0, 
+                  max=50, 
+                  step=1
+                ),
+                sliderInput(
+                  "setMinSize", 
+                  tags$p("Minimum Branch Cluster Size"), 
+                  value=1,
+                  min=1, 
+                  max=100, 
+                  step=1
+                )
+              ),
+              column(
+                width = 6,
+                imageOutput(outputId = "samplesOutliers", height="100%", width="100%")
+              )
+            ),
+            tags$hr(),
             tags$p(
-              HTML("<b>Sample data check:</b>")
+              align="center",
+              HTML("<b>Filtered Data</b>")
+            ),
+            imageOutput(outputId = "clusterSamples", height="100%", width="100%"),
+            tags$hr(),
+            tags$p(
+              align="center",
+              HTML("<b>Cleaned Data</b>")
+            ),
+            tags$p(
+              HTML("Sample Data Check:")
             ),
             textOutput(outputId = "testSamples"),
             tags$br(),
             tags$p(
-              HTML("<b>Gene data check:</b>")
+              HTML("Gene Data Check:")
             ),
             textOutput(outputId = "testGenes")
           ),
@@ -211,29 +258,77 @@ ui <- fluidPage(
               HTML("<b>Network Construction and Module Detection</b>")
             ),
             tags$br(),
+            sliderInput(
+              "setPowersRange", 
+              tags$p("Soft Thresholding Power Range"), 
+              value=20,
+              min=1, 
+              max=50, 
+              step=1
+            ),
             imageOutput(outputId = "plotThreshold", height="100%", width="100%"),
-            tags$br(),
+            tags$hr(),
             tags$p(
-              HTML("<b>Enter soft thresholding power:</b>")
+              align="center",
+              HTML("<b>Module Construction</b>")
             ),
-            numericInput("setPowers", "Power", value=6),
-            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "setPowers", 
+                  tags$p("Soft Thresholding Power"), 
+                  value=6,
+                  min=1, 
+                  max=50, 
+                  step=1
+                ),
+                sliderInput(
+                  "setSize", 
+                  tags$p("Minimum Module Size"), 
+                  value=30,
+                  min=1, 
+                  max=500, 
+                  step=1
+                )
+              ),
+              #tags$br(),
+              #tags$p(
+                #HTML("<b>Module number labels and sizes:</b>")
+              #),
+              #tableOutput(outputId = "moduleTable"),
+              tags$p(
+                HTML("Module color labels and sizes:")
+              ),
+              tableOutput(outputId = "colorsTable")
+            ),
+            tags$hr(),
             tags$p(
-              HTML("<b>Enter minimum module size:</b>")
+              align="center",
+              HTML("<b>Network Construction</b>")
             ),
-            numericInput("setSize", "Size", value=30),
-            #tags$br(),
-            #tags$p(
-              #HTML("<b>Module number labels and sizes:</b>")
-            #),
-            #tableOutput(outputId = "moduleTable"),
-            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "setMEDissThres", 
+                  tags$p("Module Eigengene Threshold"), 
+                  value=0.25,
+                  min=0, 
+                  max=1, 
+                  step=0.01
+                )
+              ),
+              column(
+                width = 6,
+                imageOutput(outputId = "plotEigengenes", height="100%", width="100%")
+              )
+            ),
+            tags$hr(),
             tags$p(
-              HTML("<b>Module color labels and sizes:</b>")
+              align="center",
+              HTML("<b>Network Data</b>")
             ),
-            tableOutput(outputId = "colorsTable"),
-            tags$br(),
-            imageOutput(outputId = "plotEigengenes", height="100%", width="100%"),
             imageOutput(outputId = "plotTrimmedDendro", height="100%", width="100%"),
             #imageOutput(outputId = "plotColorDendro", height="100%", width="100%"),
             #imageOutput(outputId = "hclustPlot", height="100%", width="100%")
@@ -248,7 +343,7 @@ ui <- fluidPage(
               HTML("<b>Helpful Information</b>")
             ),
             tags$p(
-              "This application for DGE analysis was created by",
+              "This application for expression network analysis was created by",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
               "."
             ),
@@ -480,43 +575,6 @@ server <- function(input, output, session) {
     )
   })
   
-  # update inputs
-  observe({
-    ## TO-DO: update from data
-    # set the soft thresholding power
-    softPower = 6
-    # update soft powers
-    updateNumericInput(
-      session,
-      "setPowers",
-      value = softPower
-    )
-    ## TO-DO: update from data
-    # we like large modules, so we set the minimum module size relatively high
-    minModuleSize = 30
-    # update min module size
-    updateNumericInput(
-      session,
-      "setSize",
-      value = minModuleSize
-    )
-  })
-  
-  ## TO-DO: consider allowing user input
-  # reactive function to set eigengene threshold
-  eigengeneThreshold <- reactive({
-    # choose a height cut of 0.25, corresponding to correlation of 0.75, to merge
-    MEDissThres = 0.25
-  })
-  
-  ## TO-DO: consider allowing user input
-  # reactive function to select soft powers
-  selectPowers <- reactive({
-    # Choose a set of soft-thresholding powers
-    #powers = c(c(1:10), seq(from = 12, to=36, by=2))
-    powers = c(c(1:10), seq(from = 12, to=20, by=2))
-  })
-  
   
   ##
   # Data Input and Cleaning
@@ -532,7 +590,7 @@ server <- function(input, output, session) {
     }else if(is.null(compareSamples())) {
       return(NULL)
     }
-    # begin to construct the DGE list object
+    # begin to construct the counts object
     geneCounts <- inputGeneCounts()
     # transpose each subset
     datExpr0 = data = as.data.frame(t(geneCounts))
@@ -563,7 +621,7 @@ server <- function(input, output, session) {
     }else if(is.null(compareSamples())) {
       return(NULL)
     }
-    # begin to construct the DGE list object
+    # begin to construct the counts object
     geneCounts <- inputGeneCounts()
     # transpose each subset
     datExpr0 = data = as.data.frame(t(geneCounts))
@@ -614,12 +672,55 @@ server <- function(input, output, session) {
     }
   })
   
-  # function to render clustering plot
-  output$samplesOutliers <- renderImage({
+  # function to cluster samples
+  createSampleTree <- reactive({
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
+  })
+  
+  # update inputs
+  observe({
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
+    testValue <- max(sampleTree$height)/2
+    # update sample cut height slider
+    updateSliderInput(
+      session,
+      "setCutHeight", 
+      value=testValue,
+      min=min(sampleTree$height), 
+      max=max(sampleTree$height),
+      step=1
+    )
+    # update cluster size slider
+    updateSliderInput(
+      session,
+      "setMinSize", 
+      value=1,
+      min=1, 
+      max=length(sampleTree$height),
+      step=1
+    )
+  })
+
+  # function to render clustering plot
+  output$samplesOutliers <- renderImage({
+    # require input data
+    req(input$setCutHeight)
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
     exportFile <- "sampleClustering.png"
@@ -630,11 +731,38 @@ server <- function(input, output, session) {
     plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
-    #abline(h = 15, col = "red")
+    abline(h = input$setCutHeight, col = "red")
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # reactive function to filter expression data
+  filterData <- reactive({
+    # require input data
+    req(input$setCutHeight)
+    req(input$setMinSize)
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(compareSamples())) {
+      return(NULL)
+    }
+    # retrieve prepared data
+    datExpr0 <- prepareData()
+    # retrieve cluster of samples
+    sampleTree <- createSampleTree()
+    # Determine cluster under the line
+    clust = cutreeStatic(sampleTree, cutHeight = input$setCutHeight, minSize = input$setMinSize)
+    #table(clust)
+    # clust 1 contains the samples we want to keep.
+    keepSamples = (clust==1)
+    # filter out samples
+    datExpr <- datExpr0
+    datExpr = datExpr0[keepSamples, ]
+  })
   
   # reactive function to prepare trait data
   traitData <- reactive({
@@ -649,20 +777,11 @@ server <- function(input, output, session) {
     # retrieve input design table
     allTraits <- inputDesign()
     # retrieve prepared data
-    datExpr0 <- prepareData()
-    ## TO-DO: allow users to specify cutoff
-    # Determine cluster under the line
-    #clust = cutreeStatic(sampleTree, cutHeight = 15, minSize = 10)
-    #table(clust)
-    # clust 1 contains the samples we want to keep.
-    #keepSamples = (clust==1)
-    # filter out samples
-    #datExpr <- datExpr0
-    #datExpr = datExpr0[keepSamples, ]
-    nGenes = ncol(datExpr0)
-    nSamples = nrow(datExpr0)
+    datExpr <- filterData()
+    nGenes = ncol(datExpr)
+    nSamples = nrow(datExpr)
     # Form a data frame analogous to expression data that will hold the traits
-    samples = rownames(datExpr0)
+    samples = rownames(datExpr)
     traitRows = match(samples, rownames(allTraits))
     datTraits = allTraits[traitRows,]
     # clean up memory
@@ -674,7 +793,7 @@ server <- function(input, output, session) {
   # function to render updated clustering plot
   output$clusterSamples <- renderImage({
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve the trait data
     datTraits <- traitData()
     # Re-cluster samples
@@ -700,22 +819,24 @@ server <- function(input, output, session) {
   
   # reactive function to pick powers
   pickPowers <- reactive({
+    # require input data
+    req(input$setPowersRange)
     # retrieve prepared data
-    datExpr <- prepareData()
-    # retrieve the trait data
-    #datTraits <- traitData()
+    datExpr <- filterData()
     # retrieve selected powers
-    powers <- selectPowers()
+    powers <- c(seq(from = 1, to = input$setPowersRange, by = 2))
     # Call the network topology analysis function
     sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
   })
   
   # render plot with scale independence and mean connectivity
   output$plotThreshold <- renderImage({
+    # require input data
+    req(input$setPowersRange)
     # retrieve soft thresholding powers
     sft <- pickPowers()
     # retrieve selected powers
-    powers <- selectPowers()
+    powers <- c(seq(from = 1, to = input$setPowersRange, by = 2))
     # Plot the results
     cex1 = 0.9
     exportFile <- "SoftPowers.png"
@@ -746,7 +867,7 @@ server <- function(input, output, session) {
     # require input data
     req(input$setPowers)
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve input soft power
     softPower <- input$setPowers
     # determine adjacency
@@ -841,24 +962,27 @@ server <- function(input, output, session) {
   # reactive function to calculate eigengenes
   calcEigengenes <- reactive({
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve modules
     dynamicColors <- convertLabels()
     # Calculate eigengenes
     MEList = moduleEigengenes(datExpr, colors = dynamicColors)
     MEs = MEList$eigengenes
     # Calculate dissimilarity of module eigengenes
-    MEDiss = 1-cor(MEs);
+    #MEDiss = 1-cor(MEs, use = 'pairwise.complete.obs')
+    MEDiss = 1-cor(MEs)
     # Cluster module eigengenes
-    METree = hclust(as.dist(MEDiss), method = "average");
+    METree = hclust(as.dist(MEDiss), method = "average")
   })
   
   # function to plot the clustering of eigengenes
   output$plotEigengenes <- renderImage({
+    # require input data
+    req(input$setMEDissThres)
     # retrieve eigengenes
     METree <- calcEigengenes()
     # retrieve eigengene threshold
-    MEDissThres <- eigengeneThreshold()
+    MEDissThres <- input$setMEDissThres
     # Plot the result
     exportFile <- "clusteringME.png"
     png(file = exportFile, wi = 7, he = 6, units="in", res=150)
@@ -874,12 +998,14 @@ server <- function(input, output, session) {
   
   # reactive function to merge module colors
   mergeColors <- reactive({
+    # require input data
+    req(input$setMEDissThres)
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve modules
     dynamicColors <- convertLabels()
     # retrieve eigengene threshold
-    MEDissThres <- eigengeneThreshold()
+    MEDissThres <- input$setMEDissThres
     # Call an automatic merging function
     merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
     # The merged module colors
@@ -888,12 +1014,14 @@ server <- function(input, output, session) {
   
   # reactive function to merge module eigengenes
   mergeEigengenes <- reactive({
+    # require input data
+    req(input$setMEDissThres)
     # retrieve prepared data
-    datExpr <- prepareData()
+    datExpr <- filterData()
     # retrieve modules
     dynamicColors <- convertLabels()
     # retrieve eigengene threshold
-    MEDissThres <- eigengeneThreshold()
+    MEDissThres <- input$setMEDissThres
     # Call an automatic merging function
     merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
     # Eigengenes of the new merged modules:
@@ -939,7 +1067,7 @@ server <- function(input, output, session) {
   # reactive function to retrieve eigengene expression values
   eigengeneExpression <- reactive({
     # retrieve prepared data
-    datExpr0 <- prepareData()
+    datExpr0 <- filterData()
     # retrieve module eigengenes
     MEs <- retrieveEigengenes()
     # transpose each subset
