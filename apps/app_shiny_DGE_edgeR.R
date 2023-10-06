@@ -69,7 +69,7 @@ ui <- fluidPage(
         ),
         sliderInput(
           "logfcut", 
-          h4("Fold change cut off"), 
+          tags$p("Fold Change Cut Off"), 
           min=0, 
           max=10, 
           step=0.1,
@@ -77,7 +77,7 @@ ui <- fluidPage(
         ),
         sliderInput(
           "FDRcut",
-          h4("FDR cut off"),
+          tags$p("FDR Cut Off"),
           min = 0, 
           max = 0.1, 
           value=0.05 
