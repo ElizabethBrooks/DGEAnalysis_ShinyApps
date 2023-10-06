@@ -356,10 +356,17 @@ ui <- fluidPage(
               ),
               textInput("compareExpression", "Expression"),
               tags$p(
-                "Valid expressions must consist of the factors contained in the input experimental design file, which is displayed in the left-hand sidebar.",
-                "Examples and a description of expressions for ANOVA-like tests is availble in the",
+                "Valid expressions must consist of the factors contained in the input experimental design file, which is displayed in the left-hand sidebar."
+              ),
+              tags$p(
+                "Examples of designing model expressions for ANOVA-like tests are availble in the",
                 tags$a("edgeR manual", href = "https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf"),
                 " (e.g., sections 3.2.6 & 4.4.9)."
+              ),
+              tags$p(
+                "A detailed description of designing model expressions are provided in the paper",
+                tags$a("\"A guide to creating design matrices for gene expression experiments\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
+                " (e.g., studies with multiple factors)."
               ),
               tags$p(
                 HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same as in the experimental design file and shown in the left-hand sidebar.")
