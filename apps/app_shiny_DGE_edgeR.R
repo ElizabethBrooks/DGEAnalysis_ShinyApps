@@ -194,7 +194,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Data Normalization</b>")
             ),
-            plotOutput(outputId = "librarySizes"),
+            imageOutput(outputId = "librarySizes", height="100%", width="100%"),
             downloadButton(outputId = "downloadLibrarySizes", label = "Download Plot"),
             tags$p(
               "The plot of library sizes shows the sequencing library size for each sample before TMM normalization."
@@ -222,7 +222,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Data Exploration</b>")
             ),
-            plotOutput(outputId = "PCA"),
+            imageOutput(outputId = "PCA", height="100%", width="100%"),
             downloadButton(outputId = "downloadPCA", label = "Download Plot"),
             tags$p(
               "In a principal component analysis (PCA) plot the distances between samples approximate the expression differences.",
@@ -230,7 +230,7 @@ ui <- fluidPage(
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
-            plotOutput(outputId = "MDS"),
+            imageOutput(outputId = "MDS", height="100%", width="100%"),
             downloadButton(outputId = "downloadMDS", label = "Download Plot"),
             tags$p(
               "In a multidimensional scaling (MDS) plot the distances between samples approximate the expression differences.",
@@ -238,14 +238,14 @@ ui <- fluidPage(
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
-            plotOutput(outputId = "heatmap"),
+            imageOutput(outputId = "heatmap", height="100%", width="100%"),
             downloadButton(outputId = "downloadHeatmap", label = "Download Plot"),
             tags$p(
               "The heatmap uses hierarchical clustering of the individual samples by the log2 CPM expression values.",
               "Furthermore, the log2 CPM that has undefined values avoided and poorly defined log fold changes (logFC) for low counts shrunk towards zero"
             ),
             tags$br(),
-            plotOutput(outputId = "BCV"),
+            imageOutput(outputId = "BCV", height="100%", width="100%"),
             downloadButton(outputId = "downloadBCV", label = "Download Plot"),
             tags$p(
               "The biological coefficient of variation (BCV) plot is the square root of the dispersion parameter under the negative binomial model and is equivalent to estimating the dispersions of the negative binomial model."
@@ -320,7 +320,7 @@ ui <- fluidPage(
                   align="center",
                   HTML("<b>Results Exploration</b>")
                 ),
-                plotOutput(outputId = "pairwiseMD"),
+                imageOutput(outputId = "pairwiseMD", height="100%", width="100%"),
                 downloadButton(outputId = "downloadPairwiseMD", label = "Download Plot"),
                 tags$p(
                   "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
@@ -395,7 +395,7 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                plotOutput(outputId = "glmMD"),
+                imageOutput(outputId = "glmMD", height="100%", width="100%"),
                 downloadButton(outputId = "downloadGLMMD", label = "Download Plot"),
                 tags$p(
                   "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
@@ -412,7 +412,7 @@ ui <- fluidPage(
                   HTML("<b>Model Exploration</b>")
                 ),
                 tags$br(),
-                plotOutput(outputId = "glmDispersions"),
+                imageOutput(outputId = "glmDispersions", height="100%", width="100%"),
                 downloadButton(outputId = "downloadGLMDispersions", label = "Download Plot"),
                 tags$p(
                   "Above is a plot of the genewise quasi-likelihood (QL) dispersion against the log2 CPM gene expression levels.",
@@ -731,20 +731,21 @@ server <- function(input, output, session) {
   )
   
   # render plot of library sizes before normalization
-  output$librarySizes <- renderPlot({
+  output$librarySizes <- renderImage({
     # begin to construct the DGE list object
     list <- normalizeData()
     # retrieve the number of samples
     numSamples <- ncol(list)
     # save the plot
-    png("librarySizesPlot.png")
+    exportFile <- "librarySizesPlot.png"
+    png(exportFile)
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
     # close
     dev.off()
-    # create barplot of library sizes before normalization
-    barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the bar plot
   output$downloadLibrarySizes <- downloadHandler(
@@ -767,33 +768,33 @@ server <- function(input, output, session) {
   }, colnames = FALSE)
   
   # render PCA plot
-  output$PCA <- renderPlot({
+  output$PCA <- renderImage({
     # retrieve input design table
     group <- designFactors()
     # calculate scaling factors
     list <- filterNorm()
-    ## TO-DO: allow users to input shapes and colors or other features
+    ## TO-DO: consider allowing users to input shapes and colors or other features
     # retrieve the number of grouping levels
-    #numLevels <- length(levels(group))
-    # setup chapes
-    #points <- c(1:numLevels-1)
-    # setup colors
-    colors <- as.numeric(group)
+    stringLevels <- gsub("\\..*","", (levels(group)))
+    # setup colors and points
+    colors <- plotColors[1:length(stringLevels)]
+    #points <- c(0:length(unique(stringLevels)))
     # save the plot
-    png("PCAPlot.png")
+    exportFile <- "PCAPlot.png"
+    png(exportFile)
     # add extra space to right of plot area and change clipping to figure
-    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+    par(mar=c(6.5, 5.5, 5.5, 9.5), xpd=TRUE)
     # PCA plot with distances approximating log2 fold changes
-    plotMDS(list, col=colors, gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
+    #plotMDS(list, col=colors[group], pch=points[group], gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
+    plotMDS(list, col=colors[group], gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
     # place the legend outside the right side of the plot
-    legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
+    #legend("topright", inset=c(-0.5,0), legend=levels(group), pch=points, col=colors)
+    legend("topright", inset=c(-0.5,0), legend=levels(group), fill=colors)
     # close
     dev.off()
-    # add extra space to right of plot area and change clipping to figure
-    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    # PCA plot with distances approximating log2 fold changes
-    plotMDS(list, col=colors, gene.selection="common", main = "Principal Component Analysis (PCA) Plot")
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the PCA plot
   output$downloadPCA <- downloadHandler(
@@ -806,33 +807,33 @@ server <- function(input, output, session) {
   )
   
   # render MDS plot
-  output$MDS <- renderPlot({
+  output$MDS <- renderImage({
     # retrieve input design table
     group <- designFactors()
     # calculate scaling factors
     list <- filterNorm()
-    ## TO-DO: allow users to input shapes and colors or other features
+    ## TO-DO: consider allowing users to input shapes and colors or other features
     # retrieve the number of grouping levels
-    #numLevels <- length(levels(group))
-    # setup chapes
-    #points <- c(1:numLevels-1)
-    # setup colors
-    colors <- as.numeric(group)
+    stringLevels <- gsub("\\..*","", (levels(group)))
+    # setup colors and points
+    colors <- plotColors[1:length(stringLevels)]
+    #points <- c(0:length(unique(stringLevels)))
     # save the plot
-    png("MDSPlot.png")
+    exportFile <- "MDSPlot.png"
+    png(exportFile)
     # add extra space to right of plot area and change clipping to figure
-    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    # MDS plot with distances approximating log2 fold changes
-    plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
+    par(mar=c(6.5, 5.5, 5.5, 9.5), xpd=TRUE)
+    # PCA plot with distances approximating log2 fold changes
+    #plotMDS(list, col=colors[group], pch=points[group], main = "Multi-Dimensional Scaling (MDS) Plot")
+    plotMDS(list, col=colors[group], main = "Multi-Dimensional Scaling (MDS) Plot")
     # place the legend outside the right side of the plot
-    legend("topright", inset=c(-0.1,0), legend=levels(group), fill=colors)
+    #legend("topright", inset=c(-0.5,0), legend=levels(group), pch=points, col=colors)
+    legend("topright", inset=c(-0.5,0), legend=levels(group), fill=colors)
     # close
     dev.off()
-    # add extra space to right of plot area and change clipping to figure
-    par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-    # MDS plot with distances approximating log2 fold changes
-    plotMDS(list, col=colors, main = "Multi-Dimensional Scaling (MDS) Plot")
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the MDS plot
   output$downloadMDS <- downloadHandler(
@@ -845,20 +846,21 @@ server <- function(input, output, session) {
   )
   
   # render heatmap of individual RNA-seq samples using moderated log CPM
-  output$heatmap <- renderPlot({
+  output$heatmap <- renderImage({
     # calculate scaling factors
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # save the plot
-    png("heatmapPlot.png")
+    exportFile <- "heatmapPlot.png"
+    png(exportFile)
     # create heatmap of individual RNA-seq samples using moderated log CPM
-    heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
+    heatmap(logcpm, main = "Heatmap of RNA-seq Samples")
     # close
     dev.off()
-    # create heatmap of individual RNA-seq samples using moderated log CPM
-    heatmap(logcpm, main = "Heatmap of RNA-seq Samples Using Moderated Log CPM")
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the heatmap plot
   output$downloadHeatmap <- downloadHandler(
@@ -871,20 +873,21 @@ server <- function(input, output, session) {
   )
   
   # render plot of dispersion estimates and biological coefficient of variation
-  output$BCV <- renderPlot({
+  output$BCV <- renderImage({
     # calculate scaling factors
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
     list <- estimateDisp(list)
     # save the plot
-    png("BCVPlot.png")
+    exportFile <- "BCVPlot.png"
+    png(exportFile)
     # create BCV plot
     plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
     # close
     dev.off()
-    # create BCV plot
-    plotBCV(list, main = "Biological Coefficient of Variation (BCV) Plot")
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the BCV plot
   output$downloadBCV <- downloadHandler(
@@ -953,22 +956,21 @@ server <- function(input, output, session) {
   })
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$pairwiseMD <- renderPlot({
+  output$pairwiseMD <- renderImage({
     # perform exact test
     tested <- pairwiseTest()
     # save the plot
-    png("pairwiseMDPlot.png")
+    exportFile <- "pairwiseMDPlot.png"
+    png(exportFile)
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
     # close
     dev.off()
-    # return MD plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot", hl.col=c("red","blue"), hl.cex=c(1.5,1.5), p.value=input$FDRcut)
-    # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   
   # download handler for the MD plot
@@ -1004,10 +1006,10 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
     # save the plot
-    #file = "pairwiseVolcanoPlot.png"
-    #ggsave(file, plot = volcanoPlotPairwise, device = "png")
+    file = "pairwiseVolcanoPlot.png"
+    ggsave(file, plot = volcanoPlotPairwise, device = "png")
     # display the plot
-    volcanoPlotPairwise
+    volcanoPlotPairwise 
   })
   
   
@@ -1087,18 +1089,19 @@ server <- function(input, output, session) {
   })
   
   # render plot of QL dispersions
-  output$glmDispersions <- renderPlot({
+  output$glmDispersions <- renderImage({
     # retrieve the fitted glm
     fit <- glmFitting()
     # save the plot
-    png("glmDispersionsPlot.png")
+    exportFile <- "glmDispersionsPlot.png"
+    png(exportFile)
     # return the plot
     plotQLDisp(fit)
     # close
     dev.off()
-    # return the plot
-    plotQLDisp(fit)
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the GLM dispersions plot
   output$downloadGLMDispersions <- downloadHandler(
@@ -1167,22 +1170,21 @@ server <- function(input, output, session) {
   })
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
-  output$glmMD <- renderPlot({
+  output$glmMD <- renderImage({
     # perform glm test
     tested <- glmContrast()
     # save the plot
-    png("glmMDPlot.png")
+    exportFile <- "glmMDPlot.png"
+    png(exportFile)
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
     abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
     # close
     dev.off()
-    # return MD plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot")
-    # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$logfcut), input$logfcut), col="blue")  
-  })
+    # Return a list
+    list(src = exportFile, alt = "This is alternate text")
+  }, deleteFile = FALSE)
   
   # download handler for the GLM MD plot
   output$downloadGLMMD <- downloadHandler(
@@ -1218,10 +1220,10 @@ server <- function(input, output, session) {
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(plot.title = element_text(face="bold"))
     # save the plot
-    #file = "glmVolcanoPlot.png"
-    #ggsave(file, plot = volcanoPlotGLM, device = "png")
+    file = "glmVolcanoPlot.png"
+    ggsave(file, plot = volcanoPlotGLM, device = "png")
     # display the plot
-    volcanoPlotGLM
+    volcanoPlotGLM 
   })
   
   # download handler for the volcano plot
