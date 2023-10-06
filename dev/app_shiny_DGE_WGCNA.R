@@ -25,8 +25,8 @@ ui <- fluidPage(
   #shinythemes::themeSelector(),
   
   # use a theme
-  #theme = shinytheme("yeti"),
-  theme = shinytheme("superhero"),
+  theme = shinytheme("yeti"),
+  #theme = shinytheme("superhero"),
   
   # add application title
   titlePanel("Weighted Gene Co-Expression Network Analysis (WGCNA)"),
@@ -188,8 +188,8 @@ ui <- fluidPage(
               HTML("<b>Data Input and Cleaning</b>")
             ),
             tags$br(),
-            imageOutput(outputId = "samplesOutliers", height="50%", width="50%"),
-            imageOutput(outputId = "clusterSamples", height="50%", width="50%"),
+            imageOutput(outputId = "samplesOutliers", height="100%", width="100%"),
+            imageOutput(outputId = "clusterSamples", height="100%", width="100%"),
             tags$br(),
             tags$p(
               HTML("<b>Sample data check:</b>")
@@ -211,7 +211,7 @@ ui <- fluidPage(
               HTML("<b>Network Construction and Module Detection</b>")
             ),
             tags$br(),
-            imageOutput(outputId = "plotThreshold", height="50%", width="50%"),
+            imageOutput(outputId = "plotThreshold", height="100%", width="100%"),
             tags$br(),
             tags$p(
               HTML("<b>Enter soft thresholding power:</b>")
@@ -233,10 +233,10 @@ ui <- fluidPage(
             ),
             tableOutput(outputId = "colorsTable"),
             tags$br(),
-            imageOutput(outputId = "plotEigengenes", height="50%", width="50%"),
-            imageOutput(outputId = "plotTrimmedDendro", height="50%", width="50%"),
-            imageOutput(outputId = "plotColorDendro", height="50%", width="50%"),
-            imageOutput(outputId = "hclustPlot", height="50%", width="50%")
+            imageOutput(outputId = "plotEigengenes", height="100%", width="100%"),
+            imageOutput(outputId = "plotTrimmedDendro", height="100%", width="100%"),
+            #imageOutput(outputId = "plotColorDendro", height="100%", width="100%"),
+            #imageOutput(outputId = "hclustPlot", height="100%", width="100%")
           ),
           
           # information tab
@@ -633,7 +633,7 @@ server <- function(input, output, session) {
     #abline(h = 15, col = "red")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "900px")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
   # reactive function to prepare trait data
@@ -690,7 +690,7 @@ server <- function(input, output, session) {
                         main = "Sample dendrogram and trait heatmap")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "700px")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
   
@@ -776,7 +776,7 @@ server <- function(input, output, session) {
          labels = FALSE, hang = 0.04)
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "900px")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
   # reactive function to identify modules
@@ -835,7 +835,7 @@ server <- function(input, output, session) {
                         main = "Gene dendrogram and module colors")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "600px")
+    list(src = exportFile, alt = "This is alternate text", height = "700px")
   }, deleteFile = TRUE)
   
   # reactive function to calculate eigengenes
@@ -869,7 +869,7 @@ server <- function(input, output, session) {
     abline(h=MEDissThres, col = "red")
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "600px")
+    list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
   
   # reactive function to merge module colors
@@ -919,7 +919,7 @@ server <- function(input, output, session) {
                         addGuide = TRUE, guideHang = 0.05)
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "900px")
+    list(src = exportFile, alt = "This is alternate text", height = "700px")
   }, deleteFile = TRUE)
   
   # reactive function to retrieve eigengenes
