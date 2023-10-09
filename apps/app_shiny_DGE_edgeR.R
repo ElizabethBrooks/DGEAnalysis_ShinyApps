@@ -205,6 +205,9 @@ ui <- fluidPage(
             ),
             tags$p(
               HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
+            ),
+            tags$p(
+              HTML("<b>Tip 6:</b> If the normalizaion plot or other results look strange, double check the input raw gene counts (<b>not normalized</b>) and design table files.")
             )
           ),
           
