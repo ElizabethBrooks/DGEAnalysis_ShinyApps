@@ -237,6 +237,29 @@ colorOrder = c("grey", standardColors(50));
 moduleLabels = match(moduleColors, colorOrder)-1;
 MEs = mergedMEs;
 
+# create list of module colors mapped to numbers
+numMods <- length(unique(moduleColors))
+colorTable <- data.frame(
+  color = unique(moduleColors),
+  number = seq(from = 1, to = numMods, by = 1)
+)
+
+# initialize module data frame
+resultsTable <- data.frame(
+  gene = character(),
+  color = character(),
+  number = numeric()
+)
+
+# match gene IDs with module colors
+for(i in 1:numMods){
+  gene <- names(datExpr)[moduleColors==colorTable[i,1]]
+  color <- rep(colorTable[i,1], length(gene))
+  number <- rep(colorTable[i,2], length(gene))
+  moduleData <- cbind(gene, color, number)
+  resultsTable <- rbind(resultsTable, moduleData)
+}
+
 # Save module colors and labels for use in subsequent parts
 #exportFile <- paste(genotype, minModuleSize, sep="_")
 #exportFile <- paste(exportFile, "networkConstruction-stepByStep.RData", sep="-")

@@ -414,6 +414,9 @@ ui <- fluidPage(
             tags$p(
               "Above is a dendrogram that displays the clustering of module eigengenes (ME), which have been labeled with their associated module color."
             ),
+            tags$p(
+              "Modules are clustered by their calculated eigengene correlations to quantify co-expression similarity of entire modules."
+            ),
             tags$br(),
             tags$p(
               align="center",
@@ -440,6 +443,37 @@ ui <- fluidPage(
             )
             #imageOutput(outputId = "plotColorDendro", height="100%", width="100%"),
             #imageOutput(outputId = "hclustPlot", height="100%", width="100%")
+          ),
+          
+          # network construction tab
+          tabPanel(
+            "Analysis Results",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Network Analysis Results</b>")
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Gene Module Data</b>")
+            ),
+            downloadButton(outputId = "geneDownload", label = "Download Table"),
+            tags$br(),
+            tags$p(
+              "The genes and their associated module colors and numbers."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Eigengene Expression Data</b>")
+            ),
+            downloadButton(outputId = "eigengeneDownload", label = "Download Table"),
+            tags$br(),
+            tags$p(
+              "The calculated eigengene expresison values can be downloaded by clicking the above button."
+            ),
+            tags$p(
+              "Eigengenes can be thought of as a weighted average expression profile."
+            )
           ),
           
           # information tab
@@ -1215,9 +1249,6 @@ server <- function(input, output, session) {
     rownames(datExpr0) <- NULL
     # return expression data
     datExpr0
-    # export the expression data as a csv file
-    #exportFile <- "eigengeneExpression.csv"
-    #write.table(datExpr0, file=exportFile, sep=",", row.names=FALSE)
   }
   
   # check if file has been uploaded
@@ -1230,6 +1261,77 @@ server <- function(input, output, session) {
   }
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
+  
+  ##
+  # Analysis Results
+  ##
+  
+  # function to map genes with module information
+  mapResults <- function(){
+    # retrieve prepared data
+    datExpr <- filterData()
+    # retrieve merged colors
+    mergedColors <- mergeColors()
+    # Rename to moduleColors
+    moduleColors = mergedColors
+    # Construct numerical labels corresponding to the colors
+    colorOrder = c("grey", standardColors(50));
+    moduleLabels = match(moduleColors, colorOrder)-1;
+    # create list of module colors mapped to numbers
+    numMods <- length(unique(moduleColors))
+    colorTable <- data.frame(
+      color = unique(moduleColors),
+      number = seq(from = 1, to = numMods, by = 1)
+    )
+    # initialize module data frame
+    resultsTable <- data.frame(
+      gene = character(),
+      color = character(),
+      number = numeric()
+    )
+    # match gene IDs with module colors
+    for(i in 1:numMods){
+      gene <- names(datExpr)[moduleColors==colorTable[i,1]]
+      color <- rep(colorTable[i,1], length(gene))
+      number <- rep(colorTable[i,2], length(gene))
+      moduleData <- cbind(gene, color, number)
+      resultsTable <- rbind(resultsTable, moduleData)
+    }
+    # return results
+    resultsTable
+  }
+  
+  # download table with eigengene expression data
+  output$geneDownload <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste("geneModules", "csv", sep = ".")
+    },
+    # read in data
+    content = function(file) {
+      # retrieve eigengene expression data
+      resultsTable <- mapResults()
+      # output table
+      write.table(resultsTable, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # download table with eigengene expression data
+  output$eigengeneDownload <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste("eigengeneExpression", "csv", sep = ".")
+    },
+    # read in data
+    content = function(file) {
+      # retrieve eigengene expression data
+      datExpr0 <- eigengeneExpression()
+      # output table
+      write.table(datExpr0, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
   
 }
 
