@@ -1,6 +1,8 @@
 # created by: Elizabeth Brooks
 # date: 10 October 2023
 
+#### Setup ####
+
 # load packages 
 library(shiny)
 library(shinythemes)
@@ -15,6 +17,7 @@ require(dplyr)
 plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 
+#### UI ####
 
 # Define UI 
 ui <- fluidPage(
@@ -474,6 +477,8 @@ ui <- fluidPage(
     )
   )
 )
+
+#### Server ####
 
 # Define server 
 server <- function(input, output, session) {
@@ -1313,6 +1318,8 @@ server <- function(input, output, session) {
     }
   )
 }
+
+#### App Object ####
 
 # create the Shiny app object 
 shinyApp(ui = ui, server = server)
