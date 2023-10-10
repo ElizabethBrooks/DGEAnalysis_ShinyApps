@@ -82,7 +82,7 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading CSV files with the normalized normalized gene counts and experimental design in the left-hand sidebar."
+          "Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar."
         ),
         tags$p(
           HTML("The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
