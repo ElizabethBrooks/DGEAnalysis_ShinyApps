@@ -1,3 +1,6 @@
+# created by: Elizabeth Brooks
+# date: 10 October 2023
+
 # load packages 
 library(shiny)
 library(shinythemes)
@@ -147,16 +150,16 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> integer values."),
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <i>numeric</i> integer values."),
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <b>character</b> values.")
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <i>character</i> values.")
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
         ),
         tags$p(
-          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
         ),
         tags$br(),
         tags$p(
@@ -201,13 +204,13 @@ ui <- fluidPage(
               HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
             ),
             tags$p(
-              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <b>Analysis Results</b> tab above.")
+              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <i>Analysis Results</i> tab above.")
             ),
             tags$p(
               HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
             ),
             tags$p(
-              HTML("<b>Tip 6:</b> If the normalizaion plot or other results look strange, double check the input raw gene counts (<b>not normalized</b>) and design table files.")
+              HTML("<b>Tip 6:</b> If the normalizaion plot or other results look strange, double check the input raw gene counts (<i>not normalized</i>) and design table files.")
             )
           ),
           
@@ -373,11 +376,11 @@ ui <- fluidPage(
                 tags$a("edgeR manual", href = "https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf"),
                 " (e.g., sections 3.2.6 & 4.4.9)."
               ),
-              tags$p(
-                "A detailed description of designing model expressions are provided in the paper",
-                tags$a("\"A guide to creating design matrices for gene expression experiments\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
-                " (e.g., studies with multiple factors)."
-              ),
+              #tags$p(
+                #"A detailed description of designing model expressions are provided in the paper",
+                #tags$a("\"A guide to creating design matrices for gene expression experiments\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
+                #" (e.g., studies with multiple factors)."
+              #),
               tags$p(
                 HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same as in the experimental design file and shown in the left-hand sidebar.")
               ),
