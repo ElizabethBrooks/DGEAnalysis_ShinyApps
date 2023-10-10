@@ -1,7 +1,9 @@
+# created by: Elizabeth Brooks
+# date: 10 October 2023
+
 # load packages 
 library(shiny)
 library(shinythemes)
-library(rcartocolor)
 library(WGCNA)
 require(dplyr)
 
@@ -13,10 +15,6 @@ options(stringsAsFactors = FALSE)
 # Caution: skip this line if you run RStudio or other third-party R environments.
 # See note above.
 #enableWGCNAThreads()
-
-# color blind safe plotting palettes
-plotColors <- carto_pal(12, "Safe")
-plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 
 
 # Define UI 
@@ -58,6 +56,7 @@ ui <- fluidPage(
         multiple = FALSE,
         accept = ".csv"
       ),
+      actionButton("runAnalysis", "Run"),
       # show panel depending on input files
       conditionalPanel(
         #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
@@ -87,10 +86,10 @@ ui <- fluidPage(
           "Start by uploading CSV files with the normalized normalized gene counts and experimental design in the left-hand sidebar."
         ),
         tags$p(
-          HTML("The input gene counts should be <b>TMM</b> normalized gene counts (e.g., using edgeR)."),
+          HTML("The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
         ),
         tags$p(
-          HTML("In the input experimental design table the first column with sample names must contain <b>characters</b> and the remaining columns of factors are expected to contain whole <b>numbers</b>."),
+          HTML("In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>."),
         ),
         tags$br(),
         tags$p(
@@ -144,19 +143,19 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Tip 1:</b> The input normalized gene counts table is expected to contain <b>numeric</b> values."),
+          HTML("<b>Tip 1:</b> The input normalized gene counts table is expected to contain <i>numeric</i> values."),
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> Sample names contained in the first line of the normalized gene counts table and first column of the experimental design table are expected to contain <b>characters</b>.")
+          HTML("<b>Tip 2:</b> Sample names contained in the first line of the normalized gene counts table and first column of the experimental design table are expected to contain <i>characters</i>.")
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> Each column after the first in the experimental design table is expected to contain whole <b>numeric</b> values (integers)."),
+          HTML("<b>Tip 3:</b> Each column after the first in the experimental design table is expected to contain whole <i>numeric</i> values (integers)."),
         ),
         tags$p(
-          HTML("<b>Tip 4</b> Sample names in the first line of the normalized gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
+          HTML("<b>Tip 4</b> Sample names in the first line of the normalized gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
         ),
         tags$p(
-          HTML("<b>Tip 5:</b> The input normalized gene counts and experimental design tables must end in the <b>.csv</b> file extension.")
+          HTML("<b>Tip 5:</b> The input normalized gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
         ),
         tags$br(),
         tags$p(
@@ -184,7 +183,7 @@ ui <- fluidPage(
           #HTML("<b>Warning!</b>")
         #),
         #tags$p(
-          #HTML("The application will stop working if errors have been produced from a too high <b>Minimum Branch Cluster Size</b> or too low <b>Branch Cut Height</b>.")
+          #HTML("The application will stop working if errors have been produced from a too high <i>Minimum Branch Cluster Size</i> or too low <i>Branch Cut Height</i>.")
         #)
       ),
       
@@ -205,11 +204,14 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input normalized gene counts table.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Navigate to the <b>Data Cleaning</b> or <b>Network Construction</b> steps by clicking the tabs above.")
+              HTML("<b>Tip 2:</b> Navigate to the <i>Data Cleaning</i> or <i>Network Construction</i> steps by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may cause the application to stop working.")
-            )
+              HTML("<b>Tip 3:</b> Please re-start the application to upload new normalized gene counts or experimental design tables.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
+            ),
           ),
           
           # data cleaning tab
@@ -235,7 +237,6 @@ ui <- fluidPage(
                 tags$p(
                   "Select a minimum branch cluster size for the detection of outlier samples."
                 ),
-                actionButton("runSetMinSize", "Run"),
               ),
               column(
                 width = 6,
@@ -249,8 +250,7 @@ ui <- fluidPage(
                 ),
                 tags$p(
                   "Select a cut height to remove outlier samples."
-                ),
-                actionButton("runSetCutHeight", "Run"),
+                )
               )
             ),
             #tags$p(
@@ -258,10 +258,11 @@ ui <- fluidPage(
               #HTML("<b>Warning!</b>")
             #),
             #tags$p(
-              #HTML("Errors can result from a too high <b>Minimum Branch Cluster Size</b> or too low <b>Branch Cut Height</b>.")
+              #HTML("Errors can result from a too high <i>Minimum Branch Cluster Size</i> or too low <i>Branch Cut Height</i>.")
             #),
             tags$br(),
             imageOutput(outputId = "samplesOutliers", height="100%", width="100%"),
+            downloadButton(outputId = "downloadSamplesOutliers", label = "Download Plot"),
             tags$p(
               "The above dendrogram clusters samples based on their Euclidean distance, which facilitates the detection of outliers."
             ),
@@ -272,6 +273,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             imageOutput(outputId = "clusterSamples", height="100%", width="100%"),
+            downloadButton(outputId = "downloadClusterSamples", label = "Download Plot"),
             tags$p(
               "Factors associated with samples are displayed below each sample in the cluster plot. The factors are shown as colors that range from white to red, where white indicates low values and red high. Missing entries are shown as grey."
             ),
@@ -317,9 +319,9 @@ ui <- fluidPage(
             tags$p(
               "Select an upper value for the range of candidate soft thresholding powers."
             ),
-            actionButton("runSetPowersRange", "Run"),
             tags$br(),
             imageOutput(outputId = "plotThreshold", height="100%", width="100%"),
+            downloadButton(outputId = "downloadPlotThreshold", label = "Download Plot"),
             tags$p(
               "The above plot shows the analysis of network topology for the input range of soft thresholding powers. The left panel shows the scale-free fit index (y-axis) as a function of the soft-thresholding power (x-axis). The right panel displays the mean connectivity (degree, y-axis) as a function of the soft-thresholding power (x-axis)."
             ),
@@ -342,8 +344,7 @@ ui <- fluidPage(
                 ),
                 tags$p(
                   "Choose a soft thresholding power to which co-expression similarity is raised to calculate adjacency."
-                ),
-                actionButton("runSetPowers", "Run")
+                )
               ),
               column(
                 width = 6,
@@ -357,10 +358,17 @@ ui <- fluidPage(
                 ),
                 tags$p(
                   "Choose a minimum module size for the gene clusters."
-                ),
-                actionButton("runSetSize", "Run")
+                )
               )
             ),
+            #tags$br(),
+            #tags$p(
+              #align="center",
+              #HTML("<b>Warning!</b>")
+            #),
+            #tags$p(
+              #HTML("Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values.")
+            #),
             tags$br(),
             fluidRow(
               column(
@@ -414,9 +422,9 @@ ui <- fluidPage(
             tags$p(
               "Select a cut height to merge close modules, which is measured by the correlation of the module eigengenes."
             ),
-            actionButton("runSetMEDissThres", "Run"),
             tags$br(),
             imageOutput(outputId = "plotEigengenes", height="100%", width="100%"),
+            downloadButton(outputId = "downloadPlotEigengenes", label = "Download Plot"),
             tags$p(
               "Above is a dendrogram that displays the clustering of module eigengenes (ME), which have been labeled with their associated module color."
             ),
@@ -432,10 +440,13 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> It is recommended to select a cut height of 0.25, corresponding to 0.75 correlation.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> If you are recieving an error here, make sure to balance the selected <b>Soft Thresholding Power</b> with the <b>Minimum Module Size</b>.")
+              HTML("<b>Tip 2:</b> If you are recieving an error here, make sure to balance the above selected <i>Soft Thresholding Power</i> with the <i>Minimum Module Size</i>.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Tables of gene counts with missing data may produce an error.")
+              HTML("<b>Tip 3:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values selected on the <i>Data Cleaning</i> tab.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> Tables of gene counts with missing data may produce an error.")
             ),
             tags$hr(),
             tags$p(
@@ -444,11 +455,14 @@ ui <- fluidPage(
             ),
             tags$br(),
             imageOutput(outputId = "plotTrimmedDendro", height="100%", width="100%"),
+            downloadButton(outputId = "downloadPlotTrimmedDendro", label = "Download Plot"),
             tags$p(
               "The above clustering dendrogram of genes shows dissimilarity based on topological overlap, together with assigned merged module colors and the original module colors."
             )
             #imageOutput(outputId = "plotColorDendro", height="100%", width="100%"),
-            #imageOutput(outputId = "hclustPlot", height="100%", width="100%")
+            #downloadButton(outputId = "downloadPlotColorDendro", label = "Download Plot"),
+            #imageOutput(outputId = "hclustPlot", height="100%", width="100%"),
+            #downloadButton(outputId = "downloadHclustPlot", label = "Download Plot")
           ),
           
           # network construction tab
@@ -592,8 +606,11 @@ server <- function(input, output, session) {
   # Data Setup
   ##
   
-  # retrieve input data
-  inputGeneCounts <- reactive({
+  # create reactive counts data frame
+  geneCountsReact <- reactiveValues(data = NULL)
+  
+  # observe function to retrieve inputs on button press
+  observeEvent(input$runAnalysis, {
     # require input data
     req(input$geneCountsTable)
     # check the input table is not null
@@ -601,7 +618,15 @@ server <- function(input, output, session) {
       return(NULL)
     }
     # read the file
-    geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    geneCountsReact$data <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+  }, once = TRUE)
+  
+  # retrieve input data
+  inputGeneCounts <- reactive({
+    # require input data
+    req(geneCountsReact$data)
+    # retrieve inputs
+    geneCounts <- geneCountsReact$data
     # check data type of the sample names
     if(!is.character(colnames(geneCounts))){
       return(NULL)
@@ -623,8 +648,11 @@ server <- function(input, output, session) {
   }
   outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
   
-  # retrieve input data
-  inputDesign <- reactive({
+  # create reactive design data frame
+  targetsReact <- reactiveValues(data = NULL)
+  
+  # observe function to retrieve inputs on button press
+  observeEvent(input$runAnalysis, {
     # require input data
     req(input$expDesignTable)
     # check the input table is not null
@@ -632,7 +660,15 @@ server <- function(input, output, session) {
       return(NULL)
     }
     # import grouping factor
-    targets <- read.csv(input$expDesignTable$datapath, row.names=1)
+    targetsReact$data <- read.csv(input$expDesignTable$datapath, row.names=1)
+  }, once = TRUE)
+  
+  # retrieve input data
+  inputDesign <- reactive({
+    # require input data
+    req(targetsReact$data)
+    # retrieve inputs
+    targets <- targetsReact$data
     # check data type of the sample names
     if(!is.character(rownames(targets))){
       return(NULL)
@@ -809,35 +845,10 @@ server <- function(input, output, session) {
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
     sampleTree = hclust(dist(datExpr0), method = "average")
-    # setup test height value
-    testHeightMin <- as.integer(mean(sampleTree$height))
-    testHeightMax <- as.integer(max(sampleTree$height))
-    testHeightValue <- testHeightMax/2
-    # update sample cut height slider
-    updateSliderInput(
-      session,
-      "setCutHeight", 
-      value=testHeightValue,
-      min=testHeightMin, 
-      max=testHeightMax,
-      step=1
-    )
-    # setup test maximum cut height
-    numSamples <- length(sampleTree$height)+1
-    testCutHeight <- (numSamples)/4
-    # update cluster size slider
-    updateSliderInput(
-      session,
-      "setMinSize", 
-      value=1,
-      min=1, 
-      max=testCutHeight,
-      step=1
-    )
   }
   
   # update cut height inputs
-  observeEvent(input$runSetCutHeight, {
+  observe({
     # retrieve cluster of samples
     sampleTree <- createSampleTree()
     # setup test height value
@@ -856,7 +867,7 @@ server <- function(input, output, session) {
   })
   
   # update minimum size inputs
-  observeEvent(input$runSetMinSize, {
+  observe({
     # retrieve cluster of samples
     sampleTree <- createSampleTree()
     # setup test maximum cut height
@@ -874,7 +885,7 @@ server <- function(input, output, session) {
   })
   
   # update power inputs
-  observeEvent(input$runSetPowers, {
+  observe({
     # retrieve input powers
     inputPower <- input$setPowersRange
     # setup test power value
@@ -891,7 +902,7 @@ server <- function(input, output, session) {
   })
   
   # update size inputs
-  observeEvent(input$runSetSize, {
+  observe({
     # retrieve prepared data
     datExpr <- filterData()
     nGenes = ncol(datExpr)
@@ -910,8 +921,8 @@ server <- function(input, output, session) {
     )
   })
 
-  # function to render clustering plot
-  output$samplesOutliers <- renderImage({
+  # function to create clustering plot
+  createSamplesOutliers <- function(){
     # require input data
     req(input$setCutHeight)
     # retrieve prepared data
@@ -920,8 +931,6 @@ server <- function(input, output, session) {
     sampleTree <- createSampleTree()
     # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
     # The user should change the dimensions if the window is too large or too small.
-    exportFile <- "sampleClustering.png"
-    png(file = exportFile, width = 12, height = 9, units="in", res=150)
     sizeGrWindow(12,9)
     par(cex = 0.6)
     par(mar = c(0,4,2,0))
@@ -929,10 +938,31 @@ server <- function(input, output, session) {
          cex.axis = 1.5, cex.main = 2)
     # Plot a line to show the cut
     abline(h = input$setCutHeight, col = "red")
+  }
+  
+  # function to render clustering plot
+  output$samplesOutliers <- renderImage({
+    # save file
+    exportFile <- "sampleClustering.png"
+    png(file = exportFile, width = 12, height = 9, units="in", res=150)
+    createSamplesOutliers()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # download handler for the samples plot
+  output$downloadSamplesOutliers <- downloadHandler(
+    filename = function() {
+      "sampleClustering.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createSamplesOutliers()
+      dev.off()
+    }
+  )
   
   # reactive function to filter expression data
   filterData <- reactive({
@@ -951,21 +981,6 @@ server <- function(input, output, session) {
     # filter out samples
     datExpr <- datExpr0
     datExpr = datExpr0[keepSamples, ]
-    # setup inputs
-    nGenes = ncol(datExpr)
-    nSamples = nrow(datExpr)
-    # setup test size and max minimum module size
-    testSizeValue <- as.integer(nGenes/nSamples)
-    testSizeMax <- testSizeValue*2
-    # update module size slider
-    updateSliderInput(
-      session,
-      "setSize",
-      value=testSizeValue,
-      min=1, 
-      max=testSizeMax,
-      step=1
-    )
   })
   
   # function to prepare trait data
@@ -986,15 +1001,13 @@ server <- function(input, output, session) {
     datTraits
   }
   
-  # function to render updated clustering plot
-  output$clusterSamples <- renderImage({
+  # function to create updated clustering plot
+  createClusterSamples <- function(){
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve the trait data
     datTraits <- traitData()
     # Re-cluster samples
-    exportFile <- "sampleDendrogram_traitHeatmap.png"
-    png(file = exportFile, width = 10, height = 7, units="in", res=150)
     sizeGrWindow(10,7)
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
@@ -1003,10 +1016,31 @@ server <- function(input, output, session) {
     plotDendroAndColors(sampleTree2, traitColors,
                         groupLabels = names(datTraits),
                         main = "Sample dendrogram and trait heatmap")
+  }
+  
+  # function to render updated clustering plot
+  output$clusterSamples <- renderImage({
+    # save image
+    exportFile <- "sampleDendrogram_traitHeatmap.png"
+    png(file = exportFile, width = 10, height = 7, units="in", res=150)
+    createClusterSamples()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # download handler for the clustering plot
+  output$downloadClusterSamples <- downloadHandler(
+    filename = function() {
+      "sampleDendrogram_traitHeatmap.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 10, height = 7, units="in", res=150)
+      createClusterSamples()
+      dev.off()
+    }
+  )
   
   
   ##
@@ -1023,23 +1057,10 @@ server <- function(input, output, session) {
     powers <- c(seq(from = 1, to = input$setPowersRange, by = 2))
     # Call the network topology analysis function
     sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
-    # retrieve input powers
-    inputPower <- input$setPowersRange
-    # setup test power value
-    testPower <- inputPower/2
-    # update powers slider
-    updateSliderInput(
-      session,
-      "setPowers",
-      value=testPower,
-      min=1, 
-      max=inputPower,
-      step=1
-    )
   })
   
-  # render plot with scale independence and mean connectivity
-  output$plotThreshold <- renderImage({
+  # create plot with scale independence and mean connectivity
+  createPlotThreshold <- function(){
     # require input data
     req(input$setPowersRange)
     # retrieve soft thresholding powers
@@ -1048,8 +1069,6 @@ server <- function(input, output, session) {
     powers <- c(seq(from = 1, to = input$setPowersRange, by = 2))
     # Plot the results
     cex1 = 0.9
-    exportFile <- "SoftPowers.png"
-    png(file = exportFile, wi = 9, he = 5, units="in", res=150)
     sizeGrWindow(9, 5)
     par(mfrow = c(1,2))
     # Scale-free topology fit index as a function of the soft-thresholding power
@@ -1066,10 +1085,31 @@ server <- function(input, output, session) {
          xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
          main = paste("Mean connectivity"))
     text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+  }
+  
+  # render plot with scale independence and mean connectivity
+  output$plotThreshold <- renderImage({
+    # save image
+    exportFile <- "SoftPowers.png"
+    png(file = exportFile, wi = 9, he = 5, units="in", res=150)
+    createPlotThreshold()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # download handler for the powers plot
+  output$downloadPlotThreshold <- downloadHandler(
+    filename = function() {
+      "SoftPowers.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, wi = 9, he = 5, units="in", res=150)
+      createPlotThreshold()
+      dev.off()
+    }
+  )
   
   # reactive function to create TOMs
   createTOM <- reactive({
@@ -1094,20 +1134,39 @@ server <- function(input, output, session) {
     geneTree = hclust(as.dist(dissTOM), method = "average")
   }
   
-  # function to render hierarchical clustering plot
-  output$hclustPlot <- renderImage({
+  # function to create hierarchical clustering plot
+  createHclustPlot <- function(){
     # retrieve gene tree
     geneTree <- createGeneTree()
     # Plot the resulting clustering tree (dendrogram)
-    exportFile <- "geneClustering.png"
-    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
     sizeGrWindow(12,9)
     plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
          labels = FALSE, hang = 0.04)
+  }
+  
+  # function to render hierarchical clustering plot
+  output$hclustPlot <- renderImage({
+    # save image
+    exportFile <- "geneClustering.png"
+    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    createHclustPlot()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # download handler for the clustering plot
+  output$downloadHclustPlot <- downloadHandler(
+    filename = function() {
+      "geneClustering.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, wi = 12, he = 9, units="in", res=150)
+      createHclustPlot()
+      dev.off()
+    }
+  )
   
   # reactive function to identify modules
   findModules <- reactive({
@@ -1167,24 +1226,43 @@ server <- function(input, output, session) {
     infoTable
   })
   
-  # function to render plot of dendorgram with colors
-  output$plotColorDendro <- renderImage({
+  # function to create plot of dendorgram with colors
+  createPlotColorDendro <- function(){
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
     dynamicColors <- convertLabels()
     # Plot the dendrogram and colors underneath
-    exportFile <- "dynamicTreeCut.png"
-    png(file = exportFile, wi = 8, he = 6, units="in", res=150)
     sizeGrWindow(8,6)
     plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                         dendroLabels = FALSE, hang = 0.03,
                         addGuide = TRUE, guideHang = 0.05,
                         main = "Gene dendrogram and module colors")
+  }
+  
+  # function to render plot of dendorgram with colors
+  output$plotColorDendro <- renderImage({
+    # save file
+    exportFile <- "dynamicTreeCut.png"
+    png(file = exportFile, wi = 8, he = 6, units="in", res=150)
+    createPlotColorDendro()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "700px")
   }, deleteFile = TRUE)
+  
+  # download handler for the dendrogram plot
+  output$downloadPlotColorDendro <- downloadHandler(
+    filename = function() {
+      "dynamicTreeCut.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, wi = 8, he = 6, units="in", res=150)
+      createPlotColorDendro()
+      dev.off()
+    }
+  )
   
   # function to calculate eigengenes
   calcEigengenes <- function(){
@@ -1202,8 +1280,8 @@ server <- function(input, output, session) {
     METree = hclust(as.dist(MEDiss), method = "average")
   }
   
-  # function to plot the clustering of eigengenes
-  output$plotEigengenes <- renderImage({
+  # function to create plot of the clustering of eigengenes
+  createPlotEigengenes <- function(){
     # check the inputs
     if(is.null(calcEigengenes())) {
       return(NULL)
@@ -1215,17 +1293,36 @@ server <- function(input, output, session) {
     # retrieve eigengene threshold
     MEDissThres <- input$setMEDissThres
     # Plot the result
-    exportFile <- "clusteringME.png"
-    png(file = exportFile, wi = 7, he = 6, units="in", res=150)
     sizeGrWindow(7, 6)
     plot(METree, main = "Clustering of module eigengenes",
          xlab = "", sub = "")
     # Plot the cut line into the dendrogram
     abline(h=MEDissThres, col = "red")
+  }
+  
+  # function to plot the clustering of eigengenes
+  output$plotEigengenes <- renderImage({
+    # save file
+    exportFile <- "clusteringME.png"
+    png(file = exportFile, wi = 7, he = 6, units="in", res=150)
+    createPlotEigengenes()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "500px")
   }, deleteFile = TRUE)
+  
+  # download handler for the eigengenes plot
+  output$downloadPlotEigengenes <- downloadHandler(
+    filename = function() {
+      "clusteringME.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, wi = 7, he = 6, units="in", res=150)
+      createPlotEigengenes()
+      dev.off()
+    }
+  )
   
   # reactive function to merge module colors
   mergeColors <- reactive({
@@ -1259,8 +1356,8 @@ server <- function(input, output, session) {
     mergedMEs = merge$newMEs
   })
   
-  # function to plot the trimmed dendrogram
-  output$plotTrimmedDendro <- renderImage({
+  # function to create plot of the trimmed dendrogram
+  createPlotTrimmedDendro <- function(){
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
@@ -1269,17 +1366,36 @@ server <- function(input, output, session) {
     mergedColors <- mergeColors()
     # plot the gene dendrogram again, with the 
     # original and merged module colors underneath
-    exportFile <- "geneDendro-3.png"
-    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
     sizeGrWindow(12, 9)
     plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                         c("Dynamic Tree Cut", "Merged dynamic"),
                         dendroLabels = FALSE, hang = 0.03,
                         addGuide = TRUE, guideHang = 0.05)
+  }
+  
+  # function to plot the trimmed dendrogram
+  output$plotTrimmedDendro <- renderImage({
+    # save file
+    exportFile <- "geneDendro-3.png"
+    png(file = exportFile, wi = 12, he = 9, units="in", res=150)
+    createPlotTrimmedDendro()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "This is alternate text", height = "700px")
   }, deleteFile = TRUE)
+  
+  # download handler for the dendrogram plot
+  output$downloadPlotTrimmedDendro <- downloadHandler(
+    filename = function() {
+      "geneDendro-3.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, wi = 12, he = 9, units="in", res=150)
+      createPlotTrimmedDendro()
+      dev.off()
+    }
+  )
   
   # function to retrieve eigengenes
   retrieveEigengenes <- function(){
