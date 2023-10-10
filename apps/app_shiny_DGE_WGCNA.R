@@ -436,7 +436,7 @@ ui <- fluidPage(
               HTML("<b>Helpful Tips</b>")
             ),
             tags$p(
-              HTML("<b>Tip 1:</b> It is recommended to select a cut height of 0.25, corresponding to 0.75 correlation.")
+              HTML("<b>Tip 1:</b> It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation.")
             ),
             tags$p(
               HTML("<b>Tip 2:</b> If you are recieving an error here, make sure to balance the selected <i>Soft Thresholding Power</i> with the <i>Minimum Module Size</i>.")
