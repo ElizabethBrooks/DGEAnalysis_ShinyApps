@@ -147,10 +147,10 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> values."),
+          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <b>numeric</b> integer values."),
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> Sample names contained in the first column of the experimental design table are expected to be <b>character</b> values.")
+          HTML("<b>Tip 2:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <b>character</b> values.")
         ),
         tags$p(
           HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <b>must match</b> the sample names contained in the first column of the experimental design table.")
@@ -590,14 +590,8 @@ server <- function(input, output, session) {
   
   # check input design type
   designFactors <- function(){
-    # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }else if(is.null(inputDesign())) {
-      return(NULL)
-    }else if(is.null(compareSamples())) {
-      return(NULL)
-    }
+    # require input data
+    req(input$expDesignTable)
     # retrieve input design
     targets <- inputDesign()
     # check data type of the sample names
@@ -610,11 +604,17 @@ server <- function(input, output, session) {
   
   # compare input design and counts samples
   compareSamples <- function(){
+    # check the inputs
+    if(is.null(countsType())) {
+      return(NULL)
+    }else if(is.null(inputDesign())) {
+      return(NULL)
+    } 
     # retrieve input design samples
     targets <- inputDesign()
     designSamples <- data.frame(ID1 = targets[,1])
     # retrieve input gene counts samples
-    geneCounts <- inputGeneCounts() 
+    geneCounts <- countsType() 
     countsSamples <- data.frame(ID2 = colnames(geneCounts))
     # first simply check if the number of samples matches
     if(nrow(designSamples) != nrow(countsSamples)) return(NULL)
@@ -636,11 +636,7 @@ server <- function(input, output, session) {
   
   # check if file has been uploaded
   output$inputCheck <- function(){
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }else if(is.null(inputDesign())) {
-      return(NULL)
-    }else if(is.null(compareSamples())) {
+    if(is.null(compareSamples())) {
       return(NULL)
     }
     return(TRUE)
@@ -679,7 +675,7 @@ server <- function(input, output, session) {
     # retrieve input design table
     group <- designFactors()
     # retrieve input gene counts table
-    geneCounts <- inputGeneCounts()
+    geneCounts <- countsType()
     # retrieve column names
     sampleNames <- colnames(geneCounts)
     # create data frame
@@ -695,18 +691,10 @@ server <- function(input, output, session) {
   
   # function for data normalization
   normalizeData <- function(){
-    # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }else if(is.null(inputDesign())) {
-      return(NULL)
-    }else if(is.null(compareSamples())) {
-      return(NULL)
-    }
     # retrieve input design table
     group <- designFactors()
     # begin to construct the DGE list object
-    geneCounts <- inputGeneCounts()
+    geneCounts <- countsType()
     list <- DGEList(counts=geneCounts,group=group)
   }
   
