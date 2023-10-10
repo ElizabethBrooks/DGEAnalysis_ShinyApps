@@ -59,7 +59,7 @@ ui <- fluidPage(
       ),
       # show panel depending on input files
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && output.inputsUploaded && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$hr(),
         tags$p(
           "Select Analysis Type:"
@@ -105,7 +105,7 @@ ui <- fluidPage(
       
       # getting started text
       conditionalPanel(
-        condition = "!(output.countsUploaded && output.designUploaded)",
+        condition = "!output.inputsUploaded",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
@@ -142,7 +142,7 @@ ui <- fluidPage(
       
       # error text
       conditionalPanel(
-        condition = "!output.inputCheck && (output.countsUploaded && output.designUploaded)",
+        condition = "!output.inputCheck && output.inputsUploaded",
         tags$h1(
           "Error", 
           align="center"
@@ -150,6 +150,13 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        ),
+        tags$br(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        ),
+        tags$p(
+          HTML("Please <b>allow a moment for processing</b> after uploading new input file(s).")
         ),
         tags$br(),
         tags$p(
@@ -163,19 +170,12 @@ ui <- fluidPage(
         ),
         tags$p(
           HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
-        ),
-        tags$br(),
-        tags$p(
-          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
-        ),
-        tags$p(
-          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
-        ),
+        )
       ),
       
       # processing text
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && output.inputsUploaded && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$h1(
           "Processing", 
           align="center"
@@ -186,7 +186,7 @@ ui <- fluidPage(
       
       # results text and plots
       conditionalPanel(
-        condition = "output.inputCheck && (output.countsUploaded && output.designUploaded) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && output.inputsUploaded && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -556,13 +556,6 @@ server <- function(input, output, session) {
     geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
   })
   
-  # check if file has been uploaded
-  output$countsUploaded <- function(){
-    return(!is.null(inputGeneCounts()))
-  }
-  outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
-  
-  
   # check input counts type
   countsType <- function(){
     # retrieve input gene counts
@@ -590,11 +583,20 @@ server <- function(input, output, session) {
     targets <- read.csv(input$expDesignTable$datapath, row.names=1)
   })
   
-  # check if file has been uploaded
-  output$designUploaded <- function(){
-    return(!is.null(inputDesign()))
+  # check if input files have been uploaded
+  output$inputsUploaded <- function(){
+    # require input data
+    req(input$geneCountsTable)
+    req(input$expDesignTable)
+    # check if the input files are valid
+    if(!is.null(inputGeneCounts())) {
+      return(TRUE)
+    }else if(!is.null(inputDesign())) {
+      return(TRUE)
+    }
+    return(NULL)
   }
-  outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
+  outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
   
   # check input design type
   designFactors <- function(){
@@ -635,19 +637,20 @@ server <- function(input, output, session) {
     # check total non matches
     totalMismatches <- nrow(mismatch_counts) + nrow(mismatch_design)
     # check if all matched
-    if(totalMismatches == 0){
-      return(NULL) # all matched
-    }else{
-      return(TRUE) # there were mismatches
+    if(totalMismatches != 0){
+      # all matched
+      return(TRUE)
     }
+    # there were mismatches
+    return(NULL)
   }
   
-  # check if file has been uploaded
+  # check if inputs are good
   output$inputCheck <- function(){
-    if(is.null(compareSamples())) {
-      return(NULL)
+    if(!is.null(compareSamples())) {
+      return(TRUE)
     }
-    return(TRUE)
+    return(NULL)
   }
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
@@ -957,6 +960,8 @@ server <- function(input, output, session) {
   
   # reactive function to calculate table of DE genes
   pairwiseTest <- reactive({
+    # require valid inputs
+    req(compareSamples())
     # check analysis type
     #if(input$analysisType != 'pairwise') return()
     # require input data
@@ -970,7 +975,7 @@ server <- function(input, output, session) {
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
   })  
   
-  # check if file has been uploaded
+  # check if results have completed
   output$pairwiseResultsCompleted <- function(){
     if(is.null(pairwiseTest())){
       return(FALSE)
@@ -1112,6 +1117,8 @@ server <- function(input, output, session) {
   
   # reactive function to create the glm design
   glmDesign <- reactive({
+    # require valid inputs
+    req(compareSamples())
     # check analysis type
     #if(input$analysisType != 'glm') return()
     # require input data
@@ -1201,7 +1208,7 @@ server <- function(input, output, session) {
     glmTreat(fit, contrast=glmContrast)
   }
   
-  # check if file has been uploaded
+  # check if results have completed
   output$glmResultsCompleted <- function(){
     if(is.null(glmContrast())){
       return(FALSE)

@@ -1,7 +1,8 @@
 # created by: Elizabeth Brooks
 # date: 10 October 2023
 
-#### Setup ####
+#### Server ####
+
 
 # load packages 
 library(shiny)
@@ -61,8 +62,8 @@ ui <- fluidPage(
       ),
       # show panel depending on input files
       conditionalPanel(
-        #condition = "output.inputCheck && (output.countsUploaded && output.designUploaded)",
-        condition = "(output.countsUploaded && output.designUploaded)",
+        condition = "output.inputCheck && output.inputsUploaded",
+        #condition = "output.inputsUploaded",
         tags$hr(),
         tags$p(
           "Design Table:"
@@ -80,7 +81,7 @@ ui <- fluidPage(
       
       # getting started text
       conditionalPanel(
-        condition = "!(output.countsUploaded && output.designUploaded)",
+        condition = "!output.inputsUploaded",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
@@ -123,7 +124,7 @@ ui <- fluidPage(
       
       # loading text
       #conditionalPanel(
-        #condition = "(output.countsUploaded && output.designUploaded) && !output.resultsCompleted",
+        #condition = "output.inputsUploaded && !output.resultsCompleted",
         #tags$h1(
           #"Loading", 
           #align="center"
@@ -134,7 +135,8 @@ ui <- fluidPage(
       
       # error text
       conditionalPanel(
-        condition = "(output.countsUploaded && output.designUploaded) && !output.inputCheck",
+        #condition = "output.inputsUploaded && !output.inputCheck",
+        condition = "output.inputsUploaded && !output.inputCheck && !output.resultsCompleted",
         tags$h1(
           "Error", 
           align="center"
@@ -142,6 +144,13 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+        ),
+        tags$br(),
+        tags$p(
+          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
+        ),
+        tags$p(
+          HTML("Please <b>allow a moment for processing</b> after uploading new input file(s).")
         ),
         tags$br(),
         tags$p(
@@ -158,14 +167,7 @@ ui <- fluidPage(
         ),
         tags$p(
           HTML("<b>Tip 5:</b> The input normalized gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
-        ),
-        tags$br(),
-        tags$p(
-          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
-        ),
-        tags$p(
-          HTML("<b>Allow a moment for processing</b> after uploading new input file(s).")
-        ),
+        )
       ),
       
       # processing text
@@ -209,11 +211,11 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> Navigate to the <i>Data Cleaning</i> or <i>Network Construction</i> steps by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may cause the application to stop working.")
-            ),
-            tags$p(
-              HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
-            ),
+              HTML("<b>Tip 3:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
+            )
+            #tags$p(
+              #HTML("<b>Tip 4:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may cause the application to stop working.")
+            #)
           ),
           
           # data cleaning tab
@@ -632,12 +634,6 @@ server <- function(input, output, session) {
     geneCounts
   })
   
-  # check if file has been uploaded
-  output$countsUploaded <- function(){
-    return(!is.null(inputGeneCounts()))
-  }
-  outputOptions(output, 'countsUploaded', suspendWhenHidden=FALSE)
-  
   # retrieve input data
   inputDesign <- reactive({
     # require input data
@@ -662,12 +658,21 @@ server <- function(input, output, session) {
     # return the design
     targets
   })
-  
-  # check if file has been uploaded
-  output$designUploaded <- function(){
-    return(!is.null(inputDesign()))
+
+  # check if input files have been uploaded
+  output$inputsUploaded <- function(){
+    # require input data
+    req(input$geneCountsTable)
+    req(input$expDesignTable)
+    # check if the input files are valid
+    if(!is.null(inputGeneCounts())) {
+      return(TRUE)
+    }else if(!is.null(inputDesign())) {
+      return(TRUE)
+    }
+    return(NULL)
   }
-  outputOptions(output, 'designUploaded', suspendWhenHidden=FALSE)
+  outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
 
   # compare input design and counts samples
   compareSamples <- function(){
@@ -694,19 +699,20 @@ server <- function(input, output, session) {
     # check total non matches
     totalMismatches <- nrow(mismatch_counts) + nrow(mismatch_design)
     # check if all matched
-    if(totalMismatches == 0){
-      return(NULL) # all matched
-    }else{
-      return(TRUE) # there were mismatches
+    if(totalMismatches != 0){
+      # all matched
+      return(TRUE)
     }
+    # there were mismatches
+    return(NULL)
   }
   
   # check if inputs are good
   output$inputCheck <- function(){
-    if(is.null(compareSamples())) {
-      return(NULL)
+    if(!is.null(compareSamples())) {
+      return(TRUE)
     }
-    return(TRUE)
+    return(NULL)
   }
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
@@ -945,7 +951,8 @@ server <- function(input, output, session) {
   
   # reactive function to filter expression data
   filterData <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setCutHeight)
     req(input$setMinSize)
     # retrieve prepared data
@@ -1028,7 +1035,8 @@ server <- function(input, output, session) {
   
   # reactive function to pick powers
   pickPowers <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setPowersRange)
     # retrieve prepared data
     datExpr <- filterData()
@@ -1092,7 +1100,8 @@ server <- function(input, output, session) {
   
   # reactive function to create TOMs
   createTOM <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setPowers)
     # retrieve prepared data
     datExpr <- filterData()
@@ -1149,7 +1158,8 @@ server <- function(input, output, session) {
   
   # reactive function to identify modules
   findModules <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setSize)
     # retrieve gene tree
     geneTree <- createGeneTree()
@@ -1305,7 +1315,8 @@ server <- function(input, output, session) {
   
   # reactive function to merge module colors
   mergeColors <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setMEDissThres)
     # retrieve prepared data
     datExpr <- filterData()
@@ -1321,7 +1332,8 @@ server <- function(input, output, session) {
   
   # reactive function to merge module eigengenes
   mergeEigengenes <- reactive({
-    # require input data
+    # require valid input data
+    req(compareSamples())
     req(input$setMEDissThres)
     # retrieve prepared data
     datExpr <- filterData()
@@ -1391,7 +1403,9 @@ server <- function(input, output, session) {
   }
   
   # function to retrieve eigengene expression values
-  eigengeneExpression <- function(){
+  eigengeneExpression <- reactive({
+    # require valid inputs
+    req(compareSamples())
     # retrieve prepared data
     datExpr0 <- filterData()
     # retrieve module eigengenes
@@ -1405,14 +1419,14 @@ server <- function(input, output, session) {
     rownames(datExpr0) <- NULL
     # return expression data
     datExpr0
-  }
+  })
   
   # check if file has been uploaded
   output$resultsCompleted <- function(){
-    if(is.null(eigengeneExpression())){
-      return(FALSE)
-    }else{
+    if(!is.null(eigengeneExpression())){
       return(TRUE)
+    }else{
+      return(FALSE)
     }
   }
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)

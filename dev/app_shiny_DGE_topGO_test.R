@@ -3,9 +3,14 @@
 
 #### Setup ####
 
-# load packages 
+# load packages
 library(shiny)
 library(shinythemes)
+library(topGO)
+library(edgeR)
+library(ggplot2)
+library(Rgraphviz)
+library(tidyr)
 
 #### UI ####
 
@@ -27,13 +32,21 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
-      # header for file uploads
+      # file uploads
       tags$p(
-        "Upload data table (*.csv):"
+        "Upload analysis data table (*.csv):"
       ),
-      # select a file
       fileInput(
-        "inputTable", 
+        "analysisTable", 
+        label = NULL,
+        multiple = FALSE,
+        accept = ".csv"
+      ),
+      tags$p(
+        "Upload GO mapping table (*.csv):"
+      ),
+      fileInput(
+        "mappingTable", 
         label = NULL,
         multiple = FALSE,
         accept = ".csv"
@@ -96,13 +109,13 @@ server <- function(input, output, session) {
   # retrieve input data
   inputData <- reactive({
     # require input data
-    req(input$inputTable)
+    req(input$analysisTable)
     # check the input table is not null
-    if(is.null(input$inputTable)){
+    if(is.null(input$analysisTable)){
       return(NULL)
     }
     # read the file
-    dataTableInput <- read.csv(file = input$inputTable$datapath, row.names=1)
+    dataTableInput <- read.csv(file = input$analysisTable$datapath, row.names=1)
     # return data
     dataTableInput
   })
