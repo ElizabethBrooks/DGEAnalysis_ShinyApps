@@ -200,7 +200,7 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> Navigate to the <i>Data Cleaning</i> or <i>Network Construction</i> steps by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Navigate to the <i>Analysis Results</i> by clicking the tabs above.")
+              HTML("<b>Tip 3:</b> Navigate to the <i>Results</i> by clicking the tabs above.")
             ),
             tags$p(
               HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
@@ -421,6 +421,9 @@ ui <- fluidPage(
             tags$p(
               "Select a cut height to merge close modules, which is measured by the correlation of the module eigengenes."
             ),
+            tags$p(
+              "Eigengenes can be thought of as a weighted average expression profile."
+            ),
             tags$br(),
             imageOutput(outputId = "plotEigengenes", height="100%", width="100%"),
             downloadButton(outputId = "downloadPlotEigengenes", label = "Download Plot"),
@@ -464,9 +467,9 @@ ui <- fluidPage(
             #downloadButton(outputId = "downloadHclustPlot", label = "Download Plot")
           ),
           
-          # network construction tab
+          # results tab
           tabPanel(
-            "Analysis Results",
+            "Results",
             tags$br(),
             tags$p(
               align="center",
@@ -488,10 +491,7 @@ ui <- fluidPage(
             downloadButton(outputId = "eigengeneDownload", label = "Download Table"),
             tags$br(),
             tags$p(
-              "The calculated eigengene expresison values can be downloaded by clicking the above button."
-            ),
-            tags$p(
-              "Eigengenes can be thought of as a weighted average expression profile."
+              "The calculated eigengene expresison values for each module."
             )
           ),
           
@@ -734,48 +734,6 @@ server <- function(input, output, session) {
   # Data Input and Cleaning
   ##
   
-  # function to test results
-  checkGenesTest <- function(){
-    # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }
-    # begin to construct the counts object
-    geneCounts <- inputGeneCounts()
-    # transpose each subset
-    datExpr0 = data = as.data.frame(t(geneCounts))
-    names(datExpr0) = rownames(geneCounts)
-    rownames(datExpr0) = names(geneCounts)
-    # check valid input
-    testCheck <- try(goodSamplesGenes(datExpr0, verbose = 3),silent = TRUE)
-    if(class(testCheck) == "try-error"){
-      return(NULL)
-    }
-    #Check the genes across all samples
-    gsg = goodSamplesGenes(datExpr0, verbose = 3)
-  }
-  
-  # render text with gene test results
-  output$testGenes <- renderText({
-    # require valid inputs
-    if(is.null(checkGenesTest())){
-      return(NULL)
-    }
-    # retrieve check results
-    gsg <- checkGenesTest()
-    # remove the offending genes and samples from the data
-    if (!gsg$allOK){
-      # Optionally, print the gene and sample names that were removed:
-      if (sum(!gsg$goodGenes)>0){
-        print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
-      }else{
-        print("Input normalized counts for the genes are good.")
-      }
-    }else{
-      print("Input normalized counts for the genes are good.")
-    }
-  })
-  
   # function to setup the data
   setupData <- function(){
     # check if the input files are valid
@@ -815,6 +773,29 @@ server <- function(input, output, session) {
     return(TRUE)
   }
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
+  
+  # render text with gene test results
+  output$testGenes <- renderText({
+    # require valid inputs
+    if(is.null(checkData())){
+      return(NULL)
+    }
+    # retrieve check results
+    gsg <- checkData()
+    # retrieve the expression data
+    datExpr0 <- setupData()
+    # remove the offending genes and samples from the data
+    if (!gsg$allOK){
+      # Optionally, print the gene and sample names that were removed:
+      if (sum(!gsg$goodGenes)>0){
+        print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
+      }else{
+        print("Input normalized counts for the genes are good.")
+      }
+    }else{
+      print("Input normalized counts for the genes are good.")
+    }
+  })
   
   # function to prepare the data
   prepareData <- function(){

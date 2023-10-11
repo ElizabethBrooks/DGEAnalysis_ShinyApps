@@ -201,7 +201,7 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Navigate to the <i>Data Exploration</i> or <i>Analysis Results</i> by clicking the tabs above.")
+              HTML("<b>Tip 2:</b> Navigate to the <i>Data Normalization</i>, <i>Data Exploration</i>, or <i>Analysis & Results</i> steps by clicking the tabs above.")
             ),
             tags$p(
               HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
@@ -214,9 +214,9 @@ ui <- fluidPage(
             )
           ),
           
-          # data normalization and exploration tab
+          # data normalization tab
           tabPanel(
-            "Data Normalization & Exploration",
+            "Data Normalization",
             tags$br(),
             tags$p(
               align="center",
@@ -244,8 +244,13 @@ ui <- fluidPage(
               "Normalized values were calcuated in counts per million (CPM) using the normalized library sizes.",
               "The normalization method used with edgeR was the Trimmed Mean of M-values (TMM).",
               "Note that TMM normalization factors do not take into account library sizes."
-            ),
-            tags$hr(),
+            )
+          ),
+          
+          # data exploration tab
+          tabPanel(
+            "Data Exploration",
+            tags$br(),
             tags$p(
               align="center",
               HTML("<b>Data Exploration</b>")
@@ -280,9 +285,9 @@ ui <- fluidPage(
             )
           ),
           
-          # analysis results tab
+          # analysis & results tab
           tabPanel(
-            "Analysis Results", 
+            "Analysis & Results", 
             # show pairwise results
             conditionalPanel(
               condition = "input.analysisType == 'pairwise'",
