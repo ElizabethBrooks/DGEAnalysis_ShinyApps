@@ -107,7 +107,7 @@ server <- function(input, output, session) {
   ##
   
   # retrieve input data
-  inputData <- reactive({
+  inputAnalysisTable <- reactive({
     # require input data
     req(input$analysisTable)
     # check the input table is not null
@@ -120,11 +120,50 @@ server <- function(input, output, session) {
     dataTableInput
   })
   
+  # retrieve input data
+  inputMappingTable <- reactive({
+    # require input data
+    req(input$mappingTable)
+    # check the input table is not null
+    if(is.null(input$mappingTable)){
+      return(NULL)
+    }
+    # read the file
+    GOmaps <- readMappings(file = input$mappingTable$datapath)
+    # return data
+    GOmaps
+  })
+  
   # check if file has been uploaded
   output$dataUploaded <- function(){
-    return(!is.null(inputData()))
+    # check the input tables are not null
+    if(is.null(inputAnalysisTable())){
+      return(FALSE)
+    }else if(is.null(inputMappingTable())){
+      return(FALSE)
+    }
+    return(TRUE)
   }
   outputOptions(output, 'dataUploaded', suspendWhenHidden=FALSE)
+  
+  
+  ## 
+  # GO Enrichment - DGE
+  ##
+  
+  # function to create gene universe
+  createUniverseDGE <- function(){
+    # check for inputs
+    if(is.null(inputAnalysisTable())){
+      return(NULL)
+    }
+    # create named list of all genes (gene universe) and values
+    # the gene universe is set to be the list of all genes contained in the gene2GO list of annotated genes
+    list_genes <- as.numeric(DGE_results_table$FDR)
+    list_genes <- setNames(list_genes, DGE_results_table$gene)
+    list_genes_filtered <- list_genes[names(list_genes) %in% names(GOmaps)]
+    
+  }
   
 }
 

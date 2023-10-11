@@ -140,11 +140,11 @@ ui <- fluidPage(
         )
       ),
       
-      # error text
+      # warning text
       conditionalPanel(
         condition = "!output.inputCheck && output.inputsUploaded",
         tags$h1(
-          "Error", 
+          "Warning", 
           align="center"
         ),
         tags$br(),
@@ -201,19 +201,16 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Navigate to the data exploration or analysis results by clicking the tabs above.")
+              HTML("<b>Tip 2:</b> Navigate to the <i>Data Exploration</i> or <i>Analysis Results</i> by clicking the tabs above.")
             ),
             tags$p(
               HTML("<b>Tip 3:</b> It is possible to change the type of analysis in the left-hand sidebar.")
             ),
             tags$p(
-              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the <i>Analysis Results</i> tab above.")
+              HTML("<b>Tip 4:</b> It is possible to change the comparison for an analysis in the left-hand sidebar")
             ),
             tags$p(
-              HTML("<b>Tip 5:</b> It is possible to change the input gene counts or experimental design tables in the left-hand sidebar.")
-            ),
-            tags$p(
-              HTML("<b>Tip 6:</b> If the normalizaion plot or other results look strange, double check the input raw gene counts (<i>not normalized</i>) and design table files.")
+              HTML("<b>Tip 6:</b> If the normalizaion plot or other results look strange, double check the input raw gene counts (<i>not normalized</i>).")
             )
           ),
           
@@ -314,7 +311,7 @@ ui <- fluidPage(
                 label = "Second Level",
                 choices = c("")
               ),
-              # show glm results
+              # show pairwise results
               conditionalPanel(
                 condition = "output.pairwiseResultsCompleted",
                 tags$hr(),
@@ -584,22 +581,19 @@ server <- function(input, output, session) {
   })
   
   # check if input files have been uploaded
-  output$inputsUploaded <- function(){
-    # require input data
-    req(input$geneCountsTable)
-    req(input$expDesignTable)
+  output$inputsUploaded <- reactive({
     # check if the input files are valid
-    if(!is.null(inputGeneCounts())) {
-      return(TRUE)
-    }else if(!is.null(inputDesign())) {
-      return(TRUE)
+    if(is.null(inputGeneCounts())) {
+      return(FALSE)
+    }else if(is.null(inputDesign())) {
+      return(FALSE)
     }
-    return(NULL)
-  }
+    return(TRUE)
+  })
   outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
   
   # check input design type
-  designFactors <- function(){
+  designFactors <- reactive({
     # require input data
     req(input$expDesignTable)
     # retrieve input design
@@ -610,7 +604,7 @@ server <- function(input, output, session) {
     }
     # setup a design matrix
     factor(targets[,1])
-  }
+  })
   
   # compare input design and counts samples
   compareSamples <- function(){
@@ -647,10 +641,10 @@ server <- function(input, output, session) {
   
   # check if inputs are good
   output$inputCheck <- function(){
-    if(!is.null(compareSamples())) {
-      return(TRUE)
+    if(is.null(compareSamples())) {
+      return(FALSE)
     }
-    return(NULL)
+    return(TRUE)
   }
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
@@ -949,11 +943,8 @@ server <- function(input, output, session) {
   
   # render text with pairwise comparison
   output$pairwiseComparison <- renderText({
-    # check analysis type
-    #if(input$analysisType != 'pairwise') return()
     # require input data
-    req(input$levelOne)
-    req(input$levelTwo)
+    req(input$levelOne, input$levelTwo)
     # create string with factor levels
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
@@ -961,12 +952,11 @@ server <- function(input, output, session) {
   # reactive function to calculate table of DE genes
   pairwiseTest <- reactive({
     # require valid inputs
-    req(compareSamples())
-    # check analysis type
-    #if(input$analysisType != 'pairwise') return()
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # require input data
-    req(input$levelOne)
-    req(input$levelTwo)
+    req(input$levelOne, input$levelTwo)
     # calculate scaling factors
     list <- filterNorm()
     # estimate common dispersion and tagwise dispersions to produce a matrix of pseudo-counts
@@ -979,9 +969,8 @@ server <- function(input, output, session) {
   output$pairwiseResultsCompleted <- function(){
     if(is.null(pairwiseTest())){
       return(FALSE)
-    }else{
-      return(TRUE)
     }
+    return(TRUE)
   }
   outputOptions(output, 'pairwiseResultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
@@ -1118,11 +1107,9 @@ server <- function(input, output, session) {
   # reactive function to create the glm design
   glmDesign <- reactive({
     # require valid inputs
-    req(compareSamples())
-    # check analysis type
-    #if(input$analysisType != 'glm') return()
-    # require input data
-    req(input$compareExpression)
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve input design table
     group <- designFactors()
     # parametrize the experimental design with a one-way layout 
@@ -1183,38 +1170,35 @@ server <- function(input, output, session) {
   
   # render text with glm comparison
   output$glmComparison <- renderText({
-    # set the current expression as a global value
-    glmExpression <<- input$compareExpression
-    # require input data
-    req(glmExpression)
-    # output string with comparison
-    glmExpression
+    # require the expression
+    req(input$compareExpression)
+    # return the expression
+    input$compareExpression
   })
   
   # function to perform glm contrasts
-  glmContrast <- function(){
-    # set the current expression as a global value
-    glmExpression <<- input$compareExpression
-    # require input data
-    req(glmExpression)
+  glmContrast <- reactive({
+    # require the expression
+    req(input$compareExpression)
+    # set the input expression as global
+    inputExpression <<- input$compareExpression
     # retrieve the fitted glm
     fit <- glmFitting()
     # retrieve the experimental design 
     design <- glmDesign()
     # examine the overall effect of treatment
-    glmContrast <- makeContrasts(glmSet = glmExpression,
+    glmContrast <- makeContrasts(glmSet = inputExpression,
                                  levels=design)
     # look at genes with significant expression across all UV groups
     glmTreat(fit, contrast=glmContrast)
-  }
+  })
   
   # check if results have completed
   output$glmResultsCompleted <- function(){
     if(is.null(glmContrast())){
       return(FALSE)
-    }else{
-      return(TRUE)
     }
+    return(TRUE)
   }
   outputOptions(output, 'glmResultsCompleted', suspendWhenHidden=FALSE, priority=0)
   

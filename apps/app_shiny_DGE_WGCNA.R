@@ -122,23 +122,12 @@ ui <- fluidPage(
         tableOutput(outputId = "exampleCountsTwo")
       ),
       
-      # loading text
-      #conditionalPanel(
-        #condition = "output.inputsUploaded && !output.resultsCompleted",
-        #tags$h1(
-          #"Loading", 
-          #align="center"
-        #),
-        #tags$br(),
-        #"The network analysis results and plots may take several moments to load depending on the size of the input normalized gene counts or experimental design tables."
-      #),
-      
-      # error text
+      # warning text
       conditionalPanel(
         #condition = "output.inputsUploaded && !output.inputCheck",
         condition = "output.inputsUploaded && !output.inputCheck && !output.resultsCompleted",
         tags$h1(
-          "Error", 
+          "Warning", 
           align="center"
         ),
         tags$br(),
@@ -211,10 +200,16 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> Navigate to the <i>Data Cleaning</i> or <i>Network Construction</i> steps by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
+              HTML("<b>Tip 3:</b> Navigate to the <i>Analysis Results</i> by clicking the tabs above.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
+            ),
+            tags$p(
+              HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
             )
             #tags$p(
-              #HTML("<b>Tip 4:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may cause the application to stop working.")
+              #HTML("<b>Tip 6:</b> Repeatedly changing the inputs may cause the application to stop working.")
             #)
           ),
           
@@ -447,7 +442,10 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> If you are recieving an error here, make sure to balance the selected <i>Soft Thresholding Power</i> with the <i>Minimum Module Size</i>.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Tables of gene counts with missing data may produce an error.")
+              HTML("<b>Tip 3:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values selected on the <i>Data Cleaning</i> tab.")
+            ),
+            tags$p(
+              HTML("<b>Tip 4:</b> Tables of gene counts with missing data may produce an error.")
             ),
             tags$hr(),
             tags$p(
@@ -630,6 +628,10 @@ server <- function(input, output, session) {
         return(NULL)
       }
     }
+    # make sure there are at least three columns
+    #if(ncol(geneCounts) < 3) { 
+        #return(NULL)
+    #}
     # return gene counts
     geneCounts
   })
@@ -660,18 +662,15 @@ server <- function(input, output, session) {
   })
 
   # check if input files have been uploaded
-  output$inputsUploaded <- function(){
-    # require input data
-    req(input$geneCountsTable)
-    req(input$expDesignTable)
+  output$inputsUploaded <- reactive({
     # check if the input files are valid
-    if(!is.null(inputGeneCounts())) {
-      return(TRUE)
-    }else if(!is.null(inputDesign())) {
-      return(TRUE)
+    if(is.null(inputGeneCounts())) {
+      return(FALSE)
+    }else if(is.null(inputDesign())) {
+      return(FALSE)
     }
-    return(NULL)
-  }
+    return(TRUE)
+  })
   outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
 
   # compare input design and counts samples
@@ -707,15 +706,6 @@ server <- function(input, output, session) {
     return(NULL)
   }
   
-  # check if inputs are good
-  output$inputCheck <- function(){
-    if(!is.null(compareSamples())) {
-      return(TRUE)
-    }
-    return(NULL)
-  }
-  outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
-  
   # render experimental design table
   output$designTable <- renderTable({
     # check if the input files are valid
@@ -744,16 +734,35 @@ server <- function(input, output, session) {
   # Data Input and Cleaning
   ##
   
-  # render text with gene test results
-  output$testGenes <- renderText({
+  # function to test results
+  checkGenesTest <- function(){
+    # check if the input files are valid
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }
     # begin to construct the counts object
     geneCounts <- inputGeneCounts()
     # transpose each subset
     datExpr0 = data = as.data.frame(t(geneCounts))
     names(datExpr0) = rownames(geneCounts)
     rownames(datExpr0) = names(geneCounts)
+    # check valid input
+    testCheck <- try(goodSamplesGenes(datExpr0, verbose = 3),silent = TRUE)
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
+  }
+  
+  # render text with gene test results
+  output$testGenes <- renderText({
+    # require valid inputs
+    if(is.null(checkGenesTest())){
+      return(NULL)
+    }
+    # retrieve check results
+    gsg <- checkGenesTest()
     # remove the offending genes and samples from the data
     if (!gsg$allOK){
       # Optionally, print the gene and sample names that were removed:
@@ -770,9 +779,9 @@ server <- function(input, output, session) {
   # function to setup the data
   setupData <- function(){
     # check if the input files are valid
-    #if(is.null(inputGeneCounts())) {
-      #return(NULL)
-    #}
+    if(is.null(inputGeneCounts())) {
+      return(NULL)
+    }
     # begin to construct the counts object
     geneCounts <- inputGeneCounts()
     # transpose each subset
@@ -787,12 +796,32 @@ server <- function(input, output, session) {
   checkData <- function(){
     # retrieve setup data
     datExpr0 <- setupData()
+    # check valid input
+    testCheck <- try(goodSamplesGenes(datExpr0, verbose = 3),silent = TRUE)
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
   }
   
+  # check if inputs are good
+  output$inputCheck <- function(){
+    if(is.null(compareSamples())) {
+      return(FALSE)
+    }else if(is.null(checkData())){
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
+  
   # function to prepare the data
   prepareData <- function(){
+    # check valid input
+    if(is.null(checkData())){
+      return(NULL)
+    }
     # retrieve checked data
     datExpr0 <- setupData()
     # retrieve checked data results
@@ -826,6 +855,10 @@ server <- function(input, output, session) {
   
   # function to cluster samples
   createSampleTree <- function(){
+    # check valid input
+    if(is.null(prepareData())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr0 <- prepareData()
     # cluster the samples to see if there are any obvious outliers
@@ -951,10 +984,12 @@ server <- function(input, output, session) {
   
   # reactive function to filter expression data
   filterData <- reactive({
-    # require valid input data
-    req(compareSamples())
-    req(input$setCutHeight)
-    req(input$setMinSize)
+    # require input data
+    req(input$setCutHeight, input$setMinSize)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr0 <- prepareData()
     # retrieve cluster of samples
@@ -1035,9 +1070,12 @@ server <- function(input, output, session) {
   
   # reactive function to pick powers
   pickPowers <- reactive({
-    # require valid input data
-    req(compareSamples())
+    # require input data
     req(input$setPowersRange)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve selected powers
@@ -1100,9 +1138,12 @@ server <- function(input, output, session) {
   
   # reactive function to create TOMs
   createTOM <- reactive({
-    # require valid input data
-    req(compareSamples())
+    # require input data
     req(input$setPowers)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve input soft power
@@ -1158,9 +1199,12 @@ server <- function(input, output, session) {
   
   # reactive function to identify modules
   findModules <- reactive({
-    # require valid input data
-    req(compareSamples())
+    # require input data
     req(input$setSize)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve TOM
@@ -1271,12 +1315,12 @@ server <- function(input, output, session) {
   
   # function to create plot of the clustering of eigengenes
   createPlotEigengenes <- function(){
+    # require input data
+    req(input$setMEDissThres)
     # check the inputs
     if(is.null(calcEigengenes())) {
       return(NULL)
     }
-    # require input data
-    req(input$setMEDissThres)
     # retrieve eigengenes
     METree <- calcEigengenes()
     # retrieve eigengene threshold
@@ -1315,9 +1359,12 @@ server <- function(input, output, session) {
   
   # reactive function to merge module colors
   mergeColors <- reactive({
-    # require valid input data
-    req(compareSamples())
+    # require input data
     req(input$setMEDissThres)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve modules
@@ -1332,9 +1379,12 @@ server <- function(input, output, session) {
   
   # reactive function to merge module eigengenes
   mergeEigengenes <- reactive({
-    # require valid input data
-    req(compareSamples())
+    # require input data
     req(input$setMEDissThres)
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve modules
@@ -1346,6 +1396,15 @@ server <- function(input, output, session) {
     # Eigengenes of the new merged modules:
     mergedMEs = merge$newMEs
   })
+  
+  # check if file has been uploaded
+  output$resultsCompleted <- function(){
+    if(is.null(mergeEigengenes())){
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # function to create plot of the trimmed dendrogram
   createPlotTrimmedDendro <- function(){
@@ -1390,6 +1449,10 @@ server <- function(input, output, session) {
   
   # function to retrieve eigengenes
   retrieveEigengenes <- function(){
+    # require valid inputs
+    if(is.null(compareSamples())){
+      return(NULL)
+    }
     # retrieve merged colors
     mergedColors <- mergeColors()
     # retrieve merged eigengenes
@@ -1404,8 +1467,6 @@ server <- function(input, output, session) {
   
   # function to retrieve eigengene expression values
   eigengeneExpression <- reactive({
-    # require valid inputs
-    req(compareSamples())
     # retrieve prepared data
     datExpr0 <- filterData()
     # retrieve module eigengenes
@@ -1420,16 +1481,6 @@ server <- function(input, output, session) {
     # return expression data
     datExpr0
   })
-  
-  # check if file has been uploaded
-  output$resultsCompleted <- function(){
-    if(!is.null(eigengeneExpression())){
-      return(TRUE)
-    }else{
-      return(FALSE)
-    }
-  }
-  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   
   ##
