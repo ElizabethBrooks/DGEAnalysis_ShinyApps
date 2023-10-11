@@ -207,9 +207,12 @@ ui <- fluidPage(
             ),
             tags$p(
               HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
+            ),
+            tags$p(
+              HTML("<b>Tip 6:</b> Tables of gene counts with missing data may produce an error.")
             )
             #tags$p(
-              #HTML("<b>Tip 6:</b> Repeatedly changing the inputs may cause the application to stop working.")
+              #HTML("<b>Tip 7:</b> Repeatedly changing the inputs may cause the application to stop working.")
             #)
           ),
           
@@ -224,7 +227,7 @@ ui <- fluidPage(
             tags$br(),
             fluidRow(
               column(
-                width = 6,
+                width = 4,
                 sliderInput(
                   "setMinSize", 
                   tags$p("Minimum Branch Cluster Size"), 
@@ -238,7 +241,7 @@ ui <- fluidPage(
                 ),
               ),
               column(
-                width = 6,
+                width = 4,
                 sliderInput(
                   "setCutHeight", 
                   tags$p("Branch Cut Height"), 
@@ -250,15 +253,18 @@ ui <- fluidPage(
                 tags$p(
                   "Select a cut height to remove outlier samples."
                 )
+              ),
+              column(
+                width = 4,
+                tags$p(
+                  HTML("<b>Sample Cluster Sizes:</b>")
+                ),
+                tableOutput(outputId = "clusterData")
               )
             ),
-            #tags$p(
-              #align="center",
-              #HTML("<b>Warning!</b>")
-            #),
-            #tags$p(
-              #HTML("Errors can result from a too high <i>Minimum Branch Cluster Size</i> or too low <i>Branch Cut Height</i>.")
-            #),
+            tags$p(
+              HTML("<b>Tip:</b> Errors can result from a high <i>Minimum Branch Cluster Size</i> or low <i>Branch Cut Height</i>.")
+            ),
             tags$br(),
             imageOutput(outputId = "samplesOutliers", height="100%", width="100%"),
             downloadButton(outputId = "downloadSamplesOutliers", label = "Download Plot"),
@@ -283,19 +289,24 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              "Any genes or samples with too many missing values have been removed from the data and are displayed below."
+              "Genes or samples with too many missing values have been removed from the data and may be downloaded below."
             ),
             tags$br(),
-            ## TO-DO: consider adding download tables
             tags$p(
               HTML("<b>Sample Data Check:</b>")
             ),
-            textOutput(outputId = "testSamples"),
+            downloadButton(outputId = "testSamples", label = "Download Data"),
+            tags$p(
+              "Any samples with too many missing values are listed."
+            ),
             tags$br(),
             tags$p(
               HTML("<b>Gene Data Check:</b>")
             ),
-            textOutput(outputId = "testGenes")
+            downloadButton(outputId = "testGenes", label = "Download Data"),
+            tags$p(
+              "Any genes with too many missing values are listed."
+            )
           ),
           
           # network construction tab
@@ -360,14 +371,10 @@ ui <- fluidPage(
                 )
               )
             ),
-            #tags$br(),
-            #tags$p(
-              #align="center",
-              #HTML("<b>Warning!</b>")
-            #),
-            #tags$p(
-              #HTML("Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values.")
-            #),
+            tags$br(),
+            tags$p(
+              HTML("<b>Tip:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values.")
+            ),
             tags$br(),
             fluidRow(
               column(
@@ -424,31 +431,18 @@ ui <- fluidPage(
             tags$p(
               "Eigengenes can be thought of as a weighted average expression profile."
             ),
+            tags$p(
+              "Modules are clustered by their calculated eigengene correlations to determine the co-expression similarity of modules."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Tip</b> It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation.")
+            ),
             tags$br(),
             imageOutput(outputId = "plotEigengenes", height="100%", width="100%"),
             downloadButton(outputId = "downloadPlotEigengenes", label = "Download Plot"),
             tags$p(
               "Above is a dendrogram that displays the clustering of module eigengenes (ME), which have been labeled with their associated module color."
-            ),
-            tags$p(
-              "Modules are clustered by their calculated eigengene correlations to quantify co-expression similarity of entire modules."
-            ),
-            tags$br(),
-            tags$p(
-              align="center",
-              HTML("<b>Helpful Tips</b>")
-            ),
-            tags$p(
-              HTML("<b>Tip 1:</b> It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation.")
-            ),
-            tags$p(
-              HTML("<b>Tip 2:</b> If you are recieving an error here, make sure to balance the selected <i>Soft Thresholding Power</i> with the <i>Minimum Module Size</i>.")
-            ),
-            tags$p(
-              HTML("<b>Tip 3:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values selected on the <i>Data Cleaning</i> tab.")
-            ),
-            tags$p(
-              HTML("<b>Tip 4:</b> Tables of gene counts with missing data may produce an error.")
             ),
             tags$hr(),
             tags$p(
@@ -474,6 +468,10 @@ ui <- fluidPage(
             tags$p(
               align="center",
               HTML("<b>Network Analysis Results</b>")
+            ),
+            tags$br(),
+            tags$p(
+              "Results from the co-expression network analysis may be downloaded below."
             ),
             tags$br(),
             tags$p(
@@ -676,9 +674,9 @@ server <- function(input, output, session) {
   # compare input design and counts samples
   compareSamples <- function(){
     # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
+    if(is.null(inputDesign())) {
       return(NULL)
-    }else if(is.null(inputDesign())) {
+    }else if(is.null(inputGeneCounts())) {
       return(NULL)
     }
     # retrieve input design samples
@@ -706,16 +704,17 @@ server <- function(input, output, session) {
     return(NULL)
   }
   
+  # check if inputs are good
+  output$inputCheck <- function(){
+    if(is.null(compareSamples())) {
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
+  
   # render experimental design table
   output$designTable <- renderTable({
-    # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
-      return(NULL)
-    }else if(is.null(inputDesign())) {
-      return(NULL)
-    }else if(is.null(compareSamples())) {
-      return(NULL)
-    }
     # retrieve input gene counts table
     geneCounts <- inputGeneCounts()
     # retrieve column names
@@ -750,57 +749,74 @@ server <- function(input, output, session) {
     datExpr0
   }
   
-  # function to check the data
-  checkData <- function(){
+  ## TO-DO: fix issue with additional goodSamplesGenes function runs (?)
+  # function to test data
+  testCheckData <- function(){
+    # require valid inputs
+    if(is.null(setupData())){
+      return(NULL)
+    }
     # retrieve setup data
     datExpr0 <- setupData()
     # check valid input
-    testCheck <- try(goodSamplesGenes(datExpr0, verbose = 3),silent = TRUE)
+    testCheck <- try(
+      goodSamplesGenes(datExpr0, verbose = 3),
+      silent = TRUE
+    )
     if(class(testCheck) == "try-error"){
       return(NULL)
     }
+    return(TRUE)
+  }
+  
+  # function to check the data
+  checkData <- function(){
+    # require valid inputs
+    if(is.null(testCheckData())){
+      return(NULL)
+    }else if(is.null(setupData())){
+      return(NULL)
+    }
+    # retrieve setup data
+    datExpr0 <- setupData()
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
   }
   
-  # check if inputs are good
-  output$inputCheck <- function(){
-    if(is.null(compareSamples())) {
-      return(FALSE)
-    }else if(is.null(checkData())){
-      return(FALSE)
-    }
-    return(TRUE)
-  }
-  outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
-  # render text with gene test results
-  output$testGenes <- renderText({
-    # require valid inputs
-    if(is.null(checkData())){
-      return(NULL)
-    }
-    # retrieve check results
-    gsg <- checkData()
-    # retrieve the expression data
-    datExpr0 <- setupData()
-    # remove the offending genes and samples from the data
-    if (!gsg$allOK){
-      # Optionally, print the gene and sample names that were removed:
-      if (sum(!gsg$goodGenes)>0){
-        print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
+  # download table with gene data
+  output$testGenes <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste("geneQualityCheck", "txt", sep = ".")
+    },
+    # read in data
+    content = function(file) {
+      # retrieve check results
+      gsg <- checkData()
+      # retrieve the expression data
+      datExpr0 <- setupData()
+      # remove the offending genes and samples from the data
+      if (!gsg$allOK){
+        # Optionally, print the gene and sample names that were removed:
+        if (sum(!gsg$goodGenes)>0){
+          print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
+        }else{
+          print("Input normalized counts for the genes are good.")
+        }
       }else{
         print("Input normalized counts for the genes are good.")
       }
-    }else{
-      print("Input normalized counts for the genes are good.")
     }
-  })
+  )
   
   # function to prepare the data
   prepareData <- function(){
     # check valid input
-    if(is.null(checkData())){
+    if(is.null(setupData())){
+      return(NULL)
+    }else if(is.null(checkData())){
       return(NULL)
     }
     # retrieve checked data
@@ -816,23 +832,31 @@ server <- function(input, output, session) {
     datExpr0
   }
   
-  # render text with sample test results
-  output$testSamples <- renderText({
-    # retrieve prepared data
-    datExpr0 <- prepareData()
-    # retrieve checked data results
-    gsg <- checkData()
-    # remove the offending genes and samples from the data
-    if (!gsg$allOK){
-      if (sum(!gsg$goodSamples)>0){
-        print(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
+  #  download table with sample data
+  output$testSamples <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste("geneQualityCheck", "txt", sep = ".")
+    },
+    # read in data
+    content = function(file) {
+      # retrieve prepared data
+      datExpr0 <- prepareData()
+      # retrieve checked data results
+      gsg <- checkData()
+      # remove the offending genes and samples from the data
+      if (!gsg$allOK){
+        if (sum(!gsg$goodSamples)>0){
+          print(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
+        }else{
+          print("Input normalized counts for the samples are good.")
+        }
       }else{
         print("Input normalized counts for the samples are good.")
       }
-    }else{
-      print("Input normalized counts for the samples are good.")
     }
-  })
+  )
   
   # function to cluster samples
   createSampleTree <- function(){
@@ -853,7 +877,7 @@ server <- function(input, output, session) {
     # setup test height value
     testHeightMin <- as.integer(mean(sampleTree$height))
     testHeightMax <- as.integer(max(sampleTree$height))
-    testHeightValue <- testHeightMax/2
+    testHeightValue <- testHeightMax
     # update sample cut height slider
     updateSliderInput(
       session,
@@ -924,6 +948,12 @@ server <- function(input, output, session) {
   createSamplesOutliers <- function(){
     # require input data
     req(input$setCutHeight)
+    # check inputs
+    if(is.null(prepareData())) {
+      return(NULL)
+    }else if(is.null(createSampleTree())) {
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr0 <- prepareData()
     # retrieve cluster of samples
@@ -947,7 +977,7 @@ server <- function(input, output, session) {
     createSamplesOutliers()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "500px")
+    list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
   
   # download handler for the samples plot
@@ -964,11 +994,11 @@ server <- function(input, output, session) {
   )
   
   # reactive function to filter expression data
-  filterData <- reactive({
+  setupClusterData <- reactive({
     # require input data
     req(input$setCutHeight, input$setMinSize)
     # require valid inputs
-    if(is.null(compareSamples())){
+    if(is.null(prepareData())){
       return(NULL)
     }
     # retrieve prepared data
@@ -977,16 +1007,54 @@ server <- function(input, output, session) {
     sampleTree <- createSampleTree()
     # Determine cluster under the line
     clust = cutreeStatic(sampleTree, cutHeight = input$setCutHeight, minSize = input$setMinSize)
-    #table(clust)
+  })
+  
+  # render table of clusters
+  output$clusterData <- renderTable({
+    # retrieve clusters
+    clust <- setupClusterData()
+    # retrieve table of results
+    resultsTable <- table(clust)
+    # create data frame
+    infoTable <- data.frame(
+      Cluster = rownames(resultsTable),
+      Size = resultsTable
+    )
+    # remove extra column
+    infoTable <- infoTable[,-2]
+    # update column names
+    colnames(infoTable) <- c("Cluster", "Size")
+    # return table
+    infoTable
+  })
+    
+  # function to filter expression data
+  filterData <- function(){
+    # check if the inputs are valid
+    if(is.null(setupClusterData())) {
+      return(NULL)
+    }else if(is.null(prepareData())) {
+      return(NULL)
+    }
+    # retrieve clusters
+    clust <- setupClusterData()
+    # retrieve prepared data
+    datExpr0 <- prepareData()
     # clust 1 contains the samples we want to keep.
     keepSamples = (clust==1)
     # filter out samples
     datExpr <- datExpr0
     datExpr = datExpr0[keepSamples, ]
-  })
+  }
   
   # function to prepare trait data
   traitData <- function(){
+    # check if the inputs are valid
+    if(is.null(inputDesign())) {
+      return(NULL)
+    }else if(is.null(filterData())) {
+      return(NULL)
+    }
     # retrieve input design table
     allTraits <- inputDesign()
     # retrieve prepared data
@@ -1005,6 +1073,12 @@ server <- function(input, output, session) {
   
   # function to create updated clustering plot
   createClusterSamples <- function(){
+    # check inputs
+    if(is.null(filterData())) {
+      return(NULL)
+    }else if(is.null(traitData())) {
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve the trait data
@@ -1014,6 +1088,14 @@ server <- function(input, output, session) {
     sampleTree2 = hclust(dist(datExpr), method = "average")
     # Convert traits to a color representation: white means low, red means high, grey means missing entry
     traitColors = numbers2colors(datTraits, signed = FALSE)
+    # check valid inputs
+    testCheck <- try(
+      plotDendroAndColors(sampleTree2, traitColors),
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     # Plot the sample dendrogram and the colors underneath.
     plotDendroAndColors(sampleTree2, traitColors,
                         groupLabels = names(datTraits),
@@ -1028,7 +1110,7 @@ server <- function(input, output, session) {
     createClusterSamples()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "500px")
+    list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
   
   # download handler for the clustering plot
@@ -1069,6 +1151,10 @@ server <- function(input, output, session) {
   createPlotThreshold <- function(){
     # require input data
     req(input$setPowersRange)
+    # check inputs
+    if(is.null(pickPowers())) {
+      return(NULL)
+    }
     # retrieve soft thresholding powers
     sft <- pickPowers()
     # retrieve selected powers
@@ -1101,8 +1187,9 @@ server <- function(input, output, session) {
     createPlotThreshold()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "500px")
+    list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
+  outputOptions(output, 'plotThreshold', suspendWhenHidden=FALSE)
   
   # download handler for the powers plot
   output$downloadPlotThreshold <- downloadHandler(
@@ -1138,6 +1225,10 @@ server <- function(input, output, session) {
   
   # function to create the gene tree
   createGeneTree <- function(){
+    # check if the inputs are valid
+    if(is.null(createTOM())) {
+      return(NULL)
+    }
     # retrieve TOM
     dissTOM <- createTOM()
     # Call the hierarchical clustering function
@@ -1146,6 +1237,10 @@ server <- function(input, output, session) {
   
   # function to create hierarchical clustering plot
   createHclustPlot <- function(){
+    # check inputs
+    if(is.null(createGeneTree())) {
+      return(NULL)
+    }
     # retrieve gene tree
     geneTree <- createGeneTree()
     # Plot the resulting clustering tree (dendrogram)
@@ -1162,8 +1257,9 @@ server <- function(input, output, session) {
     createHclustPlot()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "500px")
+    list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
+  outputOptions(output, 'hclustPlot', suspendWhenHidden=FALSE)
   
   # download handler for the clustering plot
   output$downloadHclustPlot <- downloadHandler(
@@ -1183,7 +1279,9 @@ server <- function(input, output, session) {
     # require input data
     req(input$setSize)
     # require valid inputs
-    if(is.null(compareSamples())){
+    if(is.null(createGeneTree())){
+      return(NULL)
+    }else if(is.null(createTOM())){
       return(NULL)
     }
     # retrieve gene tree
@@ -1202,10 +1300,12 @@ server <- function(input, output, session) {
   output$moduleTable <- renderTable({
     # retrieve modules
     dynamicMods <- findModules()
+    # get table of results
+    resultsTable <- table(dynamicMods)
     # create data frame
     infoTable <- data.frame(
-      Module = rownames(table(dynamicMods)),
-      Size = table(dynamicMods)
+      Module = rownames(resultsTable),
+      Size = resultsTable
     )
     # remove extra column
     infoTable <- infoTable[,-2]
@@ -1214,9 +1314,14 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
+  outputOptions(output, 'moduleTable', suspendWhenHidden=FALSE)
   
   # function to convert module labels
   convertLabels <- function(){
+    # require valid inputs
+    if(is.null(findModules())){
+      return(NULL)
+    }
     # retrieve modules
     dynamicMods <- findModules()
     # Convert numeric lables into colors
@@ -1227,10 +1332,12 @@ server <- function(input, output, session) {
   output$colorsTable <- renderTable({
     # retrieve modules
     dynamicColors <- convertLabels()
+    # get table of results
+    resultsTable <- table(dynamicColors)
     # create data frame
     infoTable <- data.frame(
-      Module = rownames(table(dynamicColors)),
-      Size = table(dynamicColors)
+      Module = rownames(resultsTable),
+      Size = resultsTable
     )
     # remove extra column
     infoTable <- infoTable[,-2]
@@ -1239,9 +1346,16 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
+  outputOptions(output, 'colorsTable', suspendWhenHidden=FALSE)
   
   # function to create plot of dendorgram with colors
   createPlotColorDendro <- function(){
+    # check inputs
+    if(is.null(createGeneTree())) {
+      return(NULL)
+    }else if(is.null(convertLabels())) {
+      return(NULL)
+    }
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
@@ -1262,8 +1376,9 @@ server <- function(input, output, session) {
     createPlotColorDendro()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "700px")
+    list(src = exportFile, alt = "No Valid Results", height = "700px")
   }, deleteFile = TRUE)
+  outputOptions(output, 'plotColorDendro', suspendWhenHidden=FALSE)
   
   # download handler for the dendrogram plot
   output$downloadPlotColorDendro <- downloadHandler(
@@ -1280,16 +1395,37 @@ server <- function(input, output, session) {
   
   # function to calculate eigengenes
   calcEigengenes <- function(){
+    # require valid inputs
+    if(is.null(filterData())){
+      return(NULL)
+    }else if(is.null(convertLabels())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve modules
     dynamicColors <- convertLabels()
+    testCheck <- try(
+      moduleEigengenes(datExpr, colors = dynamicColors),
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     # Calculate eigengenes
     MEList = moduleEigengenes(datExpr, colors = dynamicColors)
     MEs = MEList$eigengenes
     # Calculate dissimilarity of module eigengenes
     MEDiss = 1-cor(MEs, use = 'pairwise.complete.obs')
     #MEDiss = 1-cor(MEs)
+    # check valid inputs
+    testCheck <- try(
+      hclust(as.dist(MEDiss), method = "average"),
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     # Cluster module eigengenes
     METree = hclust(as.dist(MEDiss), method = "average")
   }
@@ -1322,8 +1458,9 @@ server <- function(input, output, session) {
     createPlotEigengenes()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "500px")
+    list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
+  outputOptions(output, 'plotEigengenes', suspendWhenHidden=FALSE)
   
   # download handler for the eigengenes plot
   output$downloadPlotEigengenes <- downloadHandler(
@@ -1352,6 +1489,14 @@ server <- function(input, output, session) {
     dynamicColors <- convertLabels()
     # retrieve eigengene threshold
     MEDissThres <- input$setMEDissThres
+    # check valid input
+    testCheck <- try(
+      mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres),
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     # Call an automatic merging function
     merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
     # The merged module colors
@@ -1372,6 +1517,14 @@ server <- function(input, output, session) {
     dynamicColors <- convertLabels()
     # retrieve eigengene threshold
     MEDissThres <- input$setMEDissThres
+    # check valid input
+    testCheck <- try(
+      mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres),
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      return(NULL)
+    }
     # Call an automatic merging function
     merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
     # Eigengenes of the new merged modules:
@@ -1380,15 +1533,23 @@ server <- function(input, output, session) {
   
   # check if file has been uploaded
   output$resultsCompleted <- function(){
-    if(is.null(mergeEigengenes())){
-      return(FALSE)
+    if(!is.null(mergeEigengenes())){
+      return(TRUE)
     }
-    return(TRUE)
+    return(FALSE)
   }
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # function to create plot of the trimmed dendrogram
   createPlotTrimmedDendro <- function(){
+    # check the inputs
+    if(is.null(createGeneTree())) {
+      return(NULL)
+    }else if(is.null(convertLabels())){
+      return(NULL)
+    }else if(is.null(mergeColors())){
+      return(NULL)
+    }
     # retrieve gene tree
     geneTree <- createGeneTree()
     # retrieve modules
@@ -1412,8 +1573,9 @@ server <- function(input, output, session) {
     createPlotTrimmedDendro()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text", height = "700px")
+    list(src = exportFile, alt = "No Valid Results", height = "700px")
   }, deleteFile = TRUE)
+  outputOptions(output, 'plotTrimmedDendro', suspendWhenHidden=FALSE)
   
   # download handler for the dendrogram plot
   output$downloadPlotTrimmedDendro <- downloadHandler(
@@ -1431,7 +1593,9 @@ server <- function(input, output, session) {
   # function to retrieve eigengenes
   retrieveEigengenes <- function(){
     # require valid inputs
-    if(is.null(compareSamples())){
+    if(is.null(mergeColors())){
+      return(NULL)
+    }else if(is.null(mergeEigengenes())){
       return(NULL)
     }
     # retrieve merged colors
@@ -1470,6 +1634,12 @@ server <- function(input, output, session) {
   
   # function to map genes with module information
   mapResults <- function(){
+    # require valid inputs
+    if(is.null(filterData())){
+      return(NULL)
+    }else if(is.null(mergeColors())){
+      return(NULL)
+    }
     # retrieve prepared data
     datExpr <- filterData()
     # retrieve merged colors
