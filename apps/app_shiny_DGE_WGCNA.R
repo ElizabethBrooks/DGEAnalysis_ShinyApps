@@ -1,8 +1,7 @@
 # created by: Elizabeth Brooks
 # date: 10 October 2023
 
-#### Server ####
-
+#### Setup ####
 
 # load packages 
 library(shiny)
@@ -64,6 +63,7 @@ ui <- fluidPage(
       conditionalPanel(
         condition = "output.inputCheck && output.inputsUploaded",
         #condition = "output.inputsUploaded",
+        ## TO-DO: consider adding button to run/update the analysis
         tags$hr(),
         tags$p(
           "Design Table:"
