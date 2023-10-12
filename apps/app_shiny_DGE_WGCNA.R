@@ -38,33 +38,52 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
-      # header for file uploads
-      tags$p(
-        "Upload table of gene counts (*.csv):"
-      ),
-      # select a file
-      fileInput(
-        "dataTableInput", 
-        label = NULL,
-        multiple = FALSE,
-        accept = ".csv"
-      ),
-      # header for comparison selection
-      tags$p(
-        "Upload table with the experimental design (*.csv):"),
-      # select a file
-      fileInput(
-        "expDesignTable", 
-        label = NULL,
-        multiple = FALSE,
-        accept = ".csv"
-      ),
-      # show panel depending on input files
+      # show panel depending on run button
       conditionalPanel(
-        condition = "output.inputCheck && output.inputsUploaded",
-        #condition = "output.inputsUploaded",
-        ## TO-DO: consider adding button to run/update the analysis
+        condition = "!input.runUpload",
+        # header for file uploads
+        tags$p(
+          "Upload table of gene counts (*.csv):"
+        ),
+        # select a file
+        fileInput(
+          "dataTableInput", 
+          label = NULL,
+          multiple = FALSE,
+          accept = ".csv"
+        ),
+        # header for comparison selection
+        tags$p(
+          "Upload table with the experimental design (*.csv):"),
+        # select a file
+        fileInput(
+          "expDesignTable", 
+          label = NULL,
+          multiple = FALSE,
+          accept = ".csv"
+        )
+      ),
+      # show panel depending on input files check
+      conditionalPanel(
+          condition = "output.inputsUploaded && !input.runUpload",
         tags$hr(),
+        tags$p(
+          "Click to Upload Data:"
+        ),  
+        actionButton("runUpload", "Upload")
+      ),
+      # show panel depending on input files check
+      conditionalPanel(
+        condition = "input.runUpload && output.inputCheck && !input.runAnalysis",
+        tags$p(
+          "Click to Run Analysis:"
+        ),  
+        actionButton("runAnalysis", "Run Analysis"),
+        tags$hr()
+      ),
+      # show panel depending on input files check
+      conditionalPanel(
+        condition = "input.runUpload && output.inputCheck",
         tags$p(
           "Design Table:"
         ),     
@@ -81,12 +100,16 @@ ui <- fluidPage(
       
       # getting started text
       conditionalPanel(
-        condition = "!output.inputsUploaded",
+        #condition = "!output.inputsUploaded", 
+        condition = "!input.runAnalysis",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar."
+          HTML("Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar, then pressing the <i>Upload</i> button.")
+        ),
+        tags$p(
+          HTML("Click the <i>Run Analysis</i> button in the left-hand sidebar to begin the network analysis."),
         ),
         tags$p(
           HTML("The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
@@ -124,8 +147,8 @@ ui <- fluidPage(
       
       # warning text
       conditionalPanel(
-        #condition = "output.inputsUploaded && !output.inputCheck",
-        condition = "output.inputsUploaded && !output.inputCheck && !output.resultsCompleted",
+        condition = "output.inputsUploaded && !output.inputCheck",
+        #condition = "output.inputsUploaded && !output.inputCheck && !output.resultsCompleted",
         tags$h1(
           "Warning", 
           align="center"
@@ -161,7 +184,7 @@ ui <- fluidPage(
       
       # processing text
       conditionalPanel(
-        condition = "output.inputCheck && !output.resultsCompleted",
+        condition = "input.runAnalysis && output.inputCheck && !output.resultsCompleted",
         tags$h1(
           "Processing", 
           align="center"
@@ -182,7 +205,7 @@ ui <- fluidPage(
       
       # results text and plots
       conditionalPanel(
-        condition = "output.inputCheck && output.resultsCompleted",
+        condition = "input.runAnalysis && output.inputCheck && output.resultsCompleted",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -660,7 +683,7 @@ server <- function(input, output, session) {
   })
 
   # check if input files have been uploaded
-  output$inputsUploaded <- reactive({
+  output$inputsUploaded <- function(){
     # check if the input files are valid
     if(is.null(inputDataTable())) {
       return(FALSE)
@@ -668,7 +691,7 @@ server <- function(input, output, session) {
       return(FALSE)
     }
     return(TRUE)
-  })
+  }
   outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
 
   # compare input design and counts samples
@@ -749,7 +772,8 @@ server <- function(input, output, session) {
     datExpr0
   }
   
-  ## TO-DO: fix issue with additional goodSamplesGenes function runs (?)
+  ## TO-DO: fix issue with additional goodSamplesGenes function runs
+  # https://stackoverflow.com/questions/55650524/avoid-multiple-function-calls-in-server-shiny
   # function to test data
   testCheckData <- function(){
     # require valid inputs
@@ -774,15 +798,12 @@ server <- function(input, output, session) {
     # require valid inputs
     if(is.null(testCheckData())){
       return(NULL)
-    }else if(is.null(setupData())){
-      return(NULL)
     }
     # retrieve setup data
     datExpr0 <- setupData()
     #Check the genes across all samples
     gsg = goodSamplesGenes(datExpr0, verbose = 3)
   }
-  
   
   # download table with gene data
   output$testGenes <- downloadHandler(
@@ -811,27 +832,6 @@ server <- function(input, output, session) {
     }
   )
   
-  # function to prepare the data
-  prepareData <- function(){
-    # check valid input
-    if(is.null(setupData())){
-      return(NULL)
-    }else if(is.null(checkData())){
-      return(NULL)
-    }
-    # retrieve checked data
-    datExpr0 <- setupData()
-    # retrieve checked data results
-    gsg <- checkData()
-    # remove the offending genes and samples from the data
-    if (!gsg$allOK){
-      # Remove the offending genes and samples from the data:
-      datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
-    }
-    # return the expression data
-    datExpr0
-  }
-  
   #  download table with sample data
   output$testSamples <- downloadHandler(
     # retrieve file name
@@ -858,6 +858,27 @@ server <- function(input, output, session) {
     }
   )
   
+  # function to prepare the data
+  prepareData <- function(){
+    # check valid input
+    if(is.null(setupData())){
+      return(NULL)
+    }else if(is.null(checkData())){
+      return(NULL)
+    }
+    # retrieve checked data
+    datExpr0 <- setupData()
+    # retrieve checked data results
+    gsg <- checkData()
+    # remove the offending genes and samples from the data
+    if (!gsg$allOK){
+      # Remove the offending genes and samples from the data:
+      datExpr0 = datExpr0[gsg$goodSamples, gsg$goodGenes]
+    }
+    # return the expression data
+    datExpr0
+  }
+  
   # function to cluster samples
   createSampleTree <- function(){
     # check valid input
@@ -871,7 +892,7 @@ server <- function(input, output, session) {
   }
   
   # update cut height inputs
-  observe({
+  observeEvent(input$runUpload, {
     # retrieve cluster of samples
     sampleTree <- createSampleTree()
     # setup test height value
@@ -890,7 +911,7 @@ server <- function(input, output, session) {
   })
   
   # update minimum size inputs
-  observe({
+  observeEvent(input$runUpload, {
     # retrieve cluster of samples
     sampleTree <- createSampleTree()
     # setup test maximum cut height
@@ -908,7 +929,7 @@ server <- function(input, output, session) {
   })
   
   # update power inputs
-  observe({
+  observeEvent(input$runUpload, {
     # retrieve input powers
     inputPower <- input$setPowersRange
     # setup test power value
@@ -925,7 +946,7 @@ server <- function(input, output, session) {
   })
   
   # update size inputs
-  observe({
+  observeEvent(input$runUpload, {
     # retrieve prepared data
     datExpr <- filterData()
     nGenes = ncol(datExpr)
@@ -994,7 +1015,7 @@ server <- function(input, output, session) {
   )
   
   # reactive function to filter expression data
-  setupClusterData <- reactive({
+  setupClusterData <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setCutHeight, input$setMinSize)
     # require valid inputs
@@ -1112,7 +1133,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
-  
+
   # download handler for the clustering plot
   output$downloadClusterSamples <- downloadHandler(
     filename = function() {
@@ -1132,7 +1153,7 @@ server <- function(input, output, session) {
   ##
   
   # reactive function to pick powers
-  pickPowers <- reactive({
+  pickPowers <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setPowersRange)
     # require valid inputs
@@ -1189,8 +1210,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
-  outputOptions(output, 'plotThreshold', suspendWhenHidden=FALSE)
-  
+
   # download handler for the powers plot
   output$downloadPlotThreshold <- downloadHandler(
     filename = function() {
@@ -1205,7 +1225,7 @@ server <- function(input, output, session) {
   )
   
   # reactive function to create TOMs
-  createTOM <- reactive({
+  createTOM <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setPowers)
     # require valid inputs
@@ -1259,8 +1279,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
-  outputOptions(output, 'hclustPlot', suspendWhenHidden=FALSE)
-  
+
   # download handler for the clustering plot
   output$downloadHclustPlot <- downloadHandler(
     filename = function() {
@@ -1275,7 +1294,7 @@ server <- function(input, output, session) {
   )
   
   # reactive function to identify modules
-  findModules <- reactive({
+  findModules <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setSize)
     # require valid inputs
@@ -1314,8 +1333,7 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
-  outputOptions(output, 'moduleTable', suspendWhenHidden=FALSE)
-  
+
   # function to convert module labels
   convertLabels <- function(){
     # require valid inputs
@@ -1346,8 +1364,7 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
-  outputOptions(output, 'colorsTable', suspendWhenHidden=FALSE)
-  
+
   # function to create plot of dendorgram with colors
   createPlotColorDendro <- function(){
     # check inputs
@@ -1378,7 +1395,6 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "700px")
   }, deleteFile = TRUE)
-  outputOptions(output, 'plotColorDendro', suspendWhenHidden=FALSE)
   
   # download handler for the dendrogram plot
   output$downloadPlotColorDendro <- downloadHandler(
@@ -1460,8 +1476,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "500px")
   }, deleteFile = TRUE)
-  outputOptions(output, 'plotEigengenes', suspendWhenHidden=FALSE)
-  
+
   # download handler for the eigengenes plot
   output$downloadPlotEigengenes <- downloadHandler(
     filename = function() {
@@ -1476,7 +1491,7 @@ server <- function(input, output, session) {
   )
   
   # reactive function to merge module colors
-  mergeColors <- reactive({
+  mergeColors <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setMEDissThres)
     # require valid inputs
@@ -1504,7 +1519,7 @@ server <- function(input, output, session) {
   })
   
   # reactive function to merge module eigengenes
-  mergeEigengenes <- reactive({
+  mergeEigengenes <- eventReactive(input$runAnalysis, {
     # require input data
     req(input$setMEDissThres)
     # require valid inputs
@@ -1531,6 +1546,7 @@ server <- function(input, output, session) {
     mergedMEs = merge$newMEs
   })
   
+  # TO-DO: does this suspendWhenHidden=FALSE here cause additional function calls?
   # check if file has been uploaded
   output$resultsCompleted <- function(){
     if(!is.null(mergeEigengenes())){
@@ -1575,8 +1591,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "No Valid Results", height = "700px")
   }, deleteFile = TRUE)
-  outputOptions(output, 'plotTrimmedDendro', suspendWhenHidden=FALSE)
-  
+
   # download handler for the dendrogram plot
   output$downloadPlotTrimmedDendro <- downloadHandler(
     filename = function() {
@@ -1611,7 +1626,7 @@ server <- function(input, output, session) {
   }
   
   # function to retrieve eigengene expression values
-  eigengeneExpression <- reactive({
+  eigengeneExpression <- eventReactive(input$runAnalysis, {
     # retrieve prepared data
     datExpr0 <- filterData()
     # retrieve module eigengenes
