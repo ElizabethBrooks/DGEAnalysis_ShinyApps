@@ -44,7 +44,7 @@ ui <- fluidPage(
       ),
       # select a file
       fileInput(
-        "geneCountsTable", 
+        "dataTableInput", 
         label = NULL,
         multiple = FALSE,
         accept = ".csv"
@@ -606,32 +606,32 @@ server <- function(input, output, session) {
   ##
   
   # retrieve input data
-  inputGeneCounts <- reactive({
+  inputDataTable <- reactive({
     # require input data
-    req(input$geneCountsTable)
+    req(input$dataTableInput)
     # check the input table is not null
-    if(is.null(input$geneCountsTable)){
+    if(is.null(input$dataTableInput)){
       return(NULL)
     }
     # read the file
-    geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    dataInput <- read.csv(file = input$dataTableInput$datapath, row.names=1)
     # check data type of the sample names
-    if(!is.character(colnames(geneCounts))){
+    if(!is.character(colnames(dataInput))){
       return(NULL)
     }
     # loop over each data frame column
-    for(i in 1:ncol(geneCounts)) { 
+    for(i in 1:ncol(dataInput)) { 
       # check data type
-      if(!is.numeric(geneCounts[,i])){
+      if(!is.numeric(dataInput[,i])){
         return(NULL)
       }
     }
     # make sure there are at least three columns
-    #if(ncol(geneCounts) < 3) { 
+    #if(ncol(dataInput) < 3) { 
         #return(NULL)
     #}
     # return gene counts
-    geneCounts
+    dataInput
   })
   
   # retrieve input data
@@ -662,7 +662,7 @@ server <- function(input, output, session) {
   # check if input files have been uploaded
   output$inputsUploaded <- reactive({
     # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
+    if(is.null(inputDataTable())) {
       return(FALSE)
     }else if(is.null(inputDesign())) {
       return(FALSE)
@@ -676,15 +676,15 @@ server <- function(input, output, session) {
     # check if the input files are valid
     if(is.null(inputDesign())) {
       return(NULL)
-    }else if(is.null(inputGeneCounts())) {
+    }else if(is.null(inputDataTable())) {
       return(NULL)
     }
     # retrieve input design samples
     targets <- inputDesign()
     designSamples <- data.frame(ID1 = targets[,1])
     # retrieve input gene counts samples
-    geneCounts <- inputGeneCounts() 
-    countsSamples <- data.frame(ID2 = colnames(geneCounts))
+    dataInput <- inputDataTable() 
+    countsSamples <- data.frame(ID2 = colnames(dataInput))
     # first simply check if the number of samples matches
     if(nrow(designSamples) != nrow(countsSamples)) return(NULL)
     # find samples in counts, but not in design
@@ -716,9 +716,9 @@ server <- function(input, output, session) {
   # render experimental design table
   output$designTable <- renderTable({
     # retrieve input gene counts table
-    geneCounts <- inputGeneCounts()
+    dataInput <- inputDataTable()
     # retrieve column names
-    sampleNames <- colnames(geneCounts)
+    sampleNames <- colnames(dataInput)
     # retrieve input design table
     allTraits <- inputDesign()
     # create data frame
@@ -736,15 +736,15 @@ server <- function(input, output, session) {
   # function to setup the data
   setupData <- function(){
     # check if the input files are valid
-    if(is.null(inputGeneCounts())) {
+    if(is.null(inputDataTable())) {
       return(NULL)
     }
     # begin to construct the counts object
-    geneCounts <- inputGeneCounts()
+    dataInput <- inputDataTable()
     # transpose each subset
-    datExpr0 = data = as.data.frame(t(geneCounts))
-    names(datExpr0) = rownames(geneCounts)
-    rownames(datExpr0) = names(geneCounts)
+    datExpr0 = data = as.data.frame(t(dataInput))
+    names(datExpr0) = rownames(dataInput)
+    rownames(datExpr0) = names(dataInput)
     # return the expression data
     datExpr0
   }
