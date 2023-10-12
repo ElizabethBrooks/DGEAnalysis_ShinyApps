@@ -998,7 +998,7 @@ server <- function(input, output, session) {
     createSamplesOutliers()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "500px")
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
   
   # download handler for the samples plot
@@ -1131,7 +1131,7 @@ server <- function(input, output, session) {
     createClusterSamples()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "500px")
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
 
   # download handler for the clustering plot
@@ -1208,7 +1208,7 @@ server <- function(input, output, session) {
     createPlotThreshold()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "500px")
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
 
   # download handler for the powers plot
@@ -1277,7 +1277,7 @@ server <- function(input, output, session) {
     createHclustPlot()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "500px")
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
 
   # download handler for the clustering plot
@@ -1393,7 +1393,7 @@ server <- function(input, output, session) {
     createPlotColorDendro()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "700px")
+    list(src = exportFile, alt = "Invalid Results", height = "700px")
   }, deleteFile = TRUE)
   
   # download handler for the dendrogram plot
@@ -1474,7 +1474,7 @@ server <- function(input, output, session) {
     createPlotEigengenes()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "500px")
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
 
   # download handler for the eigengenes plot
@@ -1589,7 +1589,7 @@ server <- function(input, output, session) {
     createPlotTrimmedDendro()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "No Valid Results", height = "700px")
+    list(src = exportFile, alt = "Invalid Results", height = "700px")
   }, deleteFile = TRUE)
 
   # download handler for the dendrogram plot

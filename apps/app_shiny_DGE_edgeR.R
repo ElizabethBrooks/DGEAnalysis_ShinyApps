@@ -756,7 +756,7 @@ server <- function(input, output, session) {
     createLibrarySizes()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the bar plot
@@ -812,7 +812,7 @@ server <- function(input, output, session) {
     createPCA()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the PCA plot
@@ -858,7 +858,7 @@ server <- function(input, output, session) {
     createMDS()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the MDS plot
@@ -892,7 +892,7 @@ server <- function(input, output, session) {
     createHeatmap()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the heatmap plot
@@ -926,7 +926,7 @@ server <- function(input, output, session) {
     createBCV()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the BCV plot
@@ -1013,7 +1013,7 @@ server <- function(input, output, session) {
     createPairwiseMD()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   
@@ -1153,7 +1153,7 @@ server <- function(input, output, session) {
     createGLMDispersions()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the GLM dispersions plot
@@ -1240,7 +1240,7 @@ server <- function(input, output, session) {
     createGLMMD()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # download handler for the GLM MD plot

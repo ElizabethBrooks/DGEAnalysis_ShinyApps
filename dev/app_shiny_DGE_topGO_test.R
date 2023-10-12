@@ -300,7 +300,7 @@ server <- function(input, output, session) {
     createBPPHistDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render MF p-value histogram
@@ -311,7 +311,7 @@ server <- function(input, output, session) {
     createMFPHistDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render CC p-value histogram
@@ -322,7 +322,7 @@ server <- function(input, output, session) {
     createCCPHistDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # function to get statistics on BP GO terms
@@ -453,7 +453,7 @@ server <- function(input, output, session) {
     createBPDensityDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render MF density plot
@@ -464,7 +464,7 @@ server <- function(input, output, session) {
     createMFDensityDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render CC density plot
@@ -475,7 +475,7 @@ server <- function(input, output, session) {
     createCCDensityDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # function to plot BP subgraphs
@@ -519,7 +519,7 @@ server <- function(input, output, session) {
     createBPSubgraphsDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render MF subgraphs
@@ -530,7 +530,7 @@ server <- function(input, output, session) {
     createMFSubgraphsDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render CC subgraphs
@@ -541,7 +541,7 @@ server <- function(input, output, session) {
     createCCSubgraphsDGE()
     dev.off()
     # Return a list
-    list(src = exportFile, alt = "This is alternate text")
+    list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
 }
