@@ -66,7 +66,7 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading CSV files with the data table in the left-hand sidebar."
+          "Start by uploading <i>.csv</i> files with the data table in the left-hand sidebar."
         )
       ),
       
@@ -99,12 +99,12 @@ ui <- fluidPage(
             imageOutput(outputId = "BPPHistDGE", height="100%", width="100%"),
             imageOutput(outputId = "MFPHistDGE", height="100%", width="100%"),
             imageOutput(outputId = "CCPHistDGE", height="100%", width="100%"),
-            imageOutput(outputId = "BPDensityDGE", height="100%", width="100%"),
-            imageOutput(outputId = "MFDensityDGE", height="100%", width="100%"),
-            imageOutput(outputId = "CCDensityDGE", height="100%", width="100%"),
-            imageOutput(outputId = "BPSubgraphsDGE", height="100%", width="100%"),
-            imageOutput(outputId = "MFSubgraphsDGE", height="100%", width="100%"),
-            imageOutput(outputId = "CCSubgraphsDGE", height="100%", width="100%"),
+            plotOutput(outputId = "BPDensityDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "MFDensityDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "CCDensityDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "BPSubgraphsDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "MFSubgraphsDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "CCSubgraphsDGE"),#, height="100%", width="100%"),
           )
         )
       )
@@ -446,37 +446,37 @@ server <- function(input, output, session) {
   }
   
   # render BP density plot
-  output$BPDensityDGE <- renderImage({
+  output$BPDensityDGE <- renderPlot({
     # save the plot
-    exportFile <- "density_BP_DGE"
-    png(exportFile)
+    #exportFile <- "density_BP_DGE"
+    #png(exportFile)
     createBPDensityDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
   # render MF density plot
-  output$MFDensityDGE <- renderImage({
+  output$MFDensityDGE <- renderPlot({
     # save the plot
-    exportFile <- "density_MF_DGE"
-    png(exportFile)
+    #exportFile <- "density_MF_DGE"
+    #png(exportFile)
     createMFDensityDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
   # render CC density plot
-  output$CCDensityDGE <- renderImage({
+  output$CCDensityDGE <- renderPlot({
     # save the plot
-    exportFile <- "density_CC_DGE"
-    png(exportFile)
+    #exportFile <- "density_CC_DGE"
+    #png(exportFile)
     createCCDensityDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
   # function to plot BP subgraphs
   createBPSubgraphsDGE <- function(){
@@ -512,37 +512,37 @@ server <- function(input, output, session) {
   }
   
   # render BP subgraphs
-  output$BPSubgraphsDGE <- renderImage({
+  output$BPSubgraphsDGE <- renderPlot({
     # save the plot
-    exportFile <- "sigGO_subgraphs_BP_DGE"
-    png(exportFile)
+    #exportFile <- "sigGO_subgraphs_BP_DGE"
+    #png(exportFile)
     createBPSubgraphsDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
   # render MF subgraphs
-  output$MFSubgraphsDGE <- renderImage({
+  output$MFSubgraphsDGE <- renderPlot({
     # save the plot
-    exportFile <- "sigGO_subgraphs_MF_DGE"
-    png(exportFile)
+    #exportFile <- "sigGO_subgraphs_MF_DGE"
+    #png(exportFile)
     createMFSubgraphsDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
   # render CC subgraphs
-  output$CCSubgraphsDGE <- renderImage({
+  output$CCSubgraphsDGE <- renderPlot({
     # save the plot
-    exportFile <- "sigGO_subgraphs_CC_DGE"
-    png(exportFile)
+    #exportFile <- "sigGO_subgraphs_CC_DGE"
+    #png(exportFile)
     createCCSubgraphsDGE()
-    dev.off()
+    #dev.off()
     # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    #list(src = exportFile, alt = "Invalid Results")
+  })#, deleteFile = TRUE)
   
 }
 

@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 10 October 2023
+# date: 12 October 2023
 
 #### Setup ####
 
@@ -12,8 +12,6 @@ library(edgeR)
 require(dplyr)
 
 # color blind safe plotting palettes
-# https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
-# https://github.com/Nowosad/rcartocolor
 plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 
@@ -110,7 +108,7 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading CSV files with the gene counts and experimental design in the left-hand sidebar."
+          "Start by uploading <i>.csv</i> files with the gene counts and experimental design in the left-hand sidebar."
         ),
         tags$br(),
         tags$p(

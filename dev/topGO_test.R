@@ -11,8 +11,6 @@ library(edgeR)
 library(ggplot2)
 library(Rgraphviz)
 #library(statmod)
-library(dagitty)
-library(ggdag)
 
 
 # turn off scientific notation
@@ -139,4 +137,4 @@ printGraph(CC_GO_data, CC_GO_results, firstSigNodes = 5,
            fn.prefix = "CC_sigGO_subgraphs", useInfo = "all", pdfSW = TRUE)
 
 # testing
-showSigOfNodes(BP_GO_data, score(BP_GO_results), firstSigNodes = 5, useInfo = 'all')
+#showSigOfNodes(BP_GO_data, score(BP_GO_results), firstSigNodes = 5, useInfo = 'all')

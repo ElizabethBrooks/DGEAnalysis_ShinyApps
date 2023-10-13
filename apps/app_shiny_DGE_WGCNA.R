@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 10 October 2023
+# date: 12 October 2023
 
 #### Setup ####
 
@@ -106,7 +106,7 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by uploading CSV files with the normalized gene counts and experimental design in the left-hand sidebar, then pressing the <i>Upload</i> button.")
+          HTML("Start by uploading <i>.csv</i> files with the normalized gene counts and experimental design in the left-hand sidebar, then pressing the <i>Upload</i> button.")
         ),
         tags$p(
           HTML("Click the <i>Run Analysis</i> button in the left-hand sidebar to begin the network analysis."),
