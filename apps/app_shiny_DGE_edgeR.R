@@ -108,11 +108,14 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          "Start by uploading <i>.csv</i> files with the gene counts and experimental design in the left-hand sidebar."
+          HTML("Start by uploading <i>.csv</i> files with the gene counts and experimental design in the left-hand sidebar.")
         ),
         tags$br(),
         tags$p(
           "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
+        ),
+        tags$p(
+          HTML("<b>Tip:</b> If the tables of gene counts were created using <i>HTSeq</i>, you may need to delete the last five lines of gene count statistics (e.g., __not_aligned) before uploading for DGE analysis.")
         ),
         tags$br(),
         tags$p(
@@ -554,6 +557,9 @@ server <- function(input, output, session) {
     }
     # read the file
     geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
+    # TO-DO: consider adding check for trimming lines of non-count data
+    # trim the data table to remove lines with counting statistics (htseq)
+    #countsTable <- head(geneCounts, - 5)
   })
   
   # check input counts type
