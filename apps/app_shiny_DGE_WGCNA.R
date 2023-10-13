@@ -7,7 +7,7 @@
 library(shiny)
 library(shinythemes)
 library(WGCNA)
-require(dplyr)
+library(dplyr)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)

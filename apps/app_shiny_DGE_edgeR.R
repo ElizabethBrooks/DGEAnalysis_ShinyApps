@@ -9,7 +9,7 @@ library(shinythemes)
 library(ggplot2)
 library(rcartocolor)
 library(edgeR)
-require(dplyr)
+library(dplyr)
 
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")
