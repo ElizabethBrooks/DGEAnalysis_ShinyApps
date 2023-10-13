@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 10 October 2023
+# date: 13 October 2023
 
 #### Setup ####
 
@@ -7,7 +7,7 @@
 library(shiny)
 library(shinythemes)
 library(topGO)
-library(edgeR)
+library(eR)
 library(ggplot2)
 library(Rgraphviz)
 library(tidyr)
@@ -88,20 +88,20 @@ ui <- fluidPage(
             ),
           ),
           
-          # DGE Universe tab
+          # Enrichment tab
           tabPanel(
-            "DGE Universe",
+            "Enrichment",
             tags$br(),
             tags$p(
               align="center",
-              HTML("<b>DGE Universe</b>")
+              HTML("<b>Enrichment</b>")
             ),
             imageOutput(outputId = "BPPHistDGE", height="100%", width="100%"),
             imageOutput(outputId = "MFPHistDGE", height="100%", width="100%"),
             imageOutput(outputId = "CCPHistDGE", height="100%", width="100%"),
-            plotOutput(outputId = "BPDensityDGE"),#, height="100%", width="100%"),
-            plotOutput(outputId = "MFDensityDGE"),#, height="100%", width="100%"),
-            plotOutput(outputId = "CCDensityDGE"),#, height="100%", width="100%"),
+            plotOutput(outputId = "BPDensityDGE"),
+            plotOutput(outputId = "MFDensityDGE"),
+            plotOutput(outputId = "CCDensityDGE"),
             plotOutput(outputId = "BPSubgraphsDGE"),#, height="100%", width="100%"),
             plotOutput(outputId = "MFSubgraphsDGE"),#, height="100%", width="100%"),
             plotOutput(outputId = "CCSubgraphsDGE"),#, height="100%", width="100%"),
@@ -165,7 +165,7 @@ server <- function(input, output, session) {
   
   
   ## 
-  # GO Enrichment - DGE
+  # GO Enrichment
   ##
   
   # function to create gene universe
@@ -187,8 +187,9 @@ server <- function(input, output, session) {
     list_genes_filtered
   }
   
+  # TO-DO: add check for DGE vs network data
   # function to retrieve interesting genes
-  retrieveInterestingDGE <- function(){
+  retrieveInteresting <- function(){
     # function that returns list of interesting DE genes (0 == not significant, 1 == significant)
     get_interesting_DE_genes <- function(geneUniverse){
       interesting_DE_genes <- rep(0, length(geneUniverse))
@@ -203,69 +204,69 @@ server <- function(input, output, session) {
   }
   
   # function to create BP topGOdata objects
-  createBPDGE <- function(){
+  createBP <- function(){
     # retrieve gene universe
-    list_genes_filtered <- createUniverseDGE()
+    list_genes_filtered <- createUniverse()
     # retrieve go mappings
     GOmaps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
     BP_GO_data <- new('topGOdata', ontology = 'BP', allGenes = list_genes_filtered, 
-                    geneSel = retrieveInterestingDGE(), nodeSize = 10, annot = annFUN.gene2GO, 
+                    geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
                     gene2GO = GOmaps)
   }
   
   # function to create MF topGOdata objects
-  createMFDGE <- function(){
+  createMF <- function(){
     # retrieve gene universe
-    list_genes_filtered <- createUniverseDGE()
+    list_genes_filtered <- createUniverse()
     # retrieve go mappings
     GOmaps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
     MF_GO_data <- new('topGOdata', ontology = 'MF', allGenes = list_genes_filtered, 
-                      geneSel = retrieveInterestingDGE(), nodeSize = 10, annot = annFUN.gene2GO, 
+                      geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
                       gene2GO = GOmaps)
   }
   
   # function to create CC topGOdata objects
-  createCCDGE <- function(){
+  createCC <- function(){
     # retrieve gene universe
-    list_genes_filtered <- createUniverseDGE()
+    list_genes_filtered <- createUniverse()
     # retrieve go mappings
     GOmaps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
     CC_GO_data <- new('topGOdata', ontology = 'CC', allGenes = list_genes_filtered, 
-                      geneSel = retrieveInterestingDGE(), nodeSize = 10, annot = annFUN.gene2GO, 
+                      geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
                       gene2GO = GOmaps)
   }
   
   # function to perform BP GO enrichment 
-  performBPGODGE <- function(){
+  performBPGO <- function(){
     # retrieve topGOdata object
-    BP_GO_data <- createBPDGE()
+    BP_GO_data <- createBP()
     # perform GO enrichment using the topGOdata objects
     BP_GO_results <- runTest(BP_GO_data, statistic = 'Fisher')
   }
   
   # function to perform MF GO enrichment 
-  performMFGODGE <- function(){
+  performMFGO <- function(){
     # retrieve topGOdata object
-    MF_GO_data <- createMFDGE()
+    MF_GO_data <- createMF()
     # perform GO enrichment using the topGOdata objects
     MF_GO_results <- runTest(MF_GO_data, statistic = 'Fisher')
   }
   
   # function to perform CC GO enrichment 
-  performCCGODGE <- function(){
+  performCCGO <- function(){
     # retrieve topGOdata object
-    CC_GO_data <- createCCDGE()
+    CC_GO_data <- createCC()
     # perform GO enrichment using the topGOdata objects
     CC_GO_results <- runTest(CC_GO_data, statistic = 'Fisher')
   }
   
   # function to create BP p-value histogram
-  createBPPHistDGE <- function(){
+  createBPPHist <- function(){
     # retrieve results
-    BP_GO_results <- performBPGODGE()
+    BP_GO_results <- performBPGO()
     # store p-values as named list...
     pval_BP_GO <- score(BP_GO_results)
     # plot histogram to see range of p-values
@@ -273,9 +274,9 @@ server <- function(input, output, session) {
   }
   
   # function to create MF p-value histogram
-  createMFPHistDGE <- function(){
+  createMFPHist <- function(){
     # retrieve results
-    MF_GO_results <- performMFGODGE()
+    MF_GO_results <- performMFGO()
     # store p-values as named list...
     pval_MF_GO <- score(MF_GO_results)
     # plot histogram to see range of p-values
@@ -283,9 +284,9 @@ server <- function(input, output, session) {
   }
   
   # function to create CC p-value histogram
-  createCCPHistDGE <- function(){
+  createCCPHist <- function(){
     # retrieve results
-    CC_GO_results <- performCCGODGE()
+    CC_GO_results <- performCCGO()
     # store p-values as named list...
     pval_CC_GO <- score(CC_GO_results)
     # plot histogram to see range of p-values
@@ -293,44 +294,44 @@ server <- function(input, output, session) {
   }
   
   # render BP p-value histogram
-  output$BPPHistDGE <- renderImage({
+  output$BPPHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_BP_DGE"
+    exportFile <- "pValueRanges_BP_"
     png(exportFile)
-    createBPPHistDGE()
+    createBPPHist()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render MF p-value histogram
-  output$MFPHistDGE <- renderImage({
+  output$MFPHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_MF_DGE"
+    exportFile <- "pValueRanges_MF_"
     png(exportFile)
-    createMFPHistDGE()
+    createMFPHist()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # render CC p-value histogram
-  output$CCPHistDGE <- renderImage({
+  output$CCPHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_CC_DGE"
+    exportFile <- "pValueRanges_CC_"
     png(exportFile)
-    createCCPHistDGE()
+    createCCPHist()
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
   }, deleteFile = TRUE)
   
   # function to get statistics on BP GO terms
-  getBPStatsDGE <- function(){
+  getBPStats <- function(){
     # retrieve topGOdata object
-    BP_GO_data <- createBPDGE()
+    BP_GO_data <- createBP()
     # retrieve results
-    BP_GO_results <- performBPGODGE()
+    BP_GO_results <- performBPGO()
     # retrieve statistics
     list_BP_GO_terms <- usedGO(BP_GO_data)
     # retrieve results table
@@ -339,11 +340,11 @@ server <- function(input, output, session) {
   }
   
   # function to get statistics on MF GO terms
-  getMFStatsDGE <- function(){
+  getMFStats <- function(){
     # retrieve topGOdata object
-    MF_GO_data <- createMFDGE()
+    MF_GO_data <- createMF()
     # retrieve results
-    MF_GO_results <- performMFGODGE()
+    MF_GO_results <- performMFGO()
     # retrieve statistics
     list_MF_GO_terms <- usedGO(MF_GO_data)
     # retrieve results table
@@ -352,11 +353,11 @@ server <- function(input, output, session) {
   }
   
   # function to get statistics on CC GO terms
-  getCCStatsDGE <- function(){
+  getCCStats <- function(){
     # retrieve topGOdata object
-    CC_GO_data <- createCCDGE()
+    CC_GO_data <- createCC()
     # retrieve results
-    CC_GO_results <- performCCGODGE()
+    CC_GO_results <- performCCGO()
     # retrieve statistics
     list_CC_GO_terms <- usedGO(CC_GO_data)
     # retrieve results table
@@ -365,180 +366,165 @@ server <- function(input, output, session) {
   }
   
   # function to get significant BP GO terms
-  getBPSigDGE <- function(){
+  getBPSig <- function(){
     # retrieve stats
-    BP_GO_results_table <- getBPStatsDGE()
+    BP_GO_results_table <- getBPStats()
     # create table of significant GO terms
     BP_sigGO_results_table <- BP_GO_results_table[BP_GO_results_table$weightFisher <= 0.05, ]
   }
   
   # function to get significant MF GO terms
-  getMFSigDGE <- function(){
+  getMFSig <- function(){
     # retrieve stats
-    MF_GO_results_table <- getMFStatsDGE()
+    MF_GO_results_table <- getMFStats()
     # create table of significant GO terms
     MF_sigGO_results_table <- MF_GO_results_table[MF_GO_results_table$weightFisher <= 0.05, ]
   }
   
   # function to get significant CC GO terms
-  getCCSigDGE <- function(){
+  getCCSig <- function(){
     # retrieve stats
-    CC_GO_results_table <- getCCStatsDGE()
+    CC_GO_results_table <- getCCStats()
     # create table of significant GO terms
     CC_sigGO_results_table <- CC_GO_results_table[CC_GO_results_table$weightFisher <= 0.05, ]
   }
   
   # function to get most significant BP GO term
-  getBPMostSigDGE <- function(){
+  getBPMostSig <- function(){
     # retrieve stats
-    BP_GO_results_table <- getBPStatsDGE()
+    BP_GO_results_table <- getBPStats()
     # retrieve most significant GO term
     BP_topSigGO_ID <- BP_GO_results_table[1, 'GO.ID']
   }
   
   # function to get most significant MF GO term
-  getMFMostSigDGE <- function(){
+  getMFMostSig <- function(){
     # retrieve stats
-    MF_GO_results_table <- getMFStatsDGE()
+    MF_GO_results_table <- getMFStats()
     # retrieve most significant GO term
     MF_topSigGO_ID <- MF_GO_results_table[1, 'GO.ID']
   }
   
   # function to get most significant CC GO term
-  getCCMostSigDGE <- function(){
+  getCCMostSig <- function(){
     # retrieve stats
-    CC_GO_results_table <- getCCStatsDGE()
+    CC_GO_results_table <- getCCStats()
     # retrieve most significant GO term
     CC_topSigGO_ID <- CC_GO_results_table[1, 'GO.ID']
   }
   
   # function to create BP density plot
-  createBPDensityDGE <- function(){
+  createBPDensity <- function(){
     # retrieve topGOdata object
-    BP_GO_data <- createBPDGE()
+    BP_GO_data <- createBP()
     ## TO-DO: allow input GO ID from results
     # retrieve GO ID
-    BP_topSigGO_ID <- getBPMostSigDGE()
+    BP_topSigGO_ID <- getBPMostSig()
     # create density plot
     showGroupDensity(BP_GO_data, whichGO = BP_topSigGO_ID, ranks = TRUE)
   }
   
   # function to create MF density plot
-  createMFDensityDGE <- function(){
+  createMFDensity <- function(){
     # retrieve topGOdata object
-    MF_GO_data <- createMFDGE()
+    MF_GO_data <- createMF()
     ## TO-DO: allow input GO ID from results
     # retrieve GO ID
-    MF_topSigGO_ID <- getMFMostSigDGE()
+    MF_topSigGO_ID <- getMFMostSig()
     # create density plot
     showGroupDensity(MF_GO_data, whichGO = MF_topSigGO_ID, ranks = TRUE)
   }
   
   # function to create CC density plot
-  createCCDensityDGE <- function(){
+  createCCDensity <- function(){
     # retrieve topGOdata object
-    CC_GO_data <- createCCDGE()
+    CC_GO_data <- createCC()
     ## TO-DO: allow input GO ID from results
     # retrieve GO ID
-    CC_topSigGO_ID <- getCCMostSigDGE()
+    CC_topSigGO_ID <- getCCMostSig()
     # create density plot
     showGroupDensity(CC_GO_data, whichGO = CC_topSigGO_ID, ranks = TRUE)
   }
   
   # render BP density plot
-  output$BPDensityDGE <- renderPlot({
-    # save the plot
-    #exportFile <- "density_BP_DGE"
-    #png(exportFile)
-    createBPDensityDGE()
-    #dev.off()
-    # Return a list
-    #list(src = exportFile, alt = "Invalid Results")
-  })#, deleteFile = TRUE)
+  output$BPDensity <- renderPlot({
+    # create plot
+    createBPDensity()
+  })
   
   # render MF density plot
-  output$MFDensityDGE <- renderPlot({
-    # save the plot
-    #exportFile <- "density_MF_DGE"
-    #png(exportFile)
-    createMFDensityDGE()
-    #dev.off()
-    # Return a list
-    #list(src = exportFile, alt = "Invalid Results")
-  })#, deleteFile = TRUE)
+  output$MFDensity <- renderPlot({
+    # create plot
+    createMFDensity()
+  })
   
   # render CC density plot
-  output$CCDensityDGE <- renderPlot({
-    # save the plot
-    #exportFile <- "density_CC_DGE"
-    #png(exportFile)
-    createCCDensityDGE()
-    #dev.off()
-    # Return a list
-    #list(src = exportFile, alt = "Invalid Results")
-  })#, deleteFile = TRUE)
+  output$CCDensity <- renderPlot({
+    # create plot
+    createCCDensity()
+  })
   
   # function to plot BP subgraphs
-  createBPSubgraphsDGE <- function(){
+  createBPSubgraphs <- function(){
     # retrieve topGOdata object
-    BP_GO_data <- createBPDGE()
+    BP_GO_data <- createBP()
     # retrieve results
-    BP_GO_results <- performBPGODGE()
+    BP_GO_results <- performBPGO()
     # plot subgraphs induced by the most significant GO terms
     printGraph(BP_GO_data, BP_GO_results, firstSigNodes = 5, 
-             fn.prefix = "sigGO_subgraphs_BP_DGE", useInfo = "all", pdfSW = TRUE)
+             fn.prefix = "sigGO_subgraphs_BP_", useInfo = "all", pdfSW = TRUE)
   }
   
   # function to plot MF subgraphs
-  createMFSubgraphsDGE <- function(){
+  createMFSubgraphs <- function(){
     # retrieve topGOdata object
-    MF_GO_data <- createMFDGE()
+    MF_GO_data <- createMF()
     # retrieve results
-    MF_GO_results <- performMFGODGE()
+    MF_GO_results <- performMFGO()
     # plot subgraphs induced by the most significant GO terms
     printGraph(MF_GO_data, MF_GO_results, firstSigNodes = 5, 
-               fn.prefix = "sigGO_subgraphs_MF_DGE", useInfo = "all", pdfSW = TRUE)
+               fn.prefix = "sigGO_subgraphs_MF_", useInfo = "all", pdfSW = TRUE)
   }
   
   # function to plot CC subgraphs
-  createCCSubgraphsDGE <- function(){
+  createCCSubgraphs <- function(){
     # retrieve topGOdata object
-    CC_GO_data <- createCCDGE()
+    CC_GO_data <- createCC()
     # retrieve results
-    CC_GO_results <- performCCGODGE()
+    CC_GO_results <- performCCGO()
     # plot subgraphs induced by the most significant GO terms
     printGraph(CC_GO_data, CC_GO_results, firstSigNodes = 5, 
-               fn.prefix = "sigGO_subgraphs_CC_DGE", useInfo = "all", pdfSW = TRUE)
+               fn.prefix = "sigGO_subgraphs_CC_", useInfo = "all", pdfSW = TRUE)
   }
   
   # render BP subgraphs
-  output$BPSubgraphsDGE <- renderPlot({
+  output$BPSubgraphs <- renderPlot({
     # save the plot
-    #exportFile <- "sigGO_subgraphs_BP_DGE"
+    #exportFile <- "sigGO_subgraphs_BP_"
     #png(exportFile)
-    createBPSubgraphsDGE()
+    createBPSubgraphs()
     #dev.off()
     # Return a list
     #list(src = exportFile, alt = "Invalid Results")
   })#, deleteFile = TRUE)
   
   # render MF subgraphs
-  output$MFSubgraphsDGE <- renderPlot({
+  output$MFSubgraphs <- renderPlot({
     # save the plot
-    #exportFile <- "sigGO_subgraphs_MF_DGE"
+    #exportFile <- "sigGO_subgraphs_MF_"
     #png(exportFile)
-    createMFSubgraphsDGE()
+    createMFSubgraphs()
     #dev.off()
     # Return a list
     #list(src = exportFile, alt = "Invalid Results")
   })#, deleteFile = TRUE)
   
   # render CC subgraphs
-  output$CCSubgraphsDGE <- renderPlot({
+  output$CCSubgraphs <- renderPlot({
     # save the plot
-    #exportFile <- "sigGO_subgraphs_CC_DGE"
+    #exportFile <- "sigGO_subgraphs_CC_"
     #png(exportFile)
-    createCCSubgraphsDGE()
+    createCCSubgraphs()
     #dev.off()
     # Return a list
     #list(src = exportFile, alt = "Invalid Results")
