@@ -9,6 +9,7 @@ library(shinythemes)
 library(ggVennDiagram)
 library(ggplot2)
 library(rcartocolor)
+library(gplots)
 
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")
@@ -42,6 +43,7 @@ ui <- fluidPage(
         label = NULL,
         value = "Set One"
       ),
+      ## TO-DO: consider allowing other file types to be uploaded
       tags$p(
         "Upload set one table (*.csv):"
       ),
@@ -184,28 +186,47 @@ ui <- fluidPage(
             ),
             plotOutput(outputId = "twoWayVenn"),
             downloadButton(outputId = "twoWayVennDownload", label = "Download Plot"),
+            tags$br(),
+            selectInput(
+              inputId = "twoWayCompare",
+              label = "Set(s)",
+              choices = c("")
+            ),
+            downloadButton(outputId = "twoWayIntersections", label = "Download Table"),
             # three-way venn
             conditionalPanel(
               condition = "output.threeDataUploaded",
-              tags$br(),
+              tags$hr(),
               tags$p(
                 align="center",
                 HTML("<b>Three-Way Venn Diagram</b>")
               ),
               plotOutput(outputId = "threeWayVenn"),
-              downloadButton(outputId = "threeWayVennDownload", label = "Download Plot")
+              downloadButton(outputId = "threeWayVennDownload", label = "Download Plot"),
+              selectInput(
+                inputId = "threeWayCompare",
+                label = "Set(s)",
+                choices = c("")
+              ),
+              downloadButton(outputId = "threeWayIntersections", label = "Download Table")
             ),
             # four-way venn
             conditionalPanel(
               condition = "output.fourDataUploaded",
-              tags$br(),
+              tags$hr(),
               tags$p(
                 align="center",
                 HTML("<b>Four-Way Venn Diagram</b>")
               ),
               tags$br(),
               plotOutput(outputId = "fourWayVenn"),
-              downloadButton(outputId = "fourWayVennDownload", label = "Download Plot")
+              downloadButton(outputId = "fourWayVennDownload", label = "Download Plot"),
+              selectInput(
+                inputId = "fourWayCompare",
+                label = "Set(s)",
+                choices = c("")
+              ),
+              downloadButton(outputId = "fourWayIntersections", label = "Download Table")
             )
           ),
           
@@ -351,14 +372,21 @@ server <- function(input, output, session) {
   # Venn Diagrams
   ##
   
-  # function to create two-way venn diagrams
-  createTwoWay <- reactive({
+  # function to create two-way names list
+  createTwoWayList <- function(){
     # retrieve set of row names
     namesSetOne <- inputOneTable()
     namesSetTwo <- inputTwoTable()
     # create combined list of names
     namesList <- list(setOne = namesSetOne, 
-                      setTwo = namesSetTwo)
+                      setTwo = namesSetTwo
+    )
+  }
+  
+  # function to create two-way venn diagrams
+  createTwoWay <- reactive({
+    # retrieve combined list of names
+    namesList <- createTwoWayList()
     # setup name
     #plotName <- paste(input$setOne, "vs", input$setTwo, sep=" ")
     # create venn diagram
@@ -390,8 +418,58 @@ server <- function(input, output, session) {
     }
   )
   
-  # function to create three-way venn diagrams
-  createThreeWay <- reactive({
+  # function to retrieve two-way intersections from the venn diagram
+  retrieveTwoWayIntersections <- function(){
+    # retrieve combined list of names
+    namesList <- createTwoWayList()
+    # create venn lists
+    vennList <- venn(namesList, show.plot = FALSE)
+    # retrieve intersections
+    attributes(vennList)$intersections
+  }
+  
+  # update inputs for two-way comparisons
+  observe({
+    # retrieve attributes
+    listaAtt <- retrieveTwoWayIntersections()
+    # get list of set intersections
+    compareList <- names(listaAtt)
+    # update and set the two-way select items
+    updateSelectInput(
+      session, 
+      inputId = "twoWayCompare",
+      choices = compareList,
+      selected = compareList[1]
+    )
+  })
+  
+  # render table of two-way intersections
+  twoWaySets <- function(){
+    # retrieve intersections
+    listaAtt <- retrieveTwoWayIntersections()
+    # retrieve selected sets
+    compare <- input$twoWayCompare
+    # get sets of values
+    listaAtt[names(listaAtt) == compare] 
+  }
+  
+  # download table with number of filtered genes
+  output$twoWayIntersections <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$twoWayCompare, "twoWayVenn.csv", sep = "_")
+    },
+    content = function(file) {
+      # retrieve intersections values
+      resultsTbl <- twoWaySets()
+      # output table
+      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+    }
+  )
+  
+  
+  # function to create three-way names list
+  createThreeWayList <- function(){
     # retrieve set of row names
     namesSetOne <- inputOneTable()
     namesSetTwo <- inputTwoTable()
@@ -399,7 +477,14 @@ server <- function(input, output, session) {
     # create combined list of names
     namesList <- list(setOne = namesSetOne, 
                       setTwo = namesSetTwo,
-                      setThree = namesSetThree)
+                      setThree = namesSetThree
+    )
+  }
+  
+  # function to create three-way venn diagrams
+  createThreeWay <- reactive({
+    # retrieve combined list of names
+    namesList <- createThreeWayList()
     # setup name
     #plotName <- paste(input$setOne, "vs", input$setTwo, "vs", input$setThree, sep=" ")
     # create venn diagram
@@ -432,8 +517,58 @@ server <- function(input, output, session) {
     }
   )
   
-  # function to create four-way venn diagrams
-  createFourWay <- reactive({
+  # function to retrieve three-way intersections from the venn diagram
+  retrieveThreeWayIntersections <- function(){
+    # retrieve combined list of names
+    namesList <- createThreeWayList()
+    # create venn lists
+    vennList <- venn(namesList, show.plot = FALSE)
+    # retrieve intersections
+    attributes(vennList)$intersections
+  }
+  
+  # update inputs for three-way comparisons
+  observe({
+    # retrieve attributes
+    listaAtt <- retrieveThreeWayIntersections()
+    # get list of set intersections
+    compareList <- names(listaAtt)
+    # update and set the two-way select items
+    updateSelectInput(
+      session, 
+      inputId = "threeWayCompare",
+      choices = compareList,
+      selected = compareList[1]
+    )
+  })
+  
+  # render table of three-way intersections
+  threeWaySets <- function(){
+    # retrieve intersections
+    listaAtt <- retrieveThreeWayIntersections()
+    # retrieve selected sets
+    compare <- input$threeWayCompare
+    # get sets of values
+    listaAtt[names(listaAtt) == compare] 
+  }
+  
+  # download table with number of filtered genes
+  output$threeWayIntersections <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$threeWayCompare, "threeWayVenn.csv", sep = "_")
+    },
+    content = function(file) {
+      # retrieve intersections values
+      resultsTbl <- threeWaySets()
+      # output table
+      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+    }
+  )
+  
+  
+  # function to create four-way names list
+  createFourWayList <- function(){
     # retrieve set of row names
     namesSetOne <- inputOneTable()
     namesSetTwo <- inputTwoTable()
@@ -445,6 +580,12 @@ server <- function(input, output, session) {
                       setThree = namesSetThree,
                       setFour = namesSetFour
                       )
+  }
+  
+  # function to create four-way venn diagrams
+  createFourWay <- reactive({
+    # retrieve combined list of names
+    namesList <- createFourWayList()
     # setup name
     #plotName <- paste(input$setOne, "vs", input$setTwo, "vs", input$setThree, "vs", input$setFour, sep=" ")
     # create venn diagram
@@ -475,6 +616,55 @@ server <- function(input, output, session) {
       # save the plot
       outVenn <- createFourWay()
       ggsave(file, plot = outVenn, device = "png")
+    }
+  )
+  
+  # function to retrieve four-way intersections from the venn diagram
+  retrieveFourWayIntersections <- function(){
+    # retrieve combined list of names
+    namesList <- createFourWayList()
+    # create venn lists
+    vennList <- venn(namesList, show.plot = FALSE)
+    # retrieve intersections
+    attributes(vennList)$intersections
+  }
+  
+  # update inputs for four-way comparisons
+  observe({
+    # retrieve attributes
+    listaAtt <- retrieveFourWayIntersections()
+    # get list of set intersections
+    compareList <- names(listaAtt)
+    # update and set the two-way select items
+    updateSelectInput(
+      session, 
+      inputId = "fourWayCompare",
+      choices = compareList,
+      selected = compareList[1]
+    )
+  })
+  
+  # render table of four-way intersections
+  fourWaySets <- function(){
+    # retrieve intersections
+    listaAtt <- retrieveFourWayIntersections()
+    # retrieve selected sets
+    compare <- input$fourWayCompare
+    # get sets of values
+    listaAtt[names(listaAtt) == compare] 
+  }
+  
+  # download table with number of filtered genes
+  output$fourWayIntersections <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$fourWayCompare, "fourWayVenn.csv", sep = "_")
+    },
+    content = function(file) {
+      # retrieve intersections values
+      resultsTbl <- fourWaySets()
+      # output table
+      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
     }
   )
   
