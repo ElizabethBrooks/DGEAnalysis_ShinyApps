@@ -1000,21 +1000,23 @@ server <- function(input, output, session) {
   })
   
   # plot of log-fold change against log-counts per million with DE genes highlighted
-  createPairwiseMD <- function(){
-    # perform exact test
-    tested <- pairwiseTest()
+  createMD <- function(tested, inputLFC){
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
+    abline(h=c((-1*inputLFC), inputLFC), col="blue") 
   }
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
   output$pairwiseMD <- renderImage({
+    # perform exact test
+    tested <- pairwiseTest()
+    # retrieve input LFC cut
+    inputLFC <- input$LFCcut
     # save the plot
     exportFile <- "pairwiseMDPlot.png"
     png(exportFile)
-    createPairwiseMD()
+    createMD(tested, inputLFC)
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
@@ -1027,17 +1029,19 @@ server <- function(input, output, session) {
       "pairwiseMDPlot.png"
     },
     content = function(file) {
+      # perform exact test
+      tested <- pairwiseTest()
+      # retrieve input LFC cut
+      inputLFC <- input$LFCcut
       # save the plot
       png(file)
-      createPairwiseMD()
+      createMD(tested, inputLFC)
       dev.off()
     }
   )
   
   # create volcano plot
-  plotPairwiseVolcano <- function(){
-    # perform exact test
-    tested <- pairwiseTest()
+  plotVolcano <- function(tested){
     # create a results table of DE genes
     resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
     # add column for identifying direction of DE gene expression
@@ -1060,7 +1064,10 @@ server <- function(input, output, session) {
   
   # render volcano plot
   output$pairwiseVolcano <- renderPlot({
-    plotPairwiseVolcano()
+    # perform exact test
+    tested <- pairwiseTest()
+    # create plot
+    plotVolcano(tested)
   })
   
   
@@ -1070,8 +1077,11 @@ server <- function(input, output, session) {
       "pairwiseVolcanoPlot.png"
     },
     content = function(file) {
-      # save the plot
-      volcanoPlotPairwise <- plotPairwiseVolcano()
+      # perform exact test
+      tested <- pairwiseTest()
+      # create plot
+      volcanoPlotPairwise <- plotVolcano(tested)
+      # save plot
       ggsave(file, plot = volcanoPlotPairwise, device = "png")
     }
   )
@@ -1226,22 +1236,16 @@ server <- function(input, output, session) {
     resultsTable
   })
   
-  # plot of log-fold change against log-counts per million with DE genes highlighted
-  createGLMMD <- function(){
-    # perform glm test
-    tested <- glmContrast()
-    # return MD plot
-    plotMD(tested, main = "Mean-Difference (MD) Plot")
-    # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
-  }
-  
   # render plot of log-fold change against log-counts per million with DE genes highlighted
   output$glmMD <- renderImage({
+    # perform glm test
+    tested <- glmContrast()
+    # retrieve input LFC cut
+    inputLFC <- input$LFCcut
     # save the plot
     exportFile <- "glmMDPlot.png"
     png(exportFile)
-    createGLMMD()
+    createMD(tested, inputLFC)
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
@@ -1253,41 +1257,23 @@ server <- function(input, output, session) {
       "glmMDPlot.png"
     },
     content = function(file) {
+      # perform glm test
+      tested <- glmContrast()
+      # retrieve input LFC cut
+      inputLFC <- input$LFCcut
       # save the plot
       png(file)
-      createGLMMD()
+      createMD(tested, inputLFC)
       dev.off()
     }
   )
   
-  # create GLM volcano plot
-  plotGLMVolcano <- function(){
-    # perform glm test
-    tested <- glmContrast()
-    # create a results table of DE genes
-    resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-    # add column for identifying direction of DE gene expression
-    resultsTbl$topDE <- "NA"
-    # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < input$FDRcut] <- "Up"
-    # identify significantly down DE genes
-    # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < input$FDRcut] <- "Down"
-    # add column with -log10(FDR) values
-    resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
-    # create volcano plot
-    ggplot(data=resultsTbl, aes(x=logFC, y=negLog10FDR, color = topDE)) + 
-      geom_point() +
-      theme_minimal() +
-      scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down")) +
-      ggtitle("Volcano Plot") +
-      theme(plot.title = element_text(hjust = 0.5)) +
-      theme(plot.title = element_text(face="bold"))
-  }
-  
   # render GLM volcano plot
   output$glmVolcano <- renderPlot({
-    plotGLMVolcano()
+    # perform glm test
+    tested <- glmContrast()
+    # create plot
+    plotVolcano(tested)
   })
   
   # download handler for the volcano plot
@@ -1296,8 +1282,11 @@ server <- function(input, output, session) {
       "glmVolcanoPlot.png"
     },
     content = function(file) {
-      # save the plot
-      volcanoPlotGLM <- plotGLMVolcano()
+      # perform glm test
+      tested <- glmContrast()
+      # create plot
+      volcanoPlotGLM <- plotVolcano(tested)
+      # save plot
       ggsave(file, plot = volcanoPlotGLM, device = "png")
     }
   )
