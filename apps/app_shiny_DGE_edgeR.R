@@ -303,7 +303,7 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                "Choose factor levels for comparison:"
+                HTML("<b>Choose factor levels for comparison:</b>")
               ),
               # select variable for the first level
               selectInput(
@@ -321,6 +321,11 @@ ui <- fluidPage(
               conditionalPanel(
                 condition = "output.pairwiseResultsCompleted",
                 tags$hr(),
+                tags$p(
+                  align="center",
+                  HTML("<b>Pairwise Results</b>")
+                ),
+                tags$br(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
                 ),
@@ -379,7 +384,7 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                "Enter expression for comparison:"
+                HTML("<b>Enter expression for comparison:</b>")
               ),
               textInput("compareExpression", "Expression"),
               tags$p(
@@ -402,6 +407,11 @@ ui <- fluidPage(
               conditionalPanel(
                 condition = "output.glmResultsCompleted",
                 tags$hr(),
+                tags$p(
+                  align="center",
+                  HTML("<b>GLM Results</b>")
+                ),
+                tags$br(),
                 tags$p(
                   HTML("<b>Number of Differentially Expressed Genes:</b>")
                 ),
