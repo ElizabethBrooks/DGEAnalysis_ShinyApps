@@ -1141,7 +1141,23 @@ server <- function(input, output, session) {
     }
   )
   
-  # download table with number of filtered genes
+  # function to retrieve gene IDs from results tables
+  retrieveGeneIDs <- function(tested){
+    # view results table of top 10 DE genes
+    resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+    # retrieve gene IDS
+    resultsTblNames <- rownames(resultsTbl)
+    # add commas
+    resultsTblNames <- paste(resultsTblNames, ",", sep="")
+    # retrieve last entry
+    lastEntry <- resultsTblNames[length(resultsTblNames)]
+    # remove extra trailing comma
+    resultsTblNames[length(resultsTblNames)] <- gsub(",", "\n", lastEntry)
+    # return list of gene IDs
+    resultsTblNames
+  }
+  
+  # download table with number of filtered genes IDs
   output$pairwiseResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
@@ -1150,12 +1166,8 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform glm test
       tested <- pairwiseTest()
-      # view results table of top 10 DE genes
-      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # retrieve gene IDS
-      resultsTblNames <- rownames(resultsTbl)
       # add commas
-      resultsTblNames <- paste(resultsTblNames, ",", sep="")
+      resultsTblNames <- retrieveGeneIDs(tested)
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }
@@ -1349,7 +1361,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # download table with number of filtered genes
+  # download table with number of filtered genes IDs
   output$glmResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
@@ -1358,10 +1370,8 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform glm test
       tested <- glmContrast()
-      # view results table of top 10 DE genes
-      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # retrieve gene IDS
-      resultsTblNames <- paste(resultsTblNames, ",", sep="")
+      resultsTblNames <- retrieveGeneIDs(tested)
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }
