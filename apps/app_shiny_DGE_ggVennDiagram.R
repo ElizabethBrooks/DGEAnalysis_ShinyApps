@@ -561,7 +561,9 @@ server <- function(input, output, session) {
       geom_sf_text(aes(label = labelList), fontface = "bold", data = venn_setlabel(dataList)) +  
       # add a alternative region name
       geom_sf_label(aes(label = name), data = venn_region(dataList), alpha = 0.5) +  
+      # expand the plotting area
       scale_x_continuous(expand = expansion(mult = .2)) +
+      # void theme
       theme_void()
     #return plot
     vennSets
