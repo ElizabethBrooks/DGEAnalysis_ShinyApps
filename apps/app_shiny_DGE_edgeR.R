@@ -334,6 +334,14 @@ ui <- fluidPage(
                   "A comparison or contrast is a linear combination of means for a group of samples.",
                   "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
                 ),
+                tags$br(),
+                tags$p(
+                  HTML("<b>Differentially Expressed Genes IDs:</b>")
+                ),
+                downloadButton(outputId = "pairwiseResultsIDs", label = "Download Table"),
+                tags$p(
+                  "A list of the DE gene IDs from the pairwise analysis may be downloaded by clicking the above button.",
+                ),
                 tags$hr(),
                 tags$p(
                   align="center",
@@ -407,6 +415,14 @@ ui <- fluidPage(
                   "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
                   "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.",
                   "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
+                ),
+                tags$br(),
+                tags$p(
+                  HTML("<b>Differentially Expressed Genes IDs:</b>")
+                ),
+                downloadButton(outputId = "glmResultsIDs", label = "Download Table"),
+                tags$p(
+                  "A list of the DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button.",
                 ),
                 tags$hr(),
                 tags$p(
@@ -1103,11 +1119,7 @@ server <- function(input, output, session) {
   output$pairwiseResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(
-        paste(input$levelTwo, input$levelOne, sep = "_"),
-        "pairwiseTopDEGs.csv", 
-        sep = "_"
-      )
+      paste(input$levelTwo, input$levelOne, "pairwiseTopDEGs.csv", sep = "_")
     },
     content = function(file) {
       # perform exact test
@@ -1116,6 +1128,26 @@ server <- function(input, output, session) {
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # output table
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+    }
+  )
+  
+  # download table with number of filtered genes
+  output$pairwiseResultsIDs <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$levelTwo, input$levelOne, "pairwiseTopDEGs_geneIDs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- pairwiseTest()
+      # view results table of top 10 DE genes
+      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # retrieve gene IDS
+      resultsTblNames <- rownames(resultsTbl)
+      # add commas
+      resultsTblNames <- paste(resultsTblNames, ",", sep="")
+      # output table
+      writeLines(resultsTblNames, con = file, sep = "")
     }
   )
   
@@ -1304,6 +1336,24 @@ server <- function(input, output, session) {
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # output table
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+    }
+  )
+  
+  # download table with number of filtered genes
+  output$glmResultsIDs <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$compareExpression, "glmTopDEGs_geneIDs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- glmContrast()
+      # view results table of top 10 DE genes
+      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # retrieve gene IDS
+      resultsTblNames <- paste(resultsTblNames, ",", sep="")
+      # output table
+      writeLines(resultsTblNames, con = file, sep = "")
     }
   )
 }
