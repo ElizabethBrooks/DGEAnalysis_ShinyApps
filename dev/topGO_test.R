@@ -5,7 +5,7 @@
 #Load the libraries
 #library(filesstrings)
 library(topGO)
-library(edgeR)
+#library(edgeR)
 #library(GO.db)
 #library(reshape2)
 library(ggplot2)

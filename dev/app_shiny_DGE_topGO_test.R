@@ -7,7 +7,6 @@
 library(shiny)
 library(shinythemes)
 library(topGO)
-library(eR)
 library(ggplot2)
 library(Rgraphviz)
 library(tidyr)
@@ -27,7 +26,7 @@ ui <- fluidPage(
   #theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Gene Ontology (GO) Term Enrichment Analysis in topGO"),
+  titlePanel("Gene Ontology (GO) Term Enrichment Analysis with topGO"),
   
   # setup sidebar layout
   sidebarLayout(
@@ -52,7 +51,7 @@ ui <- fluidPage(
         "mappings", 
         label = NULL,
         multiple = FALSE,
-        accept = ".txt"
+        accept = "text"
       )
     ),
     
