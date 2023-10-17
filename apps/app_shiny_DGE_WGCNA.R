@@ -1546,7 +1546,7 @@ server <- function(input, output, session) {
     mergedMEs = merge$newMEs
   })
   
-  # TO-DO: does this suspendWhenHidden=FALSE here cause additional function calls?
+  # TO-DO: this suspendWhenHidden=FALSE appears to cause additional function calls
   # check if file has been uploaded
   output$resultsCompleted <- function(){
     if(!is.null(mergeEigengenes())){
