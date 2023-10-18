@@ -113,36 +113,107 @@ ui <- fluidPage(
             "Enrichment",
             tags$br(),
             tags$p(
-              align="center",
-              HTML("<b>Enrichment</b>")
+              align = "center",
+              HTML("<b>GO Term Enrichment</b>")
             ),
-            imageOutput(outputId = "BPHist", height="100%", width="100%"),
-            downloadButton(outputId = "downloadBPHist", label = "Download Plot"),
-            imageOutput(outputId = "MFHist", height="100%", width="100%"),
-            downloadButton(outputId = "downloadMFHist", label = "Download Plot"),
-            imageOutput(outputId = "CCHist", height="100%", width="100%"),
-            downloadButton(outputId = "downloadCCHist", label = "Download Plot"),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Range of GO Term P-Values</b>")
+            ),
+            fluidRow(
+              column(
+                width = 4,
+                plotOutput(outputId = "BPHist"),
+                downloadButton(outputId = "downloadBPHist", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                plotOutput(outputId = "MFHist"),
+                downloadButton(outputId = "downloadMFHist", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                plotOutput(outputId = "CCHist"),
+                downloadButton(outputId = "downloadCCHist", label = "Download Plot")
+              )
+            ),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Subgraphs of Most Significant GO Terms</b>")
+            ),
+            fluidRow(
+              column(
+                width = 4,
+                tags$p(
+                  HTML("<b>Download BP Subgraphs:</b>")
+                ),
+                downloadButton(outputId = "downloadBPSubgraphs", label = "Download PDF")
+              ),
+              column(
+                width = 4,
+                tags$p(
+                  HTML("<b>Download MF Subgraphs:</b>")
+                ),
+                downloadButton(outputId = "downloadMFSubgraphs", label = "Download PDF")
+              ),
+              column(
+                width = 4,
+                tags$p(
+                  HTML("<b>Download CC Subgraphs:</b>")
+                ),
+                downloadButton(outputId = "downloadCCSubgraphs", label = "Download PDF")
+              )
+            ),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Density Plots of Most Significant GO Terms</b>")
+            ),
+            fluidRow(
+              column(
+                width = 4,
+                tags$p(
+                  align = "center",
+                  HTML("<b>BP Density Plot")
+                ),
+                plotOutput(outputId = "BPDensity"),
+                downloadButton(outputId = "downloadBPDensity", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                tags$p(
+                  align = "center",
+                  HTML("<b>MF Density Plot")
+                ),
+                plotOutput(outputId = "MFDensity"),
+                downloadButton(outputId = "downloadMFDensity", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                tags$p(
+                  align = "center",
+                  HTML("<b>CC Density Plot")
+                ),
+                plotOutput(outputId = "CCDensity"),
+                downloadButton(outputId = "downloadCCDensity", label = "Download Plot")
+              )
+            ),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
+            ),
             plotOutput(outputId = "dotPlot"),
-            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
-            plotOutput(outputId = "BPDensity"),
-            downloadButton(outputId = "downloadBPDensity", label = "Download Plot"),
-            plotOutput(outputId = "MFDensity"),
-            downloadButton(outputId = "downloadMFDensity", label = "Download Plot"),
-            plotOutput(outputId = "CCDensity"),
-            downloadButton(outputId = "downloadCCDensity", label = "Download Plot"),
-            downloadButton(outputId = "downloadBPSubgraphs", label = "Download Plot"),
-            downloadButton(outputId = "downloadMFSubgraphs", label = "Download Plot"),
-            downloadButton(outputId = "downloadCCSubgraphs", label = "Download Plot")
-            # TO-DO: fix rendering of PDFs
-            #tags$iframe(src = "sigGO_subgraphs_BP_weight01_5_all.pdf", style="height:600px; width:100%"),
-            #tags$iframe(src = "sigGO_subgraphs_MF_weight01_5_all.pdf", style="height:600px; width:100%"),
-            #tags$iframe(src = "sigGO_subgraphs_CC_weight01_5_all.pdf", style="height:600px; width:100%")
+            downloadButton(outputId = "downloadDotPlot", label = "Download Plot")
           )
         )
       )
     )
   )
 )
+
 
 #### Server ####
 
@@ -271,20 +342,17 @@ server <- function(input, output, session) {
     GOResults <- performGO(ontologyID)
     # store p-values as named list...
     pvalGO <- score(GOResults)
+    # create title
+    titleName <- paste("Range of", ontologyID, "P-Values", sep=" ")
     # plot histogram to see range of p-values
-    hist(pvalGO, 35, xlab = "p-values", main = "Range of GO Term P-Values")
+    hist(pvalGO, 35, xlab = "p-values", main = titleName)
   }
   
   # render BP p-value histogram
-  output$BPHist <- renderImage({
-    # save the plot
-    exportFile <- "pValueRanges_BP.png"
-    png(exportFile, width = 12, height = 9, units="in", res=150)
+  output$BPHist <- renderPlot({
+    # create the plot
     createPHist("BP")
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results", height = "500px")
-  }, deleteFile = TRUE)
+  })
   
   # download handler for the BP histogram
   output$downloadBPHist <- downloadHandler(
@@ -300,15 +368,10 @@ server <- function(input, output, session) {
   )
   
   # render MF p-value histogram
-  output$MFHist <- renderImage({
-    # save the plot
-    exportFile <- "pValueRanges_MF.png"
-    png(exportFile, width = 12, height = 9, units="in", res=150)
+  output$MFHist <- renderPlot({
+    # create the plot
     createPHist("MF")
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results", height = "500px")
-  }, deleteFile = TRUE)
+  })
   
   # download handler for the MF histogram
   output$downloadMFHist <- downloadHandler(
@@ -324,15 +387,10 @@ server <- function(input, output, session) {
   )
   
   # render CC p-value histogram
-  output$CCHist <- renderImage({
-    # save the plot
-    exportFile <- "pValueRanges_CC.png"
-    png(exportFile, width = 12, height = 9, units="in", res=150)
+  output$CCHist <- renderPlot({
+    # create the plot
     createPHist("CC")
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results", height = "500px")
-  }, deleteFile = TRUE)
+  })
   
   # download handler for the CC histogram
   output$downloadCCHist <- downloadHandler(
@@ -344,6 +402,51 @@ server <- function(input, output, session) {
       png(file, width = 12, height = 9, units="in", res=150)
       createPHist("CC")
       dev.off()
+    }
+  )
+  
+  # TO-DO: allow input number of sig nodes
+  # function to plot BP, MF, or CC subgraphs
+  createSubgraphs <- function(ontologyID){
+    # retrieve topGOdata object
+    GO_data <- createOntology(ontologyID)
+    # retrieve results
+    GOResults <- performGO(ontologyID)
+    # plot subgraphs induced by the most significant GO terms
+    printGraph(GO_data, GOResults, firstSigNodes = 5, 
+               fn.prefix = paste(ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
+  }
+  
+  # download button for PDFs of BP subgraphs
+  output$downloadBPSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_BP_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("BP")
+    }
+  )
+  
+  # download button for PDFs of MF subgraphs
+  output$downloadMFSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_MF_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("MF")
+    }
+  )
+  
+  # download button for PDFs of CC subgraphs
+  output$downloadCCSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_CC_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("CC")
     }
   )
   
@@ -376,75 +479,6 @@ server <- function(input, output, session) {
     # retrieve most significant GO term
     topSigID <- GOResults_table[1, 'GO.ID']
   }
-  
-  # TO-DO: allow users to select the number of sig GO terms (to a limit)
-  # function to format data for use with dot plots
-  # default it top 5 most significant GO terms
-  dotPlotSigData <- function(){
-    # retrieve ontology result tables
-    BPTable <- getSig("BP")
-    MFTable <- getSig("MF")
-    CCTable <- getSig("CC")
-    # subset the tables
-    BPTable <- BPTable[1:5, ]
-    MFTable <- MFTable[1:5, ]
-    CCTable <- CCTable[1:5, ]
-    # add column with ontology ID
-    BPPlotTable <- cbind('ID' = 'BP', BPTable)
-    MFPlotTable <- cbind('ID' = 'MF', MFTable)
-    CCPlotTable <- cbind('ID' = 'CC', CCTable)
-    # combine all tables
-    allPlotTable <- rbind(BPPlotTable, MFPlotTable, CCPlotTable)
-    # remove NAs
-    plotTable <- na.omit(allPlotTable)
-  }
-  
-  # TO-DO: update x-axis title based on data or user input
-  # function to create dot plots
-  createDotPlot <- function(){
-    # check for valid plotting data
-    #if(!is.null(dotPlotSigData())){
-    #return(NULL)
-    #}
-    # retrieve formatted data
-    plotTable <- dotPlotSigData()
-    # create faceting by ontology
-    facet <- factor(plotTable$ID, levels = c('BP', 'CC', 'MF'))
-    # create dot plot
-    dotplot <- ggplot(data = plotTable, aes(x = "Enrichment", y = Term, size = Significant, color = as.numeric(weightFisher))) + 
-      facet_grid(rows = facet, space = 'free_y', scales = 'free') +
-      geom_point() +
-      #scale_color_gradientn(colors = heat.colors(10), limits=c(0, 0.05)) + 
-      scale_color_gradientn(colors = plotColorSubset) +
-      #scale_x_discrete(guide = guide_axis(angle = 90)) +
-      theme_bw() +
-      xlab('Effect') +
-      ylab('GO Term') + 
-      #scale_x_discrete(labels=c("Interaction"=expression(italic("Interaction")), parse=TRUE)) +
-      labs(color = 'P-Value', size = 'Gene Rank')
-    # view plot
-    dotplot
-  }
-  
-  # render dot plot
-  output$dotPlot <- renderPlot({
-    # create plot
-    createDotPlot()
-  })
-  
-  # TO-DO: update file names based on data subset
-  # download handler for the dot plot
-  output$downloadDotPlot <- downloadHandler(
-    filename = function() {
-      "dotPlot.png"
-    },
-    content = function(file) {
-      # create plot
-      dotPlotResults <- createDotPlot()
-      # save plot
-      ggsave(file, plot = dotPlotResults, device = "png")
-    }
-  )
   
   # TO-DO: allow input GO ID from results
   # function to create BP, MF, or CC density plots
@@ -515,48 +549,72 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: allow input number of sig nodes
-  # function to plot BP, MF, or CC subgraphs
-  createSubgraphs <- function(ontologyID){
-    # retrieve topGOdata object
-    GO_data <- createOntology(ontologyID)
-    # retrieve results
-    GOResults <- performGO(ontologyID)
-    # plot subgraphs induced by the most significant GO terms
-    printGraph(GO_data, GOResults, firstSigNodes = 5, 
-               fn.prefix = paste(ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
+  # TO-DO: allow users to select the number of sig GO terms (to a limit)
+  # function to format data for use with dot plots
+  # default it top 5 most significant GO terms
+  dotPlotSigData <- function(){
+    # retrieve ontology result tables
+    BPTable <- getSig("BP")
+    MFTable <- getSig("MF")
+    CCTable <- getSig("CC")
+    # subset the tables
+    BPTable <- BPTable[1:5, ]
+    MFTable <- MFTable[1:5, ]
+    CCTable <- CCTable[1:5, ]
+    # add column with ontology ID
+    BPPlotTable <- cbind('ID' = 'BP', BPTable)
+    MFPlotTable <- cbind('ID' = 'MF', MFTable)
+    CCPlotTable <- cbind('ID' = 'CC', CCTable)
+    # combine all tables
+    allPlotTable <- rbind(BPPlotTable, MFPlotTable, CCPlotTable)
+    # remove NAs
+    plotTable <- na.omit(allPlotTable)
   }
   
-  # download button for PDFs of BP subgraphs
-  output$downloadBPSubgraphs <- downloadHandler(
-    filename = function() {
-      "sigGO_subgraphs_BP_weight01_5_all.pdf"
-    },
-    content = function(file) {
-      # create subgraph PDFs
-      createSubgraphs("BP")
-    }
-  )
+  # TO-DO: update x-axis title based on data or user input
+  # function to create dot plots
+  createDotPlot <- function(){
+    # check for valid plotting data
+    #if(!is.null(dotPlotSigData())){
+    #return(NULL)
+    #}
+    # retrieve formatted data
+    plotTable <- dotPlotSigData()
+    # create faceting by ontology
+    facet <- factor(plotTable$ID, levels = c('BP', 'CC', 'MF'))
+    # create dot plot
+    dotplot <- ggplot(data = plotTable, aes(x = "Enrichment", y = Term, size = Significant, color = as.numeric(weightFisher))) + 
+      facet_grid(rows = facet, space = 'free_y', scales = 'free') +
+      geom_point() +
+      #scale_color_gradientn(colors = heat.colors(10), limits=c(0, 0.05)) + 
+      scale_color_gradientn(colors = plotColorSubset) +
+      #scale_x_discrete(guide = guide_axis(angle = 90)) +
+      theme_bw() +
+      xlab('Effect') +
+      ylab('GO Term') + 
+      #scale_x_discrete(labels=c("Interaction"=expression(italic("Interaction")), parse=TRUE)) +
+      labs(color = 'P-Value', size = 'Gene Rank')
+    # view plot
+    dotplot
+  }
   
-  # download button for PDFs of MF subgraphs
-  output$downloadMFSubgraphs <- downloadHandler(
-    filename = function() {
-      "sigGO_subgraphs_MF_weight01_5_all.pdf"
-    },
-    content = function(file) {
-      # create subgraph PDFs
-      createSubgraphs("MF")
-    }
-  )
+  # render dot plot
+  output$dotPlot <- renderPlot({
+    # create plot
+    createDotPlot()
+  })
   
-  # download button for PDFs of CC subgraphs
-  output$downloadCCSubgraphs <- downloadHandler(
+  # TO-DO: update file names based on data subset
+  # download handler for the dot plot
+  output$downloadDotPlot <- downloadHandler(
     filename = function() {
-      "sigGO_subgraphs_CC_weight01_5_all.pdf"
+      "dotPlot.png"
     },
     content = function(file) {
-      # create subgraph PDFs
-      createSubgraphs("CC")
+      # create plot
+      dotPlotResults <- createDotPlot()
+      # save plot
+      ggsave(file, plot = dotPlotResults, device = "png")
     }
   )
   
