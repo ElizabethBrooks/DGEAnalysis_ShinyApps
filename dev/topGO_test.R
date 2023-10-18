@@ -11,6 +11,7 @@ library(topGO)
 library(ggplot2)
 library(Rgraphviz)
 #library(statmod)
+#library("animation")
 
 
 # turn off scientific notation
@@ -136,5 +137,13 @@ printGraph(MF_GO_data, MF_GO_results, firstSigNodes = 5,
 printGraph(CC_GO_data, CC_GO_results, firstSigNodes = 5, 
            fn.prefix = "CC_sigGO_subgraphs", useInfo = "all", pdfSW = TRUE)
 
+
+## 
 # testing
+##
+
 #showSigOfNodes(BP_GO_data, score(BP_GO_results), firstSigNodes = 5, useInfo = 'all')
+
+#im.convert("BP_sigGO_subgraphs_weight01_5_all.pdf", output = "BP_sigGO_subgraphs_weight01_5_all.png", extra.opts="-density 150")
+
+

@@ -116,18 +116,27 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Enrichment</b>")
             ),
-            imageOutput(outputId = "BPPHist", height="100%", width="100%"),
-            imageOutput(outputId = "MFPHist", height="100%", width="100%"),
-            imageOutput(outputId = "CCPHist", height="100%", width="100%"),
+            imageOutput(outputId = "BPHist", height="100%", width="100%"),
+            downloadButton(outputId = "downloadBPHist", label = "Download Plot"),
+            imageOutput(outputId = "MFHist", height="100%", width="100%"),
+            downloadButton(outputId = "downloadMFHist", label = "Download Plot"),
+            imageOutput(outputId = "CCHist", height="100%", width="100%"),
+            downloadButton(outputId = "downloadCCHist", label = "Download Plot"),
+            plotOutput(outputId = "dotPlot"),
+            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
             plotOutput(outputId = "BPDensity"),
+            downloadButton(outputId = "downloadBPDensity", label = "Download Plot"),
             plotOutput(outputId = "MFDensity"),
+            downloadButton(outputId = "downloadMFDensity", label = "Download Plot"),
             plotOutput(outputId = "CCDensity"),
-            plotOutput(outputId = "dotPlot")#,
+            downloadButton(outputId = "downloadCCDensity", label = "Download Plot"),
+            downloadButton(outputId = "downloadBPSubgraphs", label = "Download Plot"),
+            downloadButton(outputId = "downloadMFSubgraphs", label = "Download Plot"),
+            downloadButton(outputId = "downloadCCSubgraphs", label = "Download Plot")
             # TO-DO: fix rendering of PDFs
             #tags$iframe(src = "sigGO_subgraphs_BP_weight01_5_all.pdf", style="height:600px; width:100%"),
             #tags$iframe(src = "sigGO_subgraphs_MF_weight01_5_all.pdf", style="height:600px; width:100%"),
             #tags$iframe(src = "sigGO_subgraphs_CC_weight01_5_all.pdf", style="height:600px; width:100%")
-            
           )
         )
       )
@@ -243,7 +252,7 @@ server <- function(input, output, session) {
     # retrieve topGOdata object
     GO_data <- createOntology(ontologyID)
     # perform GO enrichment using the topGOdata objects
-    GO_results <- runTest(GO_data, statistic = 'Fisher')
+    GOResults <- runTest(GO_data, statistic = 'Fisher')
   }
   
   # TO-DO: this causes additional function calls
@@ -259,17 +268,17 @@ server <- function(input, output, session) {
   # function to create BP, MF, or CC p-value histogram
   createPHist <- function(ontologyID){
     # retrieve results
-    GO_results <- performGO(ontologyID)
+    GOResults <- performGO(ontologyID)
     # store p-values as named list...
-    pval_GO <- score(GO_results)
+    pvalGO <- score(GOResults)
     # plot histogram to see range of p-values
-    hist(pval_GO, 35, xlab = "p-values", main = "Range of GO Term P-Values")
+    hist(pvalGO, 35, xlab = "p-values", main = "Range of GO Term P-Values")
   }
   
   # render BP p-value histogram
-  output$BPPHist <- renderImage({
+  output$BPHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_BP_"
+    exportFile <- "pValueRanges_BP.png"
     png(exportFile, width = 12, height = 9, units="in", res=150)
     createPHist("BP")
     dev.off()
@@ -277,10 +286,23 @@ server <- function(input, output, session) {
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
   
+  # download handler for the BP histogram
+  output$downloadBPHist <- downloadHandler(
+    filename = function() {
+      "pValueRanges_BP.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createPHist("BP")
+      dev.off()
+    }
+  )
+  
   # render MF p-value histogram
-  output$MFPHist <- renderImage({
+  output$MFHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_MF_"
+    exportFile <- "pValueRanges_MF.png"
     png(exportFile, width = 12, height = 9, units="in", res=150)
     createPHist("MF")
     dev.off()
@@ -288,10 +310,23 @@ server <- function(input, output, session) {
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
   
+  # download handler for the MF histogram
+  output$downloadMFHist <- downloadHandler(
+    filename = function() {
+      "pValueRanges_MF.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createPHist("MF")
+      dev.off()
+    }
+  )
+  
   # render CC p-value histogram
-  output$CCPHist <- renderImage({
+  output$CCHist <- renderImage({
     # save the plot
-    exportFile <- "pValueRanges_CC_"
+    exportFile <- "pValueRanges_CC.png"
     png(exportFile, width = 12, height = 9, units="in", res=150)
     createPHist("CC")
     dev.off()
@@ -299,31 +334,29 @@ server <- function(input, output, session) {
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
   
-  # TO-DO: allow input number of sig nodes
-  # function to plot BP, MF, or CC subgraphs
-  createSubgraphs <- function(ontologyID){
-    # retrieve topGOdata object
-    GO_data <- createOntology(ontologyID)
-    # retrieve results
-    GO_results <- performGO(ontologyID)
-    # plot subgraphs induced by the most significant GO terms
-    printGraph(GO_data, GO_results, firstSigNodes = 5, 
-             fn.prefix = paste("sigGO_subgraphs", ontologyID, sep="_"), useInfo = "all", pdfSW = TRUE)
-  }
+  # download handler for the CC histogram
+  output$downloadCCHist <- downloadHandler(
+    filename = function() {
+      "pValueRanges_CC.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createPHist("CC")
+      dev.off()
+    }
+  )
   
   # function to get statistics on BP, MF, or CC GO terms
   getStats <- function(ontologyID){
-    # TO-DO: fix render in UI
-    # create subgraph PDFs for rendering in the UI
-    createSubgraphs(ontologyID)
     # retrieve topGOdata object
     GO_data <- createOntology(ontologyID)
     # retrieve results
-    GO_results <- performGO(ontologyID)
+    GOResults <- performGO(ontologyID)
     # retrieve statistics
     list_GO_terms <- usedGO(GO_data)
     # retrieve results table
-    BP_GO_results_table <- GenTable(GO_data, weightFisher = GO_results, orderBy = 'weightFisher', 
+    BP_GOResults_table <- GenTable(GO_data, weightFisher = GOResults, orderBy = 'weightFisher', 
                                     topNodes = length(list_GO_terms))
   }
   
@@ -331,48 +364,18 @@ server <- function(input, output, session) {
   # function to get significant BP, MF, or CC GO terms
   getSig <- function(ontologyID){
     # retrieve stats
-    GO_results_table <- getStats(ontologyID)
+    GOResults_table <- getStats(ontologyID)
     # create table of significant GO terms
-    sigGO_results_table <- GO_results_table[GO_results_table$weightFisher <= 0.05, ]
+    sigGOResults_table <- GOResults_table[GOResults_table$weightFisher <= 0.05, ]
   }
   
   # function to get most significant BP, MF, or CC GO terms
   getMostSig <- function(ontologyID){
     # retrieve stats
-    GO_results_table <- getStats(ontologyID)
+    GOResults_table <- getStats(ontologyID)
     # retrieve most significant GO term
-    topSigID <- GO_results_table[1, 'GO.ID']
+    topSigID <- GOResults_table[1, 'GO.ID']
   }
-  
-  # TO-DO: allow input GO ID from results
-  # function to create BP, MF, or CC density plots
-  # default is most sig GO term
-  createDensity <- function(ontologyID){
-    # retrieve topGOdata object
-    GO_data <- createOntology(ontologyID)
-    # retrieve GO ID
-    topSigID <- getMostSig(ontologyID)
-    # create density plot
-    showGroupDensity(GO_data, whichGO = topSigID, ranks = TRUE)
-  }
-  
-  # render BP density plot
-  output$BPDensity <- renderPlot({
-    # create plot
-    createDensity("BP")
-  })
-  
-  # render MF density plot
-  output$MFDensity <- renderPlot({
-    # create plot
-    createDensity("MF")
-  })
-  
-  # render CC density plot
-  output$CCDensity <- renderPlot({
-    # create plot
-    createDensity("CC")
-  })
   
   # TO-DO: allow users to select the number of sig GO terms (to a limit)
   # function to format data for use with dot plots
@@ -401,7 +404,7 @@ server <- function(input, output, session) {
   createDotPlot <- function(){
     # check for valid plotting data
     #if(!is.null(dotPlotSigData())){
-      #return(NULL)
+    #return(NULL)
     #}
     # retrieve formatted data
     plotTable <- dotPlotSigData()
@@ -440,6 +443,120 @@ server <- function(input, output, session) {
       dotPlotResults <- createDotPlot()
       # save plot
       ggsave(file, plot = dotPlotResults, device = "png")
+    }
+  )
+  
+  # TO-DO: allow input GO ID from results
+  # function to create BP, MF, or CC density plots
+  # default is most sig GO term
+  createDensity <- function(ontologyID){
+    # retrieve topGOdata object
+    GO_data <- createOntology(ontologyID)
+    # retrieve GO ID
+    topSigID <- getMostSig(ontologyID)
+    # create density plot
+    showGroupDensity(GO_data, whichGO = topSigID, ranks = TRUE)
+  }
+  
+  # render BP density plot
+  output$BPDensity <- renderPlot({
+    # create plot
+    createDensity("BP")
+  })
+  
+  # download handler for the BP density plot
+  output$downloadBPDensity <- downloadHandler(
+    filename = function() {
+      "density_BP.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createDensity("BP")
+      dev.off()
+    }
+  )
+  
+  # render MF density plot
+  output$MFDensity <- renderPlot({
+    # create plot
+    createDensity("MF")
+  })
+  
+  # download handler for the MF density plot
+  output$downloadMFDensity <- downloadHandler(
+    filename = function() {
+      "density_MF.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createDensity("MF")
+      dev.off()
+    }
+  )
+  
+  # render CC density plot
+  output$CCDensity <- renderPlot({
+    # create plot
+    createDensity("CC")
+  })
+  
+  # download handler for the CC density plot
+  output$downloadCCDensity <- downloadHandler(
+    filename = function() {
+      "density_CC.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createDensity("CC")
+      dev.off()
+    }
+  )
+  
+  # TO-DO: allow input number of sig nodes
+  # function to plot BP, MF, or CC subgraphs
+  createSubgraphs <- function(ontologyID){
+    # retrieve topGOdata object
+    GO_data <- createOntology(ontologyID)
+    # retrieve results
+    GOResults <- performGO(ontologyID)
+    # plot subgraphs induced by the most significant GO terms
+    printGraph(GO_data, GOResults, firstSigNodes = 5, 
+               fn.prefix = paste(ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
+  }
+  
+  # download button for PDFs of BP subgraphs
+  output$downloadBPSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_BP_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("BP")
+    }
+  )
+  
+  # download button for PDFs of MF subgraphs
+  output$downloadMFSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_MF_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("MF")
+    }
+  )
+  
+  # download button for PDFs of CC subgraphs
+  output$downloadCCSubgraphs <- downloadHandler(
+    filename = function() {
+      "sigGO_subgraphs_CC_weight01_5_all.pdf"
+    },
+    content = function(file) {
+      # create subgraph PDFs
+      createSubgraphs("CC")
     }
   )
   
