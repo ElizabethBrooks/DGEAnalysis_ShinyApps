@@ -73,7 +73,23 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by uploading <i>.csv</i> files with the data table in the left-hand sidebar.")
+          HTML("Start by uploading in the left-hand sidebar:")
+        ),
+        tags$p(
+          HTML("<b>1.</b> a <i>.csv</i> file with the results table from DGE analysis or WGCNA")
+        ),
+        tags$p(
+          HTML("<b>2.</b> a <i>.txt</i> file with the gene to GO term mappings")
+        ),
+        tags$br(),
+        tags$p(
+          "After uploading the results table and mappings file, the application will facilitate:"
+        ),
+        tags$p(
+          HTML("<b>1.</b> enrichment analysis of GO terms")
+        ),
+        tags$p(
+          HTML("<b>2.</b> interpretation and visualisation of the results")
         )
       ),
       
@@ -116,10 +132,31 @@ ui <- fluidPage(
               align = "center",
               HTML("<b>GO Term Enrichment</b>")
             ),
+            tags$br(),
+            tags$p(
+              "To perform GO term enrichment, please select a test statistic:"
+            ),
+            # TO-DO: add input
+            tags$p(
+              "There are two available types of test statistics:"
+            ),
+            tags$p(
+              HTML("<b>1.</b> Fisher's exact test is based on gene counts")
+            ),
+            tags$p(
+              HTML("<b>2.</b> Kolmogorov-Smirnov like test computes enrichment based on gene scores")
+            ),
+            tags$p(
+              "It is possible to use both these tests since each gene has a score, which represents how it is diferentially expressed."
+            ),
             tags$hr(),
             tags$p(
               align = "center",
               HTML("<b>Range of GO Term P-Values</b>")
+            ),
+            tags$br(),
+            tags$p(
+              "The following histograms show the range and frequency of p-values from the enrichment tests for each GO level (BP, MF, or CC)."
             ),
             fluidRow(
               column(
@@ -142,6 +179,10 @@ ui <- fluidPage(
             tags$p(
               align = "center",
               HTML("<b>Subgraphs of Most Significant GO Terms</b>")
+            ),
+            tags$br(),
+            tags$p(
+              "The subgraph induced by the top 5 GO terms identifed by the elim algorithm for scoring GO terms for enrichment. Rectangles indicate the 5 most signifcant terms. Rectangle color represents the relative signifcance, ranging from dark red (most signifcant) to bright yellow (least signifcant). For each node, some basic information is displayed. The frst two lines show the GO identifer and a trimmed GO name. In the third line the raw p-value is shown. The forth line is showing the number of signifcant genes and the total number of genes annotated to the respective GO term."
             ),
             fluidRow(
               column(
@@ -171,12 +212,16 @@ ui <- fluidPage(
               align = "center",
               HTML("<b>Density Plots of Most Significant GO Terms</b>")
             ),
+            tags$br(),
+            tags$p(
+              "The following density plots show the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
+            ),
             fluidRow(
               column(
                 width = 4,
                 tags$p(
                   align = "center",
-                  HTML("<b>BP Density Plot")
+                  HTML("<b>BP Density Plot</b>")
                 ),
                 plotOutput(outputId = "BPDensity"),
                 downloadButton(outputId = "downloadBPDensity", label = "Download Plot")
@@ -185,7 +230,7 @@ ui <- fluidPage(
                 width = 4,
                 tags$p(
                   align = "center",
-                  HTML("<b>MF Density Plot")
+                  HTML("<b>MF Density Plot</b>")
                 ),
                 plotOutput(outputId = "MFDensity"),
                 downloadButton(outputId = "downloadMFDensity", label = "Download Plot")
@@ -194,7 +239,7 @@ ui <- fluidPage(
                 width = 4,
                 tags$p(
                   align = "center",
-                  HTML("<b>CC Density Plot")
+                  HTML("<b>CC Density Plot</b>")
                 ),
                 plotOutput(outputId = "CCDensity"),
                 downloadButton(outputId = "downloadCCDensity", label = "Download Plot")
@@ -206,7 +251,10 @@ ui <- fluidPage(
               HTML("<b>Dot Plot of Most Significant GO Terms</b>")
             ),
             plotOutput(outputId = "dotPlot"),
-            downloadButton(outputId = "downloadDotPlot", label = "Download Plot")
+            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
+            tags$p(
+              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
+            )
           )
         )
       )
@@ -318,6 +366,7 @@ server <- function(input, output, session) {
                     gene2GO = GOmaps)
   }
   
+  # TO-DO allow users to choose statistic
   # function to perform BP, MF, or CC GO enrichment 
   performGO <- function(ontologyID){
     # retrieve topGOdata object
