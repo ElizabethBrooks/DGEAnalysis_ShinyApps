@@ -10,9 +10,14 @@ library(topGO)
 library(ggplot2)
 library(Rgraphviz)
 library(tidyr)
+library(rcartocolor)
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
+
+# plotting palette
+plotColors <- carto_pal(12, "Safe")
+plotColorSubset <- c(plotColors[5], plotColors[6])
 
 #### UI ####
 
@@ -22,8 +27,8 @@ ui <- fluidPage(
   #shinythemes::themeSelector(),
   
   # use a theme
-  #theme = shinytheme("yeti"),
-  theme = shinytheme("superhero"),
+  theme = shinytheme("yeti"),
+  #theme = shinytheme("superhero"),
   
   # add application title
   titlePanel("Gene Ontology (GO) Term Enrichment Analysis with topGO"),
@@ -116,7 +121,9 @@ ui <- fluidPage(
             imageOutput(outputId = "CCPHist", height="100%", width="100%"),
             plotOutput(outputId = "BPDensity"),
             plotOutput(outputId = "MFDensity"),
-            plotOutput(outputId = "CCDensity")#,
+            plotOutput(outputId = "CCDensity"),
+            plotOutput(outputId = "dotPlot")#,
+            # TO-DO: fix rendering of PDFs
             #tags$iframe(src = "sigGO_subgraphs_BP_weight01_5_all.pdf", style="height:600px; width:100%"),
             #tags$iframe(src = "sigGO_subgraphs_MF_weight01_5_all.pdf", style="height:600px; width:100%"),
             #tags$iframe(src = "sigGO_subgraphs_CC_weight01_5_all.pdf", style="height:600px; width:100%")
@@ -242,7 +249,7 @@ server <- function(input, output, session) {
   # TO-DO: this causes additional function calls
   # check if results are complete
   output$resultsCompleted <- function(){
-    if(!is.null(performGO("BP")) || !is.null(performGO("MF")) || !is.null(performGO("CC"))){
+    if(!is.null(performGO("BP"))){
       return(TRUE)
     }
     return(FALSE)
@@ -334,18 +341,19 @@ server <- function(input, output, session) {
     # retrieve stats
     GO_results_table <- getStats(ontologyID)
     # retrieve most significant GO term
-    topSigGO_ID <- GO_results_table[1, 'GO.ID']
+    topSigID <- GO_results_table[1, 'GO.ID']
   }
   
   # TO-DO: allow input GO ID from results
   # function to create BP, MF, or CC density plots
+  # default is most sig GO term
   createDensity <- function(ontologyID){
     # retrieve topGOdata object
     GO_data <- createOntology(ontologyID)
     # retrieve GO ID
-    topSigGO_ID <- getMostSig(ontologyID)
+    topSigID <- getMostSig(ontologyID)
     # create density plot
-    showGroupDensity(GO_data, whichGO = topSigGO_ID, ranks = TRUE)
+    showGroupDensity(GO_data, whichGO = topSigID, ranks = TRUE)
   }
   
   # render BP density plot
@@ -365,6 +373,75 @@ server <- function(input, output, session) {
     # create plot
     createDensity("CC")
   })
+  
+  # TO-DO: allow users to select the number of sig GO terms (to a limit)
+  # function to format data for use with dot plots
+  # default it top 5 most significant GO terms
+  dotPlotSigData <- function(){
+    # retrieve ontology result tables
+    BPTable <- getSig("BP")
+    MFTable <- getSig("MF")
+    CCTable <- getSig("CC")
+    # subset the tables
+    BPTable <- BPTable[1:5, ]
+    MFTable <- MFTable[1:5, ]
+    CCTable <- CCTable[1:5, ]
+    # add column with ontology ID
+    BPPlotTable <- cbind('ID' = 'BP', BPTable)
+    MFPlotTable <- cbind('ID' = 'MF', MFTable)
+    CCPlotTable <- cbind('ID' = 'CC', CCTable)
+    # combine all tables
+    allPlotTable <- rbind(BPPlotTable, MFPlotTable, CCPlotTable)
+    # remove NAs
+    plotTable <- na.omit(allPlotTable)
+  }
+  
+  # TO-DO: update x-axis title based on data or user input
+  # function to create dot plots
+  createDotPlot <- function(){
+    # check for valid plotting data
+    #if(!is.null(dotPlotSigData())){
+      #return(NULL)
+    #}
+    # retrieve formatted data
+    plotTable <- dotPlotSigData()
+    # create faceting by ontology
+    facet <- factor(plotTable$ID, levels = c('BP', 'CC', 'MF'))
+    # create dot plot
+    dotplot <- ggplot(data = plotTable, aes(x = "Enrichment", y = Term, size = Significant, color = as.numeric(weightFisher))) + 
+      facet_grid(rows = facet, space = 'free_y', scales = 'free') +
+      geom_point() +
+      #scale_color_gradientn(colors = heat.colors(10), limits=c(0, 0.05)) + 
+      scale_color_gradientn(colors = plotColorSubset) +
+      #scale_x_discrete(guide = guide_axis(angle = 90)) +
+      theme_bw() +
+      xlab('Effect') +
+      ylab('GO Term') + 
+      #scale_x_discrete(labels=c("Interaction"=expression(italic("Interaction")), parse=TRUE)) +
+      labs(color = 'P-Value', size = 'Gene Rank')
+    # view plot
+    dotplot
+  }
+  
+  # render dot plot
+  output$dotPlot <- renderPlot({
+    # create plot
+    createDotPlot()
+  })
+  
+  # TO-DO: update file names based on data subset
+  # download handler for the dot plot
+  output$downloadDotPlot <- downloadHandler(
+    filename = function() {
+      "dotPlot.png"
+    },
+    content = function(file) {
+      # create plot
+      dotPlotResults <- createDotPlot()
+      # save plot
+      ggsave(file, plot = dotPlotResults, device = "png")
+    }
+  )
   
 }
 

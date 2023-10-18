@@ -984,8 +984,8 @@ server <- function(input, output, session) {
     paste(input$levelTwo, input$levelOne, sep = " vs ")
   })
   
-  # reactive function to calculate table of DE genes
-  pairwiseTest <- reactive({
+  # function to calculate table of DE genes
+  pairwiseTest <- function(){
     # require valid inputs
     if(is.null(compareSamples())){
       return(NULL)
@@ -998,8 +998,9 @@ server <- function(input, output, session) {
     list <- estimateDisp(list)
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
-  })  
+  }
   
+  # TO-DO: this causes additional function calls
   # check if results have completed
   output$pairwiseResultsCompleted <- function(){
     if(is.null(pairwiseTest())){
@@ -1177,8 +1178,8 @@ server <- function(input, output, session) {
   # GLM Fitting
   ##
   
-  # reactive function to create the glm design
-  glmDesign <- reactive({
+  # function to create the glm design
+  glmDesign <- function(){
     # require valid inputs
     if(is.null(compareSamples())){
       return(NULL)
@@ -1191,7 +1192,7 @@ server <- function(input, output, session) {
     colnames(design) <- levels(group)
     # return design layout
     design
-  })
+  }
   
   # function for fitting the glm
   glmFitting <- function(){
@@ -1250,7 +1251,7 @@ server <- function(input, output, session) {
   })
   
   # function to perform glm contrasts
-  glmContrast <- reactive({
+  glmContrast <- function(){
     # require the expression
     req(input$compareExpression)
     # set the input expression as global
@@ -1264,7 +1265,7 @@ server <- function(input, output, session) {
                                  levels=design)
     # look at genes with significant expression across all UV groups
     glmTreat(fit, contrast=glmContrast)
-  })
+  }
   
   # check if results have completed
   output$glmResultsCompleted <- function(){

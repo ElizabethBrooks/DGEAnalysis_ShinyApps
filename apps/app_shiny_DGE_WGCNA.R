@@ -563,6 +563,7 @@ ui <- fluidPage(
 
 #### Server ####
 
+# TO-DO: consider using validate functions to handle some errors
 # Define server 
 server <- function(input, output, session) {
   ##
