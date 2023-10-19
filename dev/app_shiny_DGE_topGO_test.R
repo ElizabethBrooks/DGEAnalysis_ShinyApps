@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 13 October 2023
+# date: 18 October 2023
 
 #### Setup ####
 
@@ -76,20 +76,46 @@ ui <- fluidPage(
           HTML("Start by uploading in the left-hand sidebar:")
         ),
         tags$p(
-          HTML("<b>1.</b> a <i>.csv</i> file with the results table from DGE analysis or WGCNA")
+          HTML("<b>1.</b> a gene score <i>.csv</i> file with the results table from DGE or WGCNA")
         ),
         tags$p(
-          HTML("<b>2.</b> a <i>.txt</i> file with the gene to GO term mappings")
+          HTML("<b>2.</b> a mappings <i>.txt</i> file with the gene to GO term mappings")
         ),
         tags$br(),
+        #tags$p(
+          #"After uploading the gene score table and mappings file, the application will facilitate:"
+        #),
+        #tags$p(
+          #HTML("<b>1.</b> enrichment analysis of GO terms")
+        #),
+        #tags$p(
+          #HTML("<b>2.</b> interpretation and visualisation of the results")
+        #),
+        tags$br(),
         tags$p(
-          "After uploading the results table and mappings file, the application will facilitate:"
+          "Note that the GO term enrichment analysis results and plots may take several moments to process depending on the size of the input tables."
         ),
+        tags$hr(),
         tags$p(
-          HTML("<b>1.</b> enrichment analysis of GO terms")
+          "Example gene score and mappings tables are displayed below."
         ),
-        tags$p(
-          HTML("<b>2.</b> interpretation and visualisation of the results")
+        tags$br(),
+        fluidRow(
+          column(
+            width = 4,
+            HTML("<b>Example</b> gene score table for six genes scored by DGE analysis:"),
+            tableOutput(outputId = "exampleDGEGeneScore"), 
+          ),
+          column(
+            width = 4,
+            HTML("<b>Example</b> gene score table for six genes scored by WGCNA:"),
+            tableOutput(outputId = "exampleDGEGeneScore"), 
+          ),
+          column(
+            width = 4,
+            HTML("<b>Example</b> gene to GO term mappings for six genes:"),
+            tableOutput(outputId = "exampleMappings") 
+          )
         )
       ),
       

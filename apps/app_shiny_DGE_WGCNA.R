@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 12 October 2023
+# date: 18 October 2023
 
 #### Setup ####
 
@@ -105,27 +105,41 @@ ui <- fluidPage(
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
-          HTML("<b>Hello!</b>"),
-          HTML("Start by uploading <i>.csv</i> files with the normalized gene counts and experimental design in the left-hand sidebar, then pressing the <i>Upload</i> button.")
+          align = "center",
+          HTML("<b>Hello!</b>")
         ),
         tags$p(
-          HTML("Click the <i>Run Analysis</i> button in the left-hand sidebar to begin the network analysis."),
+          HTML("Start in the left-hand sidebar by:")
         ),
         tags$p(
-          HTML("The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
+          HTML("<b>1.</b> uploading <i>.csv</i> files with the normalized gene counts and experimental design")
         ),
         tags$p(
-          HTML("In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>."),
+          HTML("<b>2.</b> clicking the <i>Upload</i> button to verify the data formatting")
+        ),
+        tags$p(
+          HTML("<b>3.</b> clicking the <i>Run Analysis</i> button to begin the network analysis")
         ),
         tags$br(),
         tags$p(
           "Note that the WGCNA analysis results and plots may take several moments to process depending on the size of the input noramlized gene counts table and experimental design."
         ),
-        tags$br(),
+        tags$hr(),
+        tags$p(
+          align = "center",
+          HTML("<b>Helpful Tips</b>")
+        ),
+        tags$p(
+          HTML("<b>Tip 1:</b> In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>."),
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
+        ),
+        tags$hr(),
         tags$p(
           "Example experimental design and gene counts tables are displayed below."
         ),
-        tags$hr(),
+        tags$br(),
         fluidRow(
           column(
             width = 6,
@@ -138,7 +152,7 @@ ui <- fluidPage(
             tableOutput(outputId = "exampleDesignTwo") 
           ),
         ),
-        tags$hr(),
+        tags$br(),
         HTML("<b>Example</b> gene counts table of six samples and five genes:"),
         tableOutput(outputId = "exampleCountsOne"),
         HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
@@ -175,7 +189,7 @@ ui <- fluidPage(
           HTML("<b>Tip 3:</b> Each column after the first in the experimental design table is expected to contain whole <i>numeric</i> values (integers)."),
         ),
         tags$p(
-          HTML("<b>Tip 4</b> Sample names in the first line of the normalized gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
+          HTML("<b>Tip 4:</b> Sample names in the first line of the normalized gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
         ),
         tags$p(
           HTML("<b>Tip 5:</b> The input normalized gene counts and experimental design tables must end in the <i>.csv</i> file extension.")

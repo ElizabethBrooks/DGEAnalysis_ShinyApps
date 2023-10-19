@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 12 October 2023
+# date: 18 October 2023
 
 #### Setup ####
 
@@ -114,19 +114,20 @@ ui <- fluidPage(
         tags$p(
           "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
         ),
+        tags$hr(),
         tags$p(
           HTML("<b>Tip:</b> If the tables of gene counts were created using <i>HTSeq</i>, you may need to delete the last five lines of gene count statistics (e.g., __not_aligned) before uploading for DGE analysis.")
         ),
-        tags$br(),
+        tags$hr(),
         tags$p(
           "Example gene counts and experimental design tables are displayed below."
         ),
-        tags$hr(),
+        tags$br(),
         HTML("<b>Example</b> gene counts table of six samples and five genes:"),
         tableOutput(outputId = "exampleCountsOne"),
         HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
         tableOutput(outputId = "exampleCountsTwo"),
-        tags$hr(),
+        tags$br(),
         fluidRow(
           column(
             width = 6,
