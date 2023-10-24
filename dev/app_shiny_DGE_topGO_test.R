@@ -21,6 +21,8 @@ plotColorSubset <- c(plotColors[5], plotColors[6])
 
 #### UI ####
 
+# TO-DO: add run button and check for valid gene score column and test
+
 # Define UI 
 ui <- fluidPage(
   # view available themes
@@ -41,7 +43,7 @@ ui <- fluidPage(
       
       # file uploads
       tags$p(
-        "Upload analysis data table (*.csv):"
+        "Upload Gene Score Table (*.csv):"
       ),
       fileInput(
         "analysisTable", 
@@ -50,13 +52,31 @@ ui <- fluidPage(
         accept = ".csv"
       ),
       tags$p(
-        "Upload GO mapping table (*.txt):"
+        "Upload Mappings Table (*.txt):"
       ),
       fileInput(
         "mappings", 
         label = NULL,
         multiple = FALSE,
         accept = "text"
+      ),
+      # TO-DO: add note about selecting a scoring statistic
+      tags$p(
+        "Enter Statistic for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "scoreStat",
+        label = NULL,
+        value = "FDR"
+      ),
+      # TO-DO: add note about not pre-filtering the gene list (e.g., on FDR)
+      tags$p(
+        "Enter Expression for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "universeCut",
+         label = NULL,
+        value = "< 0.05"
       )
     ),
     
@@ -76,23 +96,55 @@ ui <- fluidPage(
           HTML("Start by uploading in the left-hand sidebar:")
         ),
         tags$p(
-          HTML("<b>1.</b> a gene score <i>.csv</i> file with the results table from DGE or WGCNA")
+          HTML("<b>1.</b> Gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
         ),
         tags$p(
-          HTML("<b>2.</b> a mappings <i>.txt</i> file with the gene to GO term mappings")
+          HTML("<b>2.</b> Mappings table <i>.txt</i> file with the gene-to-GO term mappings")
+        ),
+        tags$p(
+          HTML("<b>3.</b> Statistic for gene scoring, such as <i>FDR</i> from DGE or module <i>number</i> from WGCNA")
+        ),
+        tags$p(
+          HTML("<b>4.</b> Expression for gene scoring, such as:")
+        ),
+        tags$p(
+          align = "center",
+          HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
+        ),
+        tags$p(
+          align = "center",
+          HTML("<b>= 1</b> for specifying a specific module <i>number</i> from WGCNA")
         ),
         tags$br(),
         tags$p(
           "Note that the GO term enrichment analysis results and plots may take several moments to process depending on the size of the input tables."
         ),
-        tags$br(),
+        tags$hr(),
+        tags$p(
+          align="center",
+          HTML("<b>Helpful Tips</b>")
+        ),
+        tags$p(
+          HTML("<b>Tip 1:</b> The input gene score table should <i>not</i> be filtered in advance."),
+          "The enrichment analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> The first column of the gene score table are expected to contain gene IDs.")
+        ),
+        #tags$p(
+          #HTML("<b>Tip 4:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+        #),
+        tags$hr(),
         tags$p(
           HTML("The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         tags$p(
           "Example gene score and mappings tables are displayed below."
         ),
-        tags$hr(),
+        tags$br(),
         tags$p(
           HTML("<b>Example</b> gene to GO term mappings for four genes:"),
           tableOutput(outputId = "exampleMappings") 
@@ -103,14 +155,14 @@ ui <- fluidPage(
             width = 6,
             tags$p(
               HTML("<b>Example</b> gene score table with minimum expected columns for five genes scored by DGE analysis:"),
-              tableOutput(outputId = "exampleDGEScoreSubset"), 
+              tableOutput(outputId = "exampleDGEScoreSubset") 
             )
           ),
           column(
             width = 6,
             tags$p(
               HTML("<b>Example</b> gene score table with minimum expected columns for three genes scored by WGCNA:"),
-              tableOutput(outputId = "exampleWGCNAScoreSubset"), 
+              tableOutput(outputId = "exampleWGCNAScoreSubset") 
             )
           )
         ),
@@ -120,14 +172,14 @@ ui <- fluidPage(
             width = 6,
             tags$p(
               HTML("<b>Example</b> gene score table for five genes scored by DGE analysis:"),
-              tableOutput(outputId = "exampleDGEScore"), 
+              tableOutput(outputId = "exampleDGEScore")
             )
           ),
           column(
             width = 6,
             tags$p(
               HTML("<b>Example</b> gene score table for three genes scored by WGCNA:"),
-              tableOutput(outputId = "exampleWGCNAScore"), 
+              tableOutput(outputId = "exampleWGCNAScore")
             )
           )
         )
@@ -161,6 +213,20 @@ ui <- fluidPage(
             ),
             tags$p(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input data tables.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> Valid statistic for gene scoring include <i>FDR</i> from DGE or module <i>number</i> from WGCNA, and must be the same name as a column in the input gene score table.")
+            ),
+            tags$p(
+              HTML("<b>Tip 3:</b> Valid expressions for gene scoring include:")
+            ),
+            tags$p(
+              align = "center",
+              HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
+            ),
+            tags$p(
+              align = "center",
+              HTML("<b>= 1</b> for specifying a specific module <i>number</i> from WGCNA")
             )
           ),
           
@@ -171,37 +237,6 @@ ui <- fluidPage(
             tags$p(
               align = "center",
               HTML("<b>GO Term Enrichment</b>")
-            ),
-            tags$br(),
-            fluidRow(
-              column(
-                width = 6,
-                # TO-DO: add note about selecting a scoring statistic
-                # FDR
-                # module number
-                tags$p(
-                  "Enter Statistic for Gene Scoring:"
-                ),
-                textInput(
-                  inputId = "scoreStat",
-                  label = NULL,
-                  value = "FDR"
-                )
-              ),
-              column(
-                width = 6,
-                # TO-DO: add note about not pre-filtering the gene list (e.g., on FDR)
-                # < 0.05
-                # = 1
-                tags$p(
-                  "Enter Expression for Gene Scoring:"
-                ),
-                textInput(
-                  inputId = "universeCut",
-                  label = NULL,
-                  value = "< 0.05"
-                )
-              )
             ),
             tags$br(),
             tags$p(
@@ -222,10 +257,10 @@ ui <- fluidPage(
               HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms.")
             ),
             tags$p(
-              HTML("<b>1.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes.")
+              HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes.")
             ),
             tags$p(
-              HTML("<b>1.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method.")
+              HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method.")
             ),
             tags$p(
               HTML("<b>Tip:</b> refer to the "),
@@ -557,13 +592,13 @@ server <- function(input, output, session) {
     # retrieve results for analysis
     resultsTable <- inputAnalysisTable()
     # retrieve go mappings
-    GOmaps <- inputMappings()
+    GO_maps <- inputMappings()
     # retrieve selected gene score statistic column
     list_genes <- as.numeric(resultsTable[[input$scoreStat]])
     # create named list of all genes (gene universe) and values
     # the gene universe is set to be the list of all genes contained in the gene2GO list of annotated genes
     list_genes <- setNames(list_genes, rownames(resultsTable))
-    list_genes_filtered <- list_genes[names(list_genes) %in% names(GOmaps)]
+    list_genes_filtered <- list_genes[names(list_genes) %in% names(GO_maps)]
     # return list
     list_genes_filtered
   }
@@ -585,37 +620,38 @@ server <- function(input, output, session) {
   
   # function to create BP, MF, or CC topGOdata objects
   createOntology <- function(ontologyID){
-    # require input
-    #req(input$universeCut)
+    # TO-DO: this causes additional function calls
+    # require valid input
+    if(is.null(createUniverse())){
+      return(NULL)
+    }
     # retrieve gene universe
     list_genes_filtered <- createUniverse()
     # retrieve go mappings
-    GOmaps <- inputMappings()
+    GO_maps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
-    BP_GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
+    GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
                     geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
-                    gene2GO = GOmaps)
-  }
-  
-  # function to perform BP, MF, or CC GO enrichment 
-  performGO <- function(ontologyID){
-    # require input
-    #req(input$testStat, input$testAlg)
-    # retrieve topGOdata object
-    GO_data <- createOntology(ontologyID)
-    # perform GO enrichment using the topGOdata objects
-    GOResults <- runTest(GO_data, algorithm = input$testAlg, statistic = input$testStat)
+                    gene2GO = GO_maps)
   }
   
   # TO-DO: this causes additional function calls
   # check if results are complete
   output$resultsCompleted <- function(){
-    if(!is.null(performGO("BP"))){
-      return(TRUE)
+    if(is.null(createOntology("BP"))){
+      return(FALSE)
     }
-    return(FALSE)
+    return(TRUE)
   }
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  
+  # function to perform BP, MF, or CC GO enrichment 
+  performGO <- function(ontologyID){
+    # retrieve topGOdata object
+    GO_data <- createOntology(ontologyID)
+    # perform GO enrichment using the topGOdata objects
+    GOResults <- runTest(GO_data, algorithm = input$testAlg, statistic = input$testStat)
+  }
   
   # function to create BP, MF, or CC p-value histogram
   createPHist <- function(ontologyID){
@@ -703,8 +739,6 @@ server <- function(input, output, session) {
       "sigGO_subgraphs_BP_weight01_5_all.pdf"
     },
     content = function(file) {
-      # require input
-      #req(input$sigCat, input$sigNodes)
       # create subgraph PDFs
       createSubgraphs(input$sigCat, input$sigNodes)
     }
@@ -725,8 +759,6 @@ server <- function(input, output, session) {
   
   # function to get significant BP, MF, or CC GO terms
   getSigResults <- function(ontologyID){
-    # require input
-    #req(input$fisherCut)
     # retrieve stats
     GO_Results_table <- getStats(ontologyID)
     # create table of significant GO terms
@@ -760,6 +792,7 @@ server <- function(input, output, session) {
     showGroupDensity(GO_data, whichGO = termResults, ranks = TRUE)
   }
   
+  # TO-DO: this causes additional function calls
   # check if results have completed
   output$densityResultsCompleted <- function(){
     if(is.null(createDensity(input$ontologyCategory, input$ontologyTerm))){
@@ -781,8 +814,6 @@ server <- function(input, output, session) {
       paste(input$ontologyCategory, input$ontologyTerm, "density.png", sep = "_")
     },
     content = function(file) {
-      # require inputs
-      #req(input$ontologyCategory, input$ontologyTerm)
       # save the plot
       png(file, width = 12, height = 9, units="in", res=150)
       createDensity(input$ontologyCategory, input$ontologyTerm)
@@ -813,10 +844,6 @@ server <- function(input, output, session) {
   
   # function to create dot plots
   createDotPlot <- function(){
-    # check for valid plotting data
-    #if(!is.null(dotPlotSigData())){
-    #return(NULL)
-    #}
     # retrieve formatted data
     plotTable <- dotPlotSigData()
     # create faceting by ontology

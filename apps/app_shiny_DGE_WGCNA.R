@@ -132,10 +132,10 @@ ui <- fluidPage(
           HTML("<b>Helpful Tips</b>")
         ),
         tags$p(
-          HTML("<b>Tip 1:</b> In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>."),
+          HTML("<b>Tip 1:</b> In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>.")
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR)."),
+          HTML("<b>Tip 2:</b> The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR).")
         ),
         tags$hr(),
         tags$p(
