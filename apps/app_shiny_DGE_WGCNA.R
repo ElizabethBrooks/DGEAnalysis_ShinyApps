@@ -20,6 +20,8 @@ options(stringsAsFactors = FALSE)
 
 #### UI ####
 
+# TO-DO: hide plots for invalid inputs
+
 # Define UI 
 ui <- fluidPage(
   # view available themes

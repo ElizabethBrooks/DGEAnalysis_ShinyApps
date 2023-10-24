@@ -123,6 +123,7 @@ ui <- fluidPage(
         condition = "!output.twoDataUploaded",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
+        # TO-DO: add input step numbers
         tags$p(
           HTML("<b>Hello!</b>"),
           HTML("Start by entering the names of the sets for comparison and uploading two <i>.csv</i> files with discrete values in the left-hand sidebar.")

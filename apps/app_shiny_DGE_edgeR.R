@@ -106,6 +106,7 @@ ui <- fluidPage(
         condition = "!output.inputsUploaded",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
+        # TO-DO: add input step numbers
         tags$p(
           HTML("<b>Hello!</b>"),
           HTML("Start by uploading <i>.csv</i> files with the gene counts and experimental design in the left-hand sidebar.")
@@ -1127,6 +1128,7 @@ server <- function(input, output, session) {
   #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
   
+  # TO-DO: add "gene" row name
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
@@ -1347,6 +1349,7 @@ server <- function(input, output, session) {
     }
   )
   
+  # TO-DO: add "gene" row name
   # download table with number of filtered genes
   output$glmResults <- downloadHandler(
     filename = function() {

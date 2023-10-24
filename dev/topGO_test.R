@@ -132,8 +132,8 @@ showGroupDensity(BP_GO_data, whichGO = BP_topSigGO_ID, ranks = TRUE)
 #dev.off()
 
 # plot subgraphs induced by the most significant GO terms and save to a PDF file
-printGraph(BP_GO_data, BP_GO_results, firstSigNodes = 5, 
-           fn.prefix = "BP_sigGO_subgraphs", useInfo = "all", pdfSW = TRUE)
+#printGraph(BP_GO_data, BP_GO_results, firstSigNodes = 5, 
+#           fn.prefix = "BP_sigGO_subgraphs", useInfo = "all", pdfSW = TRUE)
 #printGraph(MF_GO_data, MF_GO_results, firstSigNodes = 5, 
 #           fn.prefix ="MF_sigGO_subgraphs", useInfo = "all", pdfSW = TRUE)
 #printGraph(CC_GO_data, CC_GO_results, firstSigNodes = 5, 
