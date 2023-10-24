@@ -541,22 +541,22 @@ ui <- fluidPage(
               HTML("<b>Helpful Information</b>")
             ),
             tags$p(
-              "This application for expression network analysis was created by",
+              "This application for expression network analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
               "."
             ),
             tags$p(
-              "The latest version of this application may be downloaded from",
+              "The latest version of this application may be downloaded from ",
               tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/apps"),
               "."
             ),
             tags$p(
-              "Example normalized gene counts and experimental design tables are also provided on",
+              "Example normalized gene counts and experimental design tables are also provided on ",
               tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data/WGCNA"),
               "."
             ),
             tags$p(
-              "Normalized gene tables were may be created from RNA-seq data as described in ", 
+              "Normalized gene tables may be created from RNA-seq data as described in ", 
               tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
               "."
             ),

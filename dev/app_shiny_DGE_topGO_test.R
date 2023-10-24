@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 18 October 2023
+# date: 24 October 2023
 
 #### Setup ####
 
@@ -41,7 +41,22 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
-      # file uploads
+      tags$p(
+        "Enter Statistic for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "scoreStat",
+        label = NULL,
+        value = "FDR"
+      ),
+      tags$p(
+        "Enter Expression for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "universeCut",
+        label = NULL,
+        value = "< 0.05"
+      ),
       tags$p(
         "Upload Gene Score Table (*.csv):"
       ),
@@ -59,24 +74,6 @@ ui <- fluidPage(
         label = NULL,
         multiple = FALSE,
         accept = "text"
-      ),
-      # TO-DO: add note about selecting a scoring statistic
-      tags$p(
-        "Enter Statistic for Gene Scoring:"
-      ),
-      textInput(
-        inputId = "scoreStat",
-        label = NULL,
-        value = "FDR"
-      ),
-      # TO-DO: add note about not pre-filtering the gene list (e.g., on FDR)
-      tags$p(
-        "Enter Expression for Gene Scoring:"
-      ),
-      textInput(
-        inputId = "universeCut",
-         label = NULL,
-        value = "< 0.05"
       )
     ),
     
@@ -93,19 +90,19 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by uploading in the left-hand sidebar:")
+          HTML("Start by entering in the left-hand sidebar:")
         ),
         tags$p(
-          HTML("<b>1.</b> Gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
+          HTML("<b>1.</b> Statistic for gene scoring, such as <i>FDR</i> from DGE or module <i>number</i> from WGCNA")
         ),
         tags$p(
-          HTML("<b>2.</b> Mappings table <i>.txt</i> file with the gene-to-GO term mappings")
+          HTML("<b>2.</b> Expression for gene scoring, such as:")
         ),
         tags$p(
-          HTML("<b>3.</b> Statistic for gene scoring, such as <i>FDR</i> from DGE or module <i>number</i> from WGCNA")
+          HTML("<b>3.</b> Gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
         ),
         tags$p(
-          HTML("<b>4.</b> Expression for gene scoring, such as:")
+          HTML("<b>4.</b> Mappings table <i>.txt</i> file with the gene-to-GO term mappings")
         ),
         tags$p(
           align = "center",
@@ -449,8 +446,43 @@ ui <- fluidPage(
             tags$p(
               HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
             )
-            # TO-DO: add results tab
-            # TO-DO: add info tab
+          ),
+            
+          # TO-DO: add results tab
+          
+          # information tab
+          tabPanel(
+            "Information",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Helpful Information</b>")
+            ),
+            tags$p(
+              "This application for GO term enrichment analysis was created by ",
+              tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
+              "."
+            ),
+            tags$p(
+              "The latest version of this application may be downloaded from ",
+              tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/apps"),
+              "."
+            ),
+            tags$p(
+              "Example gene scores and mappings tables are also provided on ",
+              tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data/topGO"),
+              "."
+            ),
+            tags$p(
+              "DGE gene scores (e.g., FDR) may be created from RNA-seq data as described in ", 
+              tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
+              "."
+            ),
+            tags$p(
+              "More information about the analysis performed in this application is provided in ", 
+              tags$a("Gene set enrichment analysis with topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"), 
+              "."
+            )
           )
         )
       )

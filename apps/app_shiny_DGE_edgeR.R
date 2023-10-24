@@ -478,22 +478,22 @@ ui <- fluidPage(
               HTML("<b>Helpful Information</b>")
             ),
             tags$p(
-              "This application for DGE analysis was created by",
+              "This application for DGE analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
               "."
             ),
             tags$p(
-              "The latest version of this application may be downloaded from",
+              "The latest version of this application may be downloaded from ",
               tags$a("GitHub",href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps"),
               "."
             ),
             tags$p(
-              "Example gene counts and experimental design tables are also provided on",
+              "Example gene counts and experimental design tables are also provided on ",
               tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data/edgeR"),
               "."
             ),
             tags$p(
-              "Gene tables were may be created from RNA-seq data as described in ", 
+              "Gene tables may be created from RNA-seq data as described in ", 
               tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
               "."
             ),
