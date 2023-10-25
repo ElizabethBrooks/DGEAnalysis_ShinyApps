@@ -110,7 +110,7 @@ ui <- fluidPage(
         ),
         tags$p(
           align = "center",
-          HTML("<b>= 1</b> for specifying a specific module <i>number</i> from WGCNA")
+          HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
         ),
         tags$br(),
         tags$p(
@@ -223,7 +223,7 @@ ui <- fluidPage(
             ),
             tags$p(
               align = "center",
-              HTML("<b>= 1</b> for specifying a specific module <i>number</i> from WGCNA")
+              HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
             )
           ),
           
