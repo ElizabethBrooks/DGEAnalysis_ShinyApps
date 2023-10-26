@@ -41,6 +41,7 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
+      # request inputs
       tags$p(
         "Enter Statistic for Gene Scoring:"
       ),
@@ -74,6 +75,14 @@ ui <- fluidPage(
         label = NULL,
         multiple = FALSE,
         accept = "text"
+      ),
+      # show panel depending on input files check
+      conditionalPanel(
+        condition = "output.dataUploaded",
+        tags$p(
+          "Click to Run Analysis:"
+        ),  
+        actionButton("runAnalysis", "Run Analysis")
       )
     ),
     
@@ -82,7 +91,7 @@ ui <- fluidPage(
       
       # getting started text
       conditionalPanel(
-        condition = "!output.dataUploaded",
+        condition = "!input.runAnalysis",
         tags$h1(
           align = "center",
           "Getting Started"
@@ -90,19 +99,19 @@ ui <- fluidPage(
         tags$br(),
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by entering in the left-hand sidebar:")
+          HTML("Start in the left-hand sidebar by:")
         ),
         tags$p(
-          HTML("<b>1.</b> Statistic for gene scoring, such as <i>FDR</i> from DGE or module <i>number</i> from WGCNA")
+          HTML("<b>1.</b> Entering the statistic for gene scoring, such as <i>FDR</i> from DGE or module <i>number</i> from WGCNA")
         ),
         tags$p(
-          HTML("<b>2.</b> Expression for gene scoring, such as:")
+          HTML("<b>2.</b> Entering the expression for gene scoring, such as:")
         ),
         tags$p(
-          HTML("<b>3.</b> Gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
+          HTML("<b>3.</b> Uploading a gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
         ),
         tags$p(
-          HTML("<b>4.</b> Mappings table <i>.txt</i> file with the gene-to-GO term mappings")
+          HTML("<b>4.</b> Uploading a mappings table <i>.txt</i> file with the gene-to-GO term mappings, for example:")
         ),
         tags$p(
           align = "center",
@@ -111,6 +120,9 @@ ui <- fluidPage(
         tags$p(
           align = "center",
           HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
+        ),
+        tags$p(
+          HTML("<b>5.</b> Clicking the <i>Run Analysis</i> button")
         ),
         tags$br(),
         tags$p(
@@ -129,15 +141,15 @@ ui <- fluidPage(
           HTML("<b>Tip 2:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> The first column of the gene score table are expected to contain gene IDs.")
+          HTML("<b>Tip 3:</b> The first column of the gene score table is expected to contain gene IDs.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-          #HTML("<b>Tip 4:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+          #HTML("<b>Tip 5:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
-        tags$p(
-          HTML("The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
-        ),
         tags$p(
           "Example gene score and mappings tables are displayed below."
         ),
@@ -184,7 +196,7 @@ ui <- fluidPage(
       
       # processing text
       conditionalPanel(
-        condition = "output.dataUploaded && !output.resultsCompleted",
+        condition = "input.runAnalysis && !output.resultsCompleted",
         tags$h1(
           "Processing", 
           align="center"
@@ -197,7 +209,7 @@ ui <- fluidPage(
       
       # results text and plots
       conditionalPanel(
-        condition = "output.dataUploaded && output.resultsCompleted",
+        condition = "input.runAnalysis && output.resultsCompleted",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -208,6 +220,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Tips</b>")
             ),
+            tags$br(),
             tags$p(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input data tables.")
             ),
@@ -236,56 +249,66 @@ ui <- fluidPage(
               HTML("<b>GO Term Enrichment</b>")
             ),
             tags$br(),
-            tags$p(
-              "Select an Algorithm:"
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select an Algorithm:"
+                ),
+                radioButtons(
+                  inputId = "testAlg",
+                  label = NULL,
+                  choices = c("Default" = "weight01",
+                              "Classic" = "classic",
+                              "Elim" = "elim"),
+                  selected = "weight01"
+                ),
+                #tags$br(),
+                tags$p(
+                  HTML("<b>Available Algorithms:</b>")
+                ),
+                tags$p(
+                  HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms.")
+                ),
+                tags$p(
+                  HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes.")
+                ),
+                tags$p(
+                  HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method.")
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Select a Test Statistic:"
+                ),
+                radioButtons(
+                  inputId = "testStat",
+                  label = NULL,
+                  choices = c("Fisher" = "fisher",
+                    "Kolmogorov-Smirnov" = "ks"),
+                  selected = "fisher"
+                ),
+                tags$br(),
+                tags$p(
+                  HTML("<b>Available Test Statistics:</b>")
+                ),
+                tags$p(
+                  HTML("<b>1.</b> Fisher's exact test is based on gene counts")
+                ),
+                tags$p(
+                  HTML("<b>2.</b> Kolmogorov-Smirnov like test computes enrichment based on gene scores")
+                ),
+                tags$p(
+                  "It is possible to use both the above tests since each gene has a score, which represents how it is diferentially expressed."
+                )
+              )
             ),
-            radioButtons(
-              inputId = "testAlg",
-              label = NULL,
-              choices = c("Default" = "weight01",
-                          "Classic" = "classic",
-                          "Elim" = "elim"),
-              selected = "weight01"
-            ),
-            tags$p(
-              HTML("<b>Available Algorithms:</b>")
-            ),
-            tags$p(
-              HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms.")
-            ),
-            tags$p(
-              HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes.")
-            ),
-            tags$p(
-              HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method.")
-            ),
+            tags$br(),
             tags$p(
               HTML("<b>Tip:</b> refer to the "),
               tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
               " manual for a description of the algorithms and test statistics."
-            ),
-            tags$br(),
-            tags$p(
-              "Select a Test Statistic:"
-            ),
-            radioButtons(
-              inputId = "testStat",
-              label = NULL,
-              choices = c("Fisher" = "fisher",
-                "Kolmogorov-Smirnov" = "ks"),
-              selected = "fisher"
-            ),
-            tags$p(
-              HTML("<b>Available Test Statistics:</b>")
-            ),
-            tags$p(
-              HTML("<b>1.</b> Fisher's exact test is based on gene counts")
-            ),
-            tags$p(
-              HTML("<b>2.</b> Kolmogorov-Smirnov like test computes enrichment based on gene scores")
-            ),
-            tags$p(
-              "It is possible to use both the above tests since each gene has a score, which represents how it is diferentially expressed."
             ),
             # TO-DO: output table of top GO term IDs
             tags$hr(),
@@ -313,6 +336,90 @@ ui <- fluidPage(
             ),
             tags$p(
               "The above histograms show the range and frequency of p-values from the enrichment tests for each GO level (BP, MF, or CC)."
+            ),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Density Plots of GO Terms</b>")
+            ),
+            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "ontologyCategory",
+                  label = NULL,
+                  choices = c("Biological Process" = "BP",
+                              "Molecular Function" = "MF",
+                              "Cellular Component" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Enter GO Term ID:"
+                ),
+                textInput(
+                  inputId = "ontologyTerm",
+                  label = NULL,
+                  value = "GO:0008150"
+                )
+              )
+            ),
+            tags$br(),
+            tags$p(
+              align = "center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> only significant GO terms may be plotted.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> make sure that the GO category is valid for the input GO term ID.")
+            ),
+            tags$br(),
+            conditionalPanel(
+              condition = "output.densityResultsCompleted",
+              tags$br(),
+              tags$p(
+                align = "center",
+                HTML("<b>Density Plot</b>")
+              ),
+              plotOutput(outputId = "densityPlot"),
+              downloadButton(outputId = "downloadDensity", label = "Download Plot"),
+              tags$br(),
+              tags$p(
+                "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
+              )
+            ),
+            tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
+            ),
+            tags$br(),
+            tags$p(
+              "Enter P-Value Cut Off:"
+            ),
+            sliderInput(
+              "fisherCut",
+              label = NULL,
+              min = 0, 
+              max = 0.1, 
+              value=0.05 
+            ),
+            tags$p(
+              "Note that the computed p-values are unadjusted for multiple testing."
+            ),
+            tags$br(),
+            plotOutput(outputId = "dotPlot"),
+            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
+            tags$p(
+              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
             ),
             tags$hr(),
             tags$p(
@@ -350,6 +457,7 @@ ui <- fluidPage(
                 )
               )
             ),
+            tags$br(),
             tags$p(
               HTML("<b>Download Subgraphs:</b>")
             ),
@@ -362,89 +470,6 @@ ui <- fluidPage(
               "The frst two lines show the GO identifer and a trimmed GO name.",
               "In the third line the raw p-value is shown.",
               "The forth line is showing the number of signifcant genes and the total number of genes annotated to the respective GO term."
-            ),
-            tags$hr(),
-            tags$p(
-              align = "center",
-              HTML("<b>Density Plots of Most Significant GO Terms</b>")
-            ),
-            tags$br(),
-            fluidRow(
-              column(
-                width = 6,
-                tags$p(
-                  "Select GO Term Category:"
-                ),
-                radioButtons(
-                  inputId = "ontologyCategory",
-                  label = NULL,
-                  choices = c("Biological Process" = "BP",
-                              "Molecular Function" = "MF",
-                              "Cellular Component" = "CC"),
-                  selected = "BP"
-                )
-              ),
-              column(
-                width = 6,
-                tags$p(
-                  "Enter GO Term ID:"
-                ),
-                textInput(
-                  inputId = "ontologyTerm",
-                  label = NULL,
-                  value = "GO:0008150"
-                )
-              )
-            ),
-            conditionalPanel(
-              condition = "output.densityResultsCompleted",
-              tags$br(),
-              tags$p(
-                align = "center",
-                HTML("<b>Density Plot</b>")
-              ),
-              plotOutput(outputId = "densityPlot"),
-              downloadButton(outputId = "downloadDensity", label = "Download Plot"),
-              tags$br(),
-              tags$p(
-                "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
-              ),
-              tags$br()
-            ),
-            tags$p(
-              align = "center",
-              HTML("<b>Helpful Tips</b>")
-            ),
-            tags$p(
-              HTML("<b>Tip 1:</b> only significant GO terms may be plotted.")
-            ),
-            tags$p(
-              HTML("<b>Tip 2:</b> make sure that the GO category is valid for the input GO term ID.")
-            ),
-            tags$hr(),
-            tags$p(
-              align = "center",
-              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
-            ),
-            tags$br(),
-            tags$p(
-              "Enter P-Value Cut Off:"
-            ),
-            sliderInput(
-              "fisherCut",
-              label = NULL,
-              min = 0, 
-              max = 0.1, 
-              value=0.05 
-            ),
-            tags$p(
-              "Note that the computed p-values are unadjusted for multiple testing."
-            ),
-            tags$br(),
-            plotOutput(outputId = "dotPlot"),
-            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
-            tags$p(
-              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
             )
           ),
             
@@ -458,6 +483,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Information</b>")
             ),
+            tags$br(),
             tags$p(
               "This application for GO term enrichment analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
@@ -599,7 +625,7 @@ server <- function(input, output, session) {
   outputOptions(output, 'dataUploaded', suspendWhenHidden=FALSE)
   
   # update input ontology term
-  observe({
+  observeEvent(input$runAnalysis, {
     # retrieve top BP term
     tmpTerm <- getSigTerm("BP")
     # update input
@@ -616,7 +642,9 @@ server <- function(input, output, session) {
   ##
   
   # function to create gene universe
-  createUniverse <- function(){
+  createUniverse <- eventReactive(input$runAnalysis, {
+    # require input
+    req(input$scoreStat)
     # check for inputs
     if(is.null(inputAnalysisTable())){
       return(NULL)
@@ -633,7 +661,7 @@ server <- function(input, output, session) {
     list_genes_filtered <- list_genes[names(list_genes) %in% names(GO_maps)]
     # return list
     list_genes_filtered
-  }
+  })
   
   # function to retrieve interesting genes
   retrieveInteresting <- function(){
@@ -679,6 +707,8 @@ server <- function(input, output, session) {
   
   # function to perform BP, MF, or CC GO enrichment 
   performGO <- function(ontologyID){
+    # require inputs
+    req(input$testAlg, input$testStat)
     # retrieve topGOdata object
     GO_data <- createOntology(ontologyID)
     # perform GO enrichment using the topGOdata objects
@@ -771,6 +801,8 @@ server <- function(input, output, session) {
       "sigGO_subgraphs_BP_weight01_5_all.pdf"
     },
     content = function(file) {
+      # require inputs
+      req(input$sigCat, input$sigNodes)
       # create subgraph PDFs
       createSubgraphs(input$sigCat, input$sigNodes)
     }
@@ -791,6 +823,8 @@ server <- function(input, output, session) {
   
   # function to get significant BP, MF, or CC GO terms
   getSigResults <- function(ontologyID){
+    # require inputs
+    req(input$fisherCut)
     # retrieve stats
     GO_Results_table <- getStats(ontologyID)
     # create table of significant GO terms
@@ -836,6 +870,8 @@ server <- function(input, output, session) {
   
   # render density plot
   output$densityPlot <- renderPlot({
+    # require inputs
+    req(input$ontologyCategory, input$ontologyTerm)
     # create plot
     createDensity(input$ontologyCategory, input$ontologyTerm)
   })
@@ -846,6 +882,8 @@ server <- function(input, output, session) {
       paste(input$ontologyCategory, input$ontologyTerm, "density.png", sep = "_")
     },
     content = function(file) {
+      # require inputs
+      req(input$ontologyCategory, input$ontologyTerm)
       # save the plot
       png(file, width = 12, height = 9, units="in", res=150)
       createDensity(input$ontologyCategory, input$ontologyTerm)
