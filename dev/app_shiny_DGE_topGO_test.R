@@ -76,13 +76,26 @@ ui <- fluidPage(
         multiple = FALSE,
         accept = "text"
       ),
-      # show panel depending on input files check
-      conditionalPanel(
-        condition = "output.dataUploaded",
-        tags$p(
-          "Click to Run Analysis:"
-        ),  
-        actionButton("runAnalysis", "Run Analysis")
+      tags$hr(),
+      fluidRow(
+        column(
+          width = 6,
+          tags$p(
+            "Click to Upload Data:"
+          ),  
+          actionButton("runUpload", "Upload")
+        ),
+        column(
+          width = 6,
+          # show panel depending on input files check
+          conditionalPanel(
+            condition = "input.runUpload && output.dataUploaded",
+            tags$p(
+              "Click to Run Analysis:"
+            ),  
+            actionButton("runAnalysis", "Run Analysis")
+          )
+        )
       )
     ),
     
@@ -403,7 +416,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              "Enter P-Value Cut Off:"
+              "Select P-Value Cut Off:"
             ),
             sliderInput(
               "fisherCut",
@@ -434,7 +447,7 @@ ui <- fluidPage(
                   "Select GO Term Category:"
                 ),
                 radioButtons(
-                  inputId = "sigCat",
+                  inputId = "subCategory",
                   label = NULL,
                   choices = c("BP" = "BP",
                               "MF" = "MF",
@@ -464,16 +477,80 @@ ui <- fluidPage(
             downloadButton(outputId = "downloadSubgraphs", label = "Download PDF"),
             tags$br(),
             tags$p(
-              "The subgraph induced by the selected number of top (most significant) GO terms identifed by the elim algorithm for scoring GO terms for enrichment.",
+              "The subgraph induced by the selected number of top (most significant) GO terms identifed by the selected algorithm for scoring GO terms for enrichment.",
               "Rectangles indicate the most signifcant terms with colors representing the relative signifcance, which ranges from dark red (most signifcant) to bright yellow (least signifcant).",
-              "For each node, some basic information is displayed.",
+            ),
+            tags$p(
+              HTML("For each <i>node</i>, some basic information is displayed."),
               "The frst two lines show the GO identifer and a trimmed GO name.",
               "In the third line the raw p-value is shown.",
               "The forth line is showing the number of signifcant genes and the total number of genes annotated to the respective GO term."
             )
           ),
             
-          # TO-DO: add results tab
+          # results tab
+          tabPanel(
+            "Results",
+            tags$br(),
+            tags$p(
+              align="center",
+              HTML("<b>Enrichment Results</b>")
+            ),
+            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "resultsCategory",
+                  label = NULL,
+                  choices = c("BP" = "BP",
+                              "MF" = "MF",
+                              "CC" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Select P-Value Cut Off:"
+                ),
+                sliderInput(
+                  "sigCut",
+                  label = NULL,
+                  min = 0, 
+                  max = 0.1, 
+                  value=0.05 
+                ),
+                tags$p(
+                  "Note that the computed p-values are unadjusted for multiple testing."
+                )
+              )
+            ),
+            tags$br(),
+            tags$p(
+              "Results from the GO term enrichment analysis may be downloaded below."
+            ),
+            tags$p(
+              HTML("<b>Table of Enriched GO Terms</b>")
+            ),
+            downloadButton(outputId = "resultsDownload", label = "Download Table"),
+            tags$br(),
+            tags$p(
+              "The unfiltered list of enriched GO terms for the selected ontology category."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Table of Significantly Enriched GO Terms</b>")
+            ),
+            downloadButton(outputId = "sigDownload", label = "Download Table"),
+            tags$br(),
+            tags$p(
+              "The list of significantly enriched GO terms filtered by the input p-value cut off and for the selected ontology category."
+            )
+          ),
           
           # information tab
           tabPanel(
@@ -663,6 +740,7 @@ server <- function(input, output, session) {
     list_genes_filtered
   })
   
+  # TO-DO: fix evaluation of strings (e.g., == brown)
   # function to retrieve interesting genes
   retrieveInteresting <- function(){
     # function that returns list of interesting DE genes (0 == not significant, 1 == significant)
@@ -802,14 +880,14 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       # require inputs
-      req(input$sigCat, input$sigNodes)
+      req(input$subCategory, input$sigNodes)
       # create subgraph PDFs
-      createSubgraphs(input$sigCat, input$sigNodes)
+      createSubgraphs(input$subCategory, input$sigNodes)
     }
   )
   
   # function to get statistics on BP, MF, or CC GO terms
-  getStats <- function(ontologyID){
+  getResults <- function(ontologyID){
     # retrieve topGOdata object
     GO_data <- createOntology(ontologyID)
     # retrieve results
@@ -822,19 +900,17 @@ server <- function(input, output, session) {
   }
   
   # function to get significant BP, MF, or CC GO terms
-  getSigResults <- function(ontologyID){
-    # require inputs
-    req(input$fisherCut)
+  getSigResults <- function(ontologyID, sigCutOff){
     # retrieve stats
-    GO_Results_table <- getStats(ontologyID)
+    GO_Results_table <- getResults(ontologyID)
     # create table of significant GO terms
-    sigGO_Results_table <- GO_Results_table[GO_Results_table$weightFisher <= input$fisherCut, ]
+    sigGO_Results_table <- GO_Results_table[GO_Results_table$weightFisher <= sigCutOff, ]
   }
   
   # function to get results for selected the top BP, MF, or CC GO terms
   getSigTerm <- function(ontologyID){
     # retrieve stats
-    GO_results_table <- getStats(ontologyID)
+    GO_results_table <- getResults(ontologyID)
     # retrieve results for selected GO term
     topSigID <- GO_results_table[1, 'GO.ID']
   }
@@ -842,7 +918,7 @@ server <- function(input, output, session) {
   # function to get results for selected BP, MF, or CC GO terms
   getTerm <- function(ontologyID, termID){
     # retrieve stats
-    GO_results_table <- getStats(ontologyID)
+    GO_results_table <- getResults(ontologyID)
     # retrieve results for selected GO term
     topSigID <- GO_results_table[GO_results_table$GO.ID == termID,1]
   }
@@ -893,11 +969,13 @@ server <- function(input, output, session) {
   
   # function to format data for use with dot plots
   # default it top 5 most significant GO terms
-  dotPlotSigData <- function(){
+  dotPlotSigData <- eventReactive(input$runAnalysis, {
+    # require inputs
+    req(input$fisherCut)
     # retrieve ontology result tables
-    BPTable <- getSigResults("BP")
-    MFTable <- getSigResults("MF")
-    CCTable <- getSigResults("CC")
+    BPTable <- getSigResults("BP", input$fisherCut)
+    MFTable <- getSigResults("MF", input$fisherCut)
+    CCTable <- getSigResults("CC", input$fisherCut)
     # subset the tables
     BPTable <- BPTable[1:5, ]
     MFTable <- MFTable[1:5, ]
@@ -910,7 +988,7 @@ server <- function(input, output, session) {
     allPlotTable <- rbind(BPPlotTable, MFPlotTable, CCPlotTable)
     # remove NAs
     plotTable <- na.omit(allPlotTable)
-  }
+  })
   
   # function to create dot plots
   createDotPlot <- function(){
@@ -951,6 +1029,42 @@ server <- function(input, output, session) {
       dotPlotResults <- createDotPlot()
       # save plot
       ggsave(file, plot = dotPlotResults, device = "png")
+    }
+  )
+  
+  # function to download table of results
+  output$resultsDownload <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$resultsCategory, "GO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # require input
+      req(input$resultsCategory)
+      # retrieve results
+      GO_results_table <- getResults(input$resultsCategory)
+      # write table of GO terms to a CSV file
+      write.table(GO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of significant results
+  output$sigDownload <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$resultsCategory, input$sigCut, "sigGO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # require input
+      req(input$resultsCategory, input$sigCut)
+      # retrieve significant results
+      sigGO_results_table <- getSigResults(input$resultsCategory, input$sigCut)
+      # write table of significant GO terms to a CSV file
+      write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
     }
   )
   
