@@ -107,10 +107,7 @@ ui <- fluidPage(
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         tags$p(
-          align = "center",
-          HTML("<b>Hello!</b>")
-        ),
-        tags$p(
+          HTML("<b>Hello!</b>"),
           HTML("Start in the left-hand sidebar by:")
         ),
         tags$p(
@@ -138,6 +135,10 @@ ui <- fluidPage(
           HTML("<b>Tip 2:</b> The input gene counts should be <i>TMM</i> normalized gene counts (e.g., using edgeR).")
         ),
         tags$hr(),
+        tags$p(
+          align="center",
+          HTML("<b>Data Formatting</b>")
+        ),
         tags$p(
           "Example experimental design and gene counts tables are displayed below."
         ),
@@ -232,6 +233,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Tips</b>")
             ),
+            tags$br(),
             tags$p(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input normalized gene counts table.")
             ),
@@ -540,6 +542,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Information</b>")
             ),
+            tags$br(),
             tags$p(
               "This application for expression network analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),

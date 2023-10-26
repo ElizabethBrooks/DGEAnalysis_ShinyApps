@@ -126,12 +126,19 @@ ui <- fluidPage(
         # TO-DO: add input step numbers
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by entering the names of the sets for comparison and uploading two <i>.csv</i> files with discrete values in the left-hand sidebar.")
+          HTML("Start in the left-hand sidebar by:")
         ),
         tags$p(
-          "After uploading at least two files, it will be possible to view and download the venn diagrams along with the unique values belonging to each set and their intersections."
+          HTML("<b>1.</b> entering the names of the sets for comparison")
+        ),
+        tags$p(
+          HTML("<b>2.</b> uploading two <i>.csv</i> files with discrete values")
         ),
         tags$br(),
+        tags$p(
+          "Note that after uploading at least two files, it will be possible to view and download the venn diagrams along with the unique values belonging to each set and their intersections."
+        ),
+        tags$hr(),
         tags$p(
           align="center",
           HTML("<b>Helpful Tips</b>")

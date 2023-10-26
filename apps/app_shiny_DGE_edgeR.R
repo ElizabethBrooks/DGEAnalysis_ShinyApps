@@ -109,7 +109,13 @@ ui <- fluidPage(
         # TO-DO: add input step numbers
         tags$p(
           HTML("<b>Hello!</b>"),
-          HTML("Start by uploading <i>.csv</i> files with the gene counts and experimental design in the left-hand sidebar.")
+          HTML("Start in the left-hand sidebar by:")
+        ),
+        tags$p(
+          HTML("<b>1.</b> uploading a <i>.csv</i> file with the gene counts")
+        ),
+        tags$p(
+          HTML("<b>2.</b> uploading a <i>.csv</i> files with the experimental design")
         ),
         tags$br(),
         tags$p(
@@ -117,9 +123,17 @@ ui <- fluidPage(
         ),
         tags$hr(),
         tags$p(
+          align = "center",
+          HTML("<b>Helpful Tip</b>")
+        ),
+        tags$p(
           HTML("<b>Tip:</b> If the tables of gene counts were created using <i>HTSeq</i>, you may need to delete the last five lines of gene count statistics (e.g., __not_aligned) before uploading for DGE analysis.")
         ),
         tags$hr(),
+        tags$p(
+          align="center",
+          HTML("<b>Data Formatting</b>")
+        ),
         tags$p(
           "Example gene counts and experimental design tables are displayed below."
         ),
@@ -200,6 +214,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Tips</b>")
             ),
+            tags$br(),
             tags$p(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input gene counts table.")
             ),
@@ -477,6 +492,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Helpful Information</b>")
             ),
+            tags$br(),
             tags$p(
               "This application for DGE analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
