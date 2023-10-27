@@ -993,7 +993,7 @@ server <- function(input, output, session) {
   
   # function to format data for use with dot plots
   # default it top 5 most significant GO terms
-  dotPlotSigData <- eventReactive(input$runAnalysis, {
+  dotPlotSigData <- function(){
     # require inputs
     req(input$fisherCut)
     # retrieve ontology result tables
@@ -1012,7 +1012,7 @@ server <- function(input, output, session) {
     allPlotTable <- rbind(BPPlotTable, MFPlotTable, CCPlotTable)
     # remove NAs
     plotTable <- na.omit(allPlotTable)
-  })
+  }
   
   # function to create dot plots
   createDotPlot <- function(){
