@@ -67,8 +67,8 @@ ui <- fluidPage(
       ),
       # show panel depending on input files check
       conditionalPanel(
-        condition = "output.inputsUploaded && !input.runAnalysis",
-        #condition = "output.inputsUploaded && !input.runUpload",
+        #condition = "output.inputsUploaded && !input.runAnalysis",
+        condition = "output.inputsUploaded && !input.runUpload",
         tags$hr(),
         tags$p(
           "Click to Upload Data:"
