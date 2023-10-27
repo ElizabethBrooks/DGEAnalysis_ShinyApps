@@ -4,10 +4,12 @@
 #### Setup ####
 
 # load packages 
-library(shiny)
-library(shinythemes)
-library(WGCNA)
-library(dplyr)
+suppressPackageStartupMessages({
+  library(shiny)
+  library(shinythemes)
+  library(WGCNA)
+  library(dplyr)
+})
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)

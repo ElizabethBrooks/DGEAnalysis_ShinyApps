@@ -4,12 +4,14 @@
 #### Setup ####
 
 # load packages
-library(shiny)
-library(shinythemes)
-library(ggVennDiagram)
-library(ggplot2)
-library(rcartocolor)
-library(gplots)
+suppressPackageStartupMessages({
+  library(shiny)
+  library(shinythemes)
+  library(ggVennDiagram)
+  library(ggplot2)
+  library(rcartocolor)
+  library(gplots)
+})
 
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")

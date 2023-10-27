@@ -4,12 +4,14 @@
 #### Setup ####
 
 # load packages 
-library(shiny)
-library(shinythemes)
-library(ggplot2)
-library(rcartocolor)
-library(edgeR)
-library(dplyr)
+suppressPackageStartupMessages({
+  library(shiny)
+  library(shinythemes)
+  library(ggplot2)
+  library(rcartocolor)
+  library(edgeR)
+  library(dplyr)
+})
 
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")

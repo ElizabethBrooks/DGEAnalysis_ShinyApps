@@ -4,13 +4,15 @@
 #### Setup ####
 
 # load packages
-library(shiny)
-library(shinythemes)
-library(topGO)
-library(ggplot2)
-library(Rgraphviz)
-library(tidyr)
-library(rcartocolor)
+suppressPackageStartupMessages({
+  library(shiny)
+  library(shinythemes)
+  library(topGO)
+  library(ggplot2)
+  library(Rgraphviz)
+  library(tidyr)
+  library(rcartocolor)
+})
 
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
