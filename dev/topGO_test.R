@@ -35,6 +35,27 @@ list_genes <- as.numeric(DGE_results_table$FDR)
 list_genes <- setNames(list_genes, rownames(DGE_results_table))
 list_genes_filtered <- list_genes[names(list_genes) %in% names(GOmaps)]
 
+testInput <- "== 1"
+testExp <- strsplit(testInput, split = " ")[[1]][1]
+testComp <- strsplit(testInput, split = " ")[[1]][2]
+
+testCheck <- try(
+  if(eval(parse(text = paste(which(colors() == "1"), testExp, which(colors() == testComp), sep=" ")))){
+    print("yes")
+  },
+  silent = TRUE
+)
+if(class(testCheck) == "try-error"){
+  if(eval(parse(text = paste("1", testExp, testComp, sep=" ")))){
+    print("yes")
+  }
+}
+
+if(eval(parse(text = paste(which(colors() == "purple3"), "==", which(colors() == "purple3"), sep=" ")))){
+  print("yes")
+}
+
+
 # create function to return list of interesting DE genes (0 == not significant, 1 == significant)
 get_interesting_DE_genes <- function(geneUniverse){
   interesting_DE_genes <- rep(0, length(geneUniverse))
@@ -148,4 +169,37 @@ showGroupDensity(BP_GO_data, whichGO = BP_topSigGO_ID, ranks = TRUE)
 
 #im.convert("BP_sigGO_subgraphs_weight01_5_all.pdf", output = "BP_sigGO_subgraphs_weight01_5_all.png", extra.opts="-density 150")
 
-
+# function to retrieve interesting genes
+retrieveInteresting <- function(){
+  # split the input expression string
+  inputExp <- strsplit(input$universeCut, split = " ")[[1]][1]
+  inputStr <- strsplit(input$universeCut, split = " ")[[1]][2]
+  # retrieve color list
+  colorList <- colors()
+  # function that returns list of interesting DE genes (0 == not significant, 1 == significant)
+  get_interesting_DE_genes <- function(geneUniverse){
+    interesting_DE_genes <- rep(0, length(geneUniverse))
+    # check for color string inputs
+    testCheck <- try(
+      if(eval(parse(text = paste(which(colorList == geneUniverse[1]), inputExp, which(colorList == inputStr), sep=" ")))){
+        print("yes")
+      },
+      silent = TRUE
+    )
+    if(class(testCheck) == "try-error"){
+      for(i in 1:length(geneUniverse)){
+        if(eval(parse(text = paste(geneUniverse[1], inputExp, inputStr, sep=" ")))){
+          interesting_DE_genes[i] = 1
+        }
+      }
+    }else{
+      for(i in 1:length(geneUniverse)){
+        if(eval(parse(text = paste(which(colorList == geneUniverse[1]), inputExp, which(colorList == inputStr), sep=" ")))){
+          interesting_DE_genes[i] = 1
+        }
+      }
+    }
+    interesting_DE_genes <- setNames(interesting_DE_genes, names(geneUniverse))
+    return(interesting_DE_genes)
+  }
+}

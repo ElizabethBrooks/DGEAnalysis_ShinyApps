@@ -181,7 +181,11 @@ ui <- fluidPage(
         tags$p(
           HTML("Please <b>allow a moment for processing</b> after uploading new input file(s).")
         ),
-        tags$br(),
+        tags$hr(),
+        tags$p(
+          align = "center",
+          HTML("<b>Helpful Tips</b>")
+        ),
         tags$p(
           HTML("<b>Tip 1:</b> The input normalized gene counts table is expected to contain <i>numeric</i> values."),
         ),

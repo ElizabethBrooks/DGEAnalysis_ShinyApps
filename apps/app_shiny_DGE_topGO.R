@@ -21,8 +21,6 @@ plotColorSubset <- c(plotColors[5], plotColors[6])
 
 #### UI ####
 
-# TO-DO: add run button and check for valid gene score column and test
-
 # Define UI 
 ui <- fluidPage(
   # view available themes
@@ -160,20 +158,25 @@ ui <- fluidPage(
           HTML("<b>Helpful Tips</b>")
         ),
         tags$p(
-          HTML("<b>Tip 1:</b> The input gene score table should <i>not</i> be filtered in advance."),
+          HTML("<b>Tip 1:</b> It is possible to create a gene-to-GO term mapping file by uploading a list of protein sequences in the <i>Annotate</i> tab of "),
+          tags$a("PANNZER",href = "http://ekhidna2.biocenter.helsinki.fi/sanspanz/"),
+          "."
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> The input gene score table should <i>not</i> be filtered in advance."),
           "The enrichment analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
+          HTML("<b>Tip 3:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> The first column of the gene score table is expected to contain gene IDs.")
+          HTML("<b>Tip 4:</b> The first column of the gene score table is expected to contain gene IDs.")
         ),
         tags$p(
-          HTML("<b>Tip 4:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
+          HTML("<b>Tip 5:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-          #HTML("<b>Tip 5:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+          #HTML("<b>Tip 6:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
         tags$p(
@@ -452,6 +455,7 @@ ui <- fluidPage(
               HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
             ),
             tags$hr(),
+            # TO-DO: fix downloading of subgraphs
             tags$p(
               align = "center",
               HTML("<b>Subgraphs of Most Significant GO Terms</b>")
