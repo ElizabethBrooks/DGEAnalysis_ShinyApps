@@ -55,9 +55,27 @@ ui <- fluidPage(
         multiple = FALSE,
         accept = ".csv"
       ),
+      # show panel depending on input files check
+      conditionalPanel(
+        condition = "output.inputsUploaded && !input.runAnalysis",
+        tags$hr(),
+        tags$p(
+          "Click to Upload Data:"
+        ),  
+        actionButton("runUpload", "Upload")
+      ),
+      # show panel depending on input files check
+      conditionalPanel(
+        condition = "input.runUpload && output.inputCheck && !input.runAnalysis",
+        tags$hr(),
+        tags$p(
+          "Click to Run Analysis:"
+        ),  
+        actionButton("runAnalysis", "Run Analysis"),
+      ),
       # show panel depending on input files
       conditionalPanel(
-        condition = "output.inputCheck && output.inputsUploaded && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "input.runAnalysis && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$hr(),
         tags$p(
           "Select Analysis Type:"
@@ -103,7 +121,7 @@ ui <- fluidPage(
       
       # getting started text
       conditionalPanel(
-        condition = "!output.inputsUploaded",
+        condition = "!input.runAnalysis",
         tags$h1("Getting Started", align = "center"),
         tags$br(),
         # TO-DO: add input step numbers
@@ -159,7 +177,7 @@ ui <- fluidPage(
       
       # warning text
       conditionalPanel(
-        condition = "!output.inputCheck && output.inputsUploaded",
+        condition = "output.inputsUploaded && !output.inputCheck",
         tags$h1(
           "Warning", 
           align="center"
@@ -196,7 +214,7 @@ ui <- fluidPage(
       
       # processing text
       conditionalPanel(
-        condition = "output.inputCheck && output.inputsUploaded && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         tags$h1(
           "Processing", 
           align="center"
@@ -207,7 +225,7 @@ ui <- fluidPage(
       
       # results text and plots
       conditionalPanel(
-        condition = "output.inputCheck && output.inputsUploaded && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "(input.runAnalysis && output.inputCheck) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -638,7 +656,7 @@ server <- function(input, output, session) {
   })
   
   # check if input files have been uploaded
-  output$inputsUploaded <- reactive({
+  output$inputsUploaded <- function(){
     # check if the input files are valid
     if(is.null(inputGeneCounts())) {
       return(FALSE)
@@ -646,7 +664,7 @@ server <- function(input, output, session) {
       return(FALSE)
     }
     return(TRUE)
-  })
+  }
   outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
   
   # check input design type
@@ -706,7 +724,7 @@ server <- function(input, output, session) {
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
   # update inputs for comparisons
-  observe({
+  observeEvent(input$runUpload, {
     # retrieve input design table
     group <- levels(designFactors())
     # update and set the first select items

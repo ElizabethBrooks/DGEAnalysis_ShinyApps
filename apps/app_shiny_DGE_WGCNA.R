@@ -67,7 +67,8 @@ ui <- fluidPage(
       ),
       # show panel depending on input files check
       conditionalPanel(
-          condition = "output.inputsUploaded && !input.runUpload",
+        condition = "output.inputsUploaded && !input.runAnalysis",
+        #condition = "output.inputsUploaded && !input.runUpload",
         tags$hr(),
         tags$p(
           "Click to Upload Data:"
@@ -446,7 +447,7 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> In general, it is best to select the lowest power for which the scale-free topology fit index reaches a 0.90 value.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Note that 0 number label is reserved for unassigned genes.")
+              HTML("<b>Tip 2:</b> Note that the 0 number label is reserved for unassigned genes.")
             ),
             tags$p(
               HTML("<b>Tip 3:</b> Note that the grey color label is reserved for unassigned genes.")
