@@ -25,11 +25,9 @@ options(stringsAsFactors = FALSE)
 ##
 
 #Import normalized gene count data
-#inputTable_subset <- read.csv(file="/Users/bamflappy/PfrenderLab/OLYM_dMelUV/KAP4/ensembl/GCA_021134715.1/biostatistics/DEAnalysis/Genotypes/glmQLF_normalizedCounts.csv", row.names="gene", header=TRUE)
 inputTable_subset <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/WGCNA/example3_daphnia_normalizedCounts.csv", row.names=1)
 
 # load in the trait data
-#allTraits = read.csv("/Users/bamflappy/Repos/TranscriptomeAnalysisPipeline_DaphniaUVTolerance/InputData/expDesign_treatment_WGCNA_Olympics.csv")
 allTraits <- read.csv("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/WGCNA/example3_daphnia_design_WGCNA.csv", row.names=1)
 
 dim(allTraits)
