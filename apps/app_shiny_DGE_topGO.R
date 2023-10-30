@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# date: 24 October 2023
+# date: 30 October 2023
 
 #### Setup ####
 
@@ -13,9 +13,6 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(rcartocolor)
 })
-
-# the following setting is important, do not omit.
-options(stringsAsFactors = FALSE)
 
 # plotting palette
 plotColors <- carto_pal(12, "Safe")
@@ -238,7 +235,7 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          "The GO term enrichment analysis results and plots may take several moments to process depending on the size of the input normalized gene tables."
+          "The GO term enrichment analysis results and plots may take several moments to process depending on the size of the input tables."
         )
       ),
       
