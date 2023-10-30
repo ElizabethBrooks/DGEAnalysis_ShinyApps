@@ -273,7 +273,7 @@ server <- function(input, output, session) {
   
   
   ## 
-  # GO Enrichment
+  # Analysis
   ##
   
   # function to return the table row names
