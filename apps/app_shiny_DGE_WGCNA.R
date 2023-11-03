@@ -1,7 +1,19 @@
 # created by: Elizabeth Brooks
-# date: 18 October 2023
+# date: 3 November 2023
 
 #### Setup ####
+
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "dplyr", "matrixStats", "Hmisc", "splines", "foreach", "doParallel", "fastcluster", "dynamicTreeCut", "survival")
+biocList <- c("WGCNA", "GO.db", "impute", "preprocessCore")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
 # load packages 
 suppressPackageStartupMessages({
@@ -836,8 +848,7 @@ server <- function(input, output, session) {
   output$testGenes <- downloadHandler(
     # retrieve file name
     filename = function() {
-      # setup output file name
-      paste("geneQualityCheck", "txt", sep = ".")
+      "geneQualityCheck.txt"
     },
     # read in data
     content = function(file) {
@@ -849,13 +860,15 @@ server <- function(input, output, session) {
       if (!gsg$allOK){
         # Optionally, print the gene and sample names that were removed:
         if (sum(!gsg$goodGenes)>0){
-          print(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
-        }else{
-          print("Input normalized counts for the genes are good.")
+          geneList <- c(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
+      }else{
+        geneList <- c("Input normalized counts for the genes are good.")
         }
       }else{
-        print("Input normalized counts for the genes are good.")
+        geneList <- c("Input normalized counts for the genes are good.")
       }
+      # write the results to a file
+      writeLines(geneList, file)
     }
   )
   
@@ -863,8 +876,7 @@ server <- function(input, output, session) {
   output$testSamples <- downloadHandler(
     # retrieve file name
     filename = function() {
-      # setup output file name
-      paste("geneQualityCheck", "txt", sep = ".")
+      "sampleQualityCheck.txt"
     },
     # read in data
     content = function(file) {
@@ -875,13 +887,15 @@ server <- function(input, output, session) {
       # remove the offending genes and samples from the data
       if (!gsg$allOK){
         if (sum(!gsg$goodSamples)>0){
-          print(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
+          sampleList <- c(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
         }else{
-          print("Input normalized counts for the samples are good.")
+          sampleList <- c("Input normalized counts for the samples are good.")
         }
       }else{
-        print("Input normalized counts for the samples are good.")
+        sampleList <- c("Input normalized counts for the samples are good.")
       }
+      # write the results to a file
+      writeLines(sampleList, file)
     }
   )
   
@@ -1194,6 +1208,16 @@ server <- function(input, output, session) {
     # Call the network topology analysis function
     sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5)
   })
+  
+  # TO-DO: this suspendWhenHidden=FALSE appears to cause additional function calls
+  # check if file has been uploaded
+  output$resultsCompleted <- function(){
+    if(!is.null(pickPowers())){
+      return(TRUE)
+    }
+    return(FALSE)
+  }
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # create plot with scale independence and mean connectivity
   createPlotThreshold <- function(){
@@ -1572,16 +1596,6 @@ server <- function(input, output, session) {
     # Eigengenes of the new merged modules:
     mergedMEs = merge$newMEs
   })
-  
-  # TO-DO: this suspendWhenHidden=FALSE appears to cause additional function calls
-  # check if file has been uploaded
-  output$resultsCompleted <- function(){
-    if(!is.null(mergeEigengenes())){
-      return(TRUE)
-    }
-    return(FALSE)
-  }
-  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # function to create plot of the trimmed dendrogram
   createPlotTrimmedDendro <- function(){
