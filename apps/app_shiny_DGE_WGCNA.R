@@ -938,7 +938,7 @@ server <- function(input, output, session) {
     sampleTree <- createSampleTree()
     # setup test height value
     testHeightMin <- as.integer(mean(sampleTree$height))
-    testHeightMax <- as.integer(max(sampleTree$height))
+    testHeightMax <- as.integer(max(sampleTree$height))+1
     testHeightValue <- testHeightMax
     # update sample cut height slider
     updateSliderInput(

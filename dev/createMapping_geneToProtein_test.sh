@@ -12,7 +12,7 @@
 while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g'); echo "$proteinName $geneName"; fi; done < protein.faa > proteinToGene.txt
 
 # update protein sequences with gene names
-while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g'); echo $geneName; else echo $line; fi; done < protein.faa > protein_updated.faa
+while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g'); echo ">"$geneName; else echo $line; fi; done < protein.faa > protein_updated.faa
 
 
 ##
@@ -52,7 +52,7 @@ while read -r line; do
 		geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g')
 		# print out the screen the gene name
 		# and append the results to the update the protein sequences file
-		echo $geneName >> protein_updated.txt
+		echo ">"$geneName >> protein_updated.txt
 	else 
 		# print out the screen the protein sequence
 		# and append the results to the update the protein sequences file
