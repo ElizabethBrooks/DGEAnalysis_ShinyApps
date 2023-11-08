@@ -9,17 +9,17 @@
 # EXAMPLE 1: single line code (D pulex)
 ##
 # update protein sequences with gene names
-while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/gene=//g'); echo ">gene-"$geneName; else echo $line; fi; done < protein.faa > protein_geneNames.faa
+#while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/gene=//g'); echo ">gene-"$geneName; else echo $line; fi; done < protein.faa > protein_geneNames.faa
 
 
 ##
 # EXAMPLE 2: single line code (Mavium)
 ##
 # create mapping file of gene to protein names
-while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g'); echo "$proteinName $geneName"; fi; done < protein.faa > proteinToGene.txt
+while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g' | sed 's/gene-//g' | sed 's/_/_RS/g'); echo "$proteinName $geneName"; fi; done < protein.faa > proteinToGene.txt
 
 # update protein sequences with gene names
-while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g'); echo ">"$geneName; else echo $line; fi; done < protein.faa > protein_geneNames.faa
+while read -r line; do firstChar=$(printf %.1s "$line"); if test $firstChar = ">"; then proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g'); geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g' | sed 's/gene-//g' | sed 's/_/_RS/g'); echo ">"$geneName; else echo $line; fi; done < protein.faa > protein_geneNames.faa
 
 
 ##
@@ -37,7 +37,7 @@ while read -r line; do
 		# retrieve the current protein name
 		proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g')
 		# retrieve the corresponding gene name
-		geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g')
+		geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g' | sed 's/gene-//g' | sed 's/_/_RS/g')
 		# print out the screen the protein name followed by the gene name
 		# and append the results to the mapping file
 		echo "$proteinName $geneName" >> proteinToGene.txt
@@ -56,7 +56,7 @@ while read -r line; do
 		# retrieve the current protein name
 		proteinName=$(echo $line | cut -d" " -f1 | sed 's/>//g')
 		# retrieve the corresponding gene name
-		geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g')
+		geneName=$(cat genomic.gff | grep "Name=$proteinName" | cut -d";" -f2 | sed 's/Parent=//g' | sed 's/gene-//g' | sed 's/_/_RS/g')
 		# print out the screen the gene name
 		# and append the results to the update the protein sequences file
 		echo ">"$geneName >> protein_geneNames.txt
