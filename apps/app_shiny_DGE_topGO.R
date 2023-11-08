@@ -973,6 +973,7 @@ server <- function(input, output, session) {
     }
   )
   
+  # TO-DO: fix extra column in output table
   # function to get statistics on BP, MF, or CC GO terms
   getResults <- function(ontologyID){
     # retrieve topGOdata object
