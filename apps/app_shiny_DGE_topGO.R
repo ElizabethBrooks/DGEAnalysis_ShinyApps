@@ -3,6 +3,9 @@
 
 #### Setup ####
 
+# TO-DO: double check this increase on maximum upload size for servers
+options(shiny.maxRequestSize=30*1024^2)
+
 # load packages
 suppressPackageStartupMessages({
   library(shiny)
@@ -703,8 +706,25 @@ server <- function(input, output, session) {
     if(is.null(input$mappings)){
       return(NULL)
     }
-    # read the file
-    GOmaps <- readMappings(file = input$mappings$datapath)
+    # read in the file
+    GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "\t", row.names=NULL, colClasses = c(goid = "character"))
+    # check if input mappings are from pannzer2
+    if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
+      # re-format mappings from pannzer2
+      GOmaps_fmt <- split(GOmaps_input$goid,GOmaps_input$qpid)
+      # create data frame with formtted mappings
+      GOmaps_out <- as.data.frame(unlist(lapply(names(GOmaps_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_fmt[[x]], sep="")))})))
+      rownames(GOmaps_out) <- names(GOmaps_fmt)
+      colnames(GOmaps_out) <- NULL
+      # TO-DO: double check location for storing this necessary output file
+      # output re-formatted mappings from pannzer2
+      write.table(GOmaps_out, file = "pannzer2_GO.fmt.txt", sep = "\t", quote = FALSE)
+      # read the mappings file
+      GOmaps <- readMappings(file = "pannzer2_GO.fmt.txt")
+    }else{
+      # read the mappings file
+      GOmaps <- readMappings(file = input$mappings$datapath)
+    }
     # return data
     GOmaps
   })

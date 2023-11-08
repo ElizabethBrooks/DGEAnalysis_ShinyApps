@@ -525,15 +525,15 @@ ui <- fluidPage(
               "."
             ),
             tags$p(
-              "A tutorial of the network analysis performed in this application is provided in ", 
-              tags$a("Tutorials for the WGCNA Package", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/Tutorials/index.html"), 
+              "A tutorial of the network analysis performed in this application can be found in the URL entry for ", 
+              tags$a("WGCNA: Weighted Correlation Network Analysis", href = "https://CRAN.R-project.org/package=WGCNA"), 
               "."
-            ),
-            tags$p(
-              "Frequently asked questions are available at ", 
-              tags$a("WGCNA package FAQ", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/faq.html"), 
-              "."
-            )
+            )#,
+            #tags$p(
+              #"Frequently asked questions are available at ", 
+              #tags$a("WGCNA package FAQ", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/faq.html"), 
+              #"."
+            #)
           )
         )
       )
