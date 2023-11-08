@@ -129,10 +129,10 @@ ui <- fluidPage(
           HTML("<b>1.</b> uploading <i>.csv</i> files with the normalized gene counts and experimental design")
         ),
         tags$p(
-          HTML("<b>2.</b> clicking the <i>Upload</i> button to verify the data formatting")
+          HTML("<b>2.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after checking the format of the inputs")
         ),
         tags$p(
-          HTML("<b>3.</b> clicking the <i>Run Analysis</i> button to begin the network analysis")
+          HTML("<b>3.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
         ),
         tags$br(),
         tags$p(

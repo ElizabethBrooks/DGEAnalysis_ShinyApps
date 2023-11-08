@@ -115,10 +115,10 @@ ui <- fluidPage(
           HTML("<b>1.</b> entering the statistic for gene scoring, for example:")
         ),
         tags$p(
-          HTML("<ul><li><i>FDR</i> from DGE</li></ul>")
+          HTML("<ul><li><i>FDR</i> from DGE results</li></ul>")
         ),
         tags$p(
-          HTML("<ul><li>module <i>number</i> from WGCNA</li></ul>")
+          HTML("<ul><li>module <i>number</i> from WGCNA results</li></ul>")
         ),
         tags$p(
           HTML("<b>2.</b> entering the expression for gene scoring, for example:")
@@ -133,22 +133,19 @@ ui <- fluidPage(
           HTML("<b>3.</b> uploading a gene score table <i>.csv</i> file with the <i>unfiltered</i> results table from DGE or WGCNA")
         ),
         tags$p(
-          HTML("<b>4.</b> uploading a mappings table <i>.txt</i> file with the gene-to-GO term mappings, in which:")
+          HTML("<b>4.</b> uploading a mappings table <i>.txt</i> file with the gene-to-GO term annotation mappings formatted as either:")
         ),
         tags$p(
-          HTML("<ul><li>the first column is expected to contain gene IDs and the second column GO terms</li></ul>")
+          HTML("<ul><li>topGO expected gene-to-GO mappings</li></ul>")
         ),
         tags$p(
-          HTML("<ul><li>the second column of GO terms is expected to be in a comma separated list format</li></ul>")
+          HTML("<ul><li>pannzer2 resulting <i>GO prediction details</i></li></ul>")
         ),
         tags$p(
-          HTML("<ul><li>the first column is expected to be tab separated from the second column</li></ul>")
+          HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after checking the format of the inputs")
         ),
         tags$p(
-          HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid")
-        ),
-        tags$p(
-          HTML("<b>6.</b> clicking the <i>Run Analysis</i> button")
+          HTML("<b>6.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
         ),
         tags$br(),
         tags$p(
@@ -160,16 +157,43 @@ ui <- fluidPage(
           HTML("<b>Helpful Tips</b>")
         ),
         tags$p(
-          HTML("<b>Tip 1:</b> It is possible to create a gene-to-GO term mapping file by uploading a list of protein sequences in the <i>Annotate</i> tab of "),
-          tags$a("PANNZER",href = "http://ekhidna2.biocenter.helsinki.fi/sanspanz/"),
-          "."
+          HTML("<b>Tip 1:</b> The topGO package expects gene-to-GO mappings files to be specifically formatted where:")
         ),
         tags$p(
-          HTML("<b>Tip 2:</b> The input gene score table should <i>not</i> be filtered in advance."),
+          HTML("<ul><li>the first column must contain gene IDs and the second column GO terms</li></ul>")
+        ),
+        tags$p(
+          HTML("<ul><li>the second column of GO terms must be in a comma separated list format</li></ul>")
+        ),
+        tags$p(
+          HTML("<ul><li>the first column must be tab separated from the second column</li></ul>")
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> It is possible to create a gene-to-GO term annotations table with "),
+          tags$a("PANNZER2",href = "http://ekhidna2.biocenter.helsinki.fi/sanspanz/"),
+          " by:"
+        ),
+        tags$p(
+          HTML("<ul><li><b>first</b> navigating to the <i>Annotate</i> tab</li></ul>"),
+        ),
+        tags$p(
+          HTML("<ul><li><b>second</b> uploading a list of protein sequences where the sequence names <i>must match</i> the gene names in the input gene score table</li></ul>"),
+        ),
+        tags$p(
+          HTML("<ul><li><b>third</b> selecting <i>Batch queue</i> and entering your email</li></ul>"),
+        ),
+        tags$p(
+          HTML("<ul><li><b>fourth</b> selecting the <i>GO prediction details</i> link after recieving the pannzer2 results</li></ul>"),
+        ),
+        tags$p(
+          HTML("<ul><li><b>fifth</b> right clicking and selecting <i>Save As...</i> to download the <i>GO.out.txt</i> annotations table</li></ul>"),
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> The input gene score table should <i>not</i> be filtered in advance."),
           "The enrichment analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
+          HTML("<b>Tip 4:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
           HTML("<b>Tip 4:</b> The first column of the gene score table is expected to contain gene IDs.")
@@ -186,26 +210,21 @@ ui <- fluidPage(
           HTML("<b>Data Formatting</b>")
         ),
         tags$p(
-          "Example gene score and mappings tables are displayed below."
-        ),
-        tags$br(),
-        tags$p(
-          HTML("<b>Example</b> gene to GO term mappings for four genes:"),
-          tableOutput(outputId = "exampleMappings") 
+          "Example gene score and gene-to-GO annotation mappings tables are displayed below."
         ),
         tags$br(),
         fluidRow(
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> gene score table for five genes scored by DGE analysis:"),
+              HTML("<b>Example</b> <i>DGE analysis</i> gene score table for five genes:"),
               tableOutput(outputId = "exampleDGEScore")
             )
           ),
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> gene score table for three genes scored by WGCNA:"),
+              HTML("<b>Example</b> <i>WGCNA</i> gene score table for five genes:"),
               tableOutput(outputId = "exampleWGCNAScore")
             )
           )
@@ -215,17 +234,27 @@ ui <- fluidPage(
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> gene score table with minimum expected columns for five genes scored by DGE analysis:"),
+              HTML("<b>Example</b> <i>DGE analysis</i> gene score table with minimum expected columns for three genes:"),
               tableOutput(outputId = "exampleDGEScoreSubset") 
             )
           ),
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> gene score table with minimum expected columns for three genes scored by WGCNA:"),
+              HTML("<b>Example</b> <i>WGCNA</i> gene score table with minimum expected columns for three genes:"),
               tableOutput(outputId = "exampleWGCNAScoreSubset") 
             )
           )
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Example</b> <i>topGO</i> gene-to-GO term mappings for four genes:"),
+          tableOutput(outputId = "exampleTopGO") 
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Example</b> <i>pannzer2</i> gene-to-GO annotations for two genes:"),
+          tableOutput(outputId = "examplePannzer")
         )
       ),
       
@@ -405,18 +434,6 @@ ui <- fluidPage(
                 )
               )
             ),
-            tags$br(),
-            tags$p(
-              align = "center",
-              HTML("<b>Helpful Tips</b>")
-            ),
-            tags$p(
-              HTML("<b>Tip 1:</b> only significant GO terms may be plotted.")
-            ),
-            tags$p(
-              HTML("<b>Tip 2:</b> make sure that the GO category is valid for the input GO term ID.")
-            ),
-            tags$br(),
             conditionalPanel(
               condition = "output.densityResultsCompleted",
               tags$br(),
@@ -430,6 +447,17 @@ ui <- fluidPage(
               tags$p(
                 "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
               )
+            ),
+            tags$br(),
+            tags$p(
+              align = "center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> only significant GO terms may be plotted.")
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> make sure that the GO category is valid for the input GO term ID.")
             ),
             tags$hr(),
             tags$p(
@@ -552,10 +580,10 @@ ui <- fluidPage(
                 )
               )
             ),
-            tags$br(),
             tags$p(
               "Results from the GO term enrichment analysis may be downloaded below."
             ),
+            tags$br(),
             tags$p(
               HTML("<b>Table of Enriched GO Terms</b>")
             ),
@@ -641,8 +669,8 @@ server <- function(input, output, session) {
   output$exampleDGEScoreSubset <- renderTable({
     # create example score table
     exScoreTable <- data.frame(
-      Gene = c("gene-1", "gene-2", "gene-3", "gene-4", "gene-5"),
-      FDR = c(0.435362017290981,0.451205836761818,0.451205836761818,0.451205836761818,0.451205836761818)
+      Gene = c("gene-1", "gene-2", "gene-3"),
+      FDR = c(0.435362017290981,0.451205836761818,0.451205836761818)
     )
   })
   
@@ -650,9 +678,9 @@ server <- function(input, output, session) {
   output$exampleWGCNAScore <- renderTable({
     # create example score table
     exScoreTable <- data.frame(
-      gene = c("geneA", "geneB", "geneC"),
-      color = c("brown","brown","brown"),
-      number = c(1,1,1)
+      gene = c("geneA", "geneB", "geneC", "geneD", "geneE"),
+      color = c("brown","brown","brown", "grey", "grey"),
+      number = c("1","1","1","0","0")
     )
   })
   
@@ -661,16 +689,31 @@ server <- function(input, output, session) {
     # create example score table
     exScoreTable <- data.frame(
       gene = c("geneA", "geneB", "geneC"),
-      number = c(1,1,1)
+      number = c("1","1","1")
     )
   })
   
-  # render first example mappings table
-  output$exampleMappings <- renderTable({
+  # render first example topGO mappings table
+  output$exampleTopGO <- renderTable({
     # create example mappings table
     exMappingsTable <- data.frame(
       Gene = c("geneA", "geneB", "geneC", "geneD"),
       Terms = c("GO:0005730,GO:0030490", "GO:0006890,GO:0030173,GO:0005783,GO:0006621", "GO:0006355", "GO:0005739,GO:0008203,GO:0006744,GO:0015039")
+    )
+  })
+  
+  # render first example pannzer2 mappings table
+  output$examplePannzer <- renderTable({
+    # create example mappings table
+    exMappingsTable <- data.frame(
+      qpid = c("geneA", "geneA", "geneA", "geneB", "geneB"),
+      goid = c("0009360", "0008408", "0071897", "0003887", "0006260"),
+      ontology = c("CC", "MF", "BP", "MF", "BP"),
+      desc = c("DNA polymerase III complex", "3'-5' exonuclease activity", "DNA biosynthetic process", "DNA-directed DNA polymerase activity", "DNA replication"),
+      ARGOT_RSscore = c("9.351550793", "8.193028339", "6.425739587", "7.915962904", "5.993446976"),
+      ARGOT_RSPPV = c("0.748726035", "0.720312733", "0.672768098", "0.713224862", "0.660171634"),
+      ARGOT_RSrank = c("1", "1", "1", "2", "2"),
+      goclasscount = c("100", "100", "100", "100", "100")
     )
   })
   
@@ -721,6 +764,8 @@ server <- function(input, output, session) {
       write.table(GOmaps_out, file = "pannzer2_GO.fmt.txt", sep = "\t", quote = FALSE)
       # read the mappings file
       GOmaps <- readMappings(file = "pannzer2_GO.fmt.txt")
+      # clean up
+      file.remove("pannzer2_GO.fmt.txt")
     }else{
       # read the mappings file
       GOmaps <- readMappings(file = input$mappings$datapath)
@@ -914,6 +959,7 @@ server <- function(input, output, session) {
                fn.prefix = paste(ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
   }
   
+  # TO-DO: fix, currently saves to working directory
   # download button for PDFs of subgraphs
   output$downloadSubgraphs <- downloadHandler(
     filename = function() {
@@ -993,6 +1039,7 @@ server <- function(input, output, session) {
     createDensity(input$ontologyCategory, input$ontologyTerm)
   })
   
+  # TO-DO: fix
   # download handler for the density plot
   output$downloadDensity <- downloadHandler(
     filename = function() {
