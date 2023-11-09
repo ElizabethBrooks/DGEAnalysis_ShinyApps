@@ -22,13 +22,10 @@ options(stringsAsFactors = FALSE)
 
 
 # retrieve input DE results
-DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_topDEGs.csv", row.names=1)
-
-# retrieve gene to GO map
-#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_geneToGO.txt")
+DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_topDEGs.csv", row.names=1)
 
 # retrieve mappings created by pannzer2
-GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.out.txt", sep = "\t", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_GO.out.txt", sep = "\t", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
 
 # re-format mappings from pannzer2
 GOmaps_pannzer_fmt <- split(GOmaps_pannzer$goid,GOmaps_pannzer$qpid)

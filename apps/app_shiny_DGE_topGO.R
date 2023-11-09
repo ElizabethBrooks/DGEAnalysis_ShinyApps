@@ -33,7 +33,7 @@ ui <- fluidPage(
   #theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Gene Ontology (GO) Term Enrichment Analysis with topGO"),
+  titlePanel("Functional Enrichment Analysis with topGO"),
   
   # setup sidebar layout
   sidebarLayout(
@@ -310,7 +310,10 @@ ui <- fluidPage(
             tags$br(),
             tags$p(
               align = "center",
-              HTML("<b>GO Term Enrichment</b>")
+              HTML("<b>Functional Enrichment</b>")
+            ),
+            tags$p(
+              "Begin the functional enrichment analysis by selecting a test statistic and algorithm below."
             ),
             tags$br(),
             fluidRow(
@@ -332,13 +335,13 @@ ui <- fluidPage(
                   HTML("<b>Available Algorithms:</b>")
                 ),
                 tags$p(
-                  HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms.")
+                  HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes.")
+                  HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes")
                 ),
                 tags$p(
-                  HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method.")
+                  HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method")
                 )
               ),
               column(
@@ -358,21 +361,30 @@ ui <- fluidPage(
                   HTML("<b>Available Test Statistics:</b>")
                 ),
                 tags$p(
-                  HTML("<b>1.</b> Fisher's exact test is based on gene counts")
+                  HTML("<b>1.</b> Fisher's exact test is based on gene counts and can be used to perform overrepresentation analysis of GO terms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Kolmogorov-Smirnov like test computes enrichment based on gene scores")
-                ),
-                tags$p(
-                  "It is possible to use both the above tests since each gene has a score, which represents how it is diferentially expressed."
+                  HTML("<b>2.</b> Kolmogorov-Smirnov (KS) like test computes enrichment based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
                 )
               )
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Tip:</b> refer to the "),
+              align = "center",
+              HTML("<b>Helpful Tips</b>")
+            ),
+            tags$p(
+              HTML("<b>Tip 1:</b> Further details about the available types of enrichment tests can be found in the "), 
               tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
-              " manual for a description of the algorithms and test statistics."
+              " manual (e.g., section 6)."
+            ),
+            tags$p(
+              HTML("<b>Tip 2:</b> It is possible to use both the fisher's and KS tests since each gene has a score, which represents how it is diferentially expressed.")
+            ),
+            tags$p(
+              HTML("<b>Tip 3:</b> Refer to the "),
+              tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
+              " manual for more information regarding the available algorithms and test statistics."
             ),
             # TO-DO: output table of top GO term IDs
             tags$hr(),
@@ -454,10 +466,10 @@ ui <- fluidPage(
               HTML("<b>Helpful Tips</b>")
             ),
             tags$p(
-              HTML("<b>Tip 1:</b> only significant GO terms may be plotted.")
+              HTML("<b>Tip 1:</b> Only significant GO terms may be plotted.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> make sure that the GO category is valid for the input GO term ID.")
+              HTML("<b>Tip 2:</b> Make sure that the GO category is valid for the input GO term ID.")
             ),
             tags$hr(),
             tags$p(
@@ -547,6 +559,9 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Enrichment Results</b>")
             ),
+            tags$p(
+              "Results from the GO term enrichment analysis may be downloaded below."
+            ),
             tags$br(),
             fluidRow(
               column(
@@ -580,9 +595,6 @@ ui <- fluidPage(
                 )
               )
             ),
-            tags$p(
-              "Results from the GO term enrichment analysis may be downloaded below."
-            ),
             tags$br(),
             tags$p(
               HTML("<b>Table of Enriched GO Terms</b>")
@@ -600,6 +612,15 @@ ui <- fluidPage(
             tags$br(),
             tags$p(
               "The list of significantly enriched GO terms filtered by the input p-value cut off and for the selected ontology category."
+            ),
+            tags$br(),
+            tags$p(
+              HTML("<b>Table of Gene-to-GO Annotation Mappings</b>")
+            ),
+            downloadButton(outputId = "mappingsDownload", label = "Download Table"),
+            tags$br(),
+            tags$p(
+              "The table of gene-to-GO term annotation mappings for each gene."
             )
           ),
           
@@ -613,7 +634,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              "This application for GO term enrichment analysis was created by ",
+              "This application for functional enrichment analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
               "."
             ),
@@ -1154,6 +1175,26 @@ server <- function(input, output, session) {
       sigGO_results_table <- getSigResults(input$resultsCategory, input$sigCut)
       # write table of significant GO terms to a CSV file
       write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of GO term mappings
+  output$mappingsDownload <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      "pannzer2_GO.fmt.txt"
+    },
+    # read in data
+    content = function(file) {
+      # retrieve go mappings
+      GO_maps <- inputMappings()
+      # create data frame with formtted mappings
+      GOmaps_out <- as.data.frame(unlist(lapply(names(GO_maps), function(x){gsub(" ", "", toString(paste("GO:", GO_maps[[x]], sep="")))})))
+      rownames(GOmaps_out) <- names(GO_maps)
+      colnames(GOmaps_out) <- NULL
+      # write table of GO terms mappings to a CSV file
+      write.table(GOmaps_out, file, sep = "\t", quote = FALSE)
     }
   )
   
