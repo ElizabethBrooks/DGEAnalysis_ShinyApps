@@ -1117,7 +1117,7 @@ server <- function(input, output, session) {
       xlab('Score') +
       ylab('GO Term') + 
       #scale_x_discrete(labels=c("Interaction"=expression(italic("Interaction")), parse=TRUE)) +
-      labs(color = 'P-Value', size = 'Gene Rank')
+      labs(color = 'P-Value', size = 'Significant')
     # view plot
     dotplot
   }
