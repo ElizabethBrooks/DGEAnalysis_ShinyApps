@@ -1168,7 +1168,6 @@ server <- function(input, output, session) {
   #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
   
-  # TO-DO: add "gene" row name
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
@@ -1180,6 +1179,7 @@ server <- function(input, output, session) {
       tested <- pairwiseTest()
       # view results table of top 10 DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # TO-DO: add gene row name tag
       # output table
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
     }
@@ -1212,6 +1212,7 @@ server <- function(input, output, session) {
       tested <- pairwiseTest()
       # add commas
       resultsTblNames <- retrieveGeneIDs(tested)
+      # TO-DO: add gene row name tag?
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }
@@ -1389,7 +1390,6 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: add "gene" row name
   # download table with number of filtered genes
   output$glmResults <- downloadHandler(
     filename = function() {
@@ -1401,6 +1401,7 @@ server <- function(input, output, session) {
       tested <- glmContrast()
       # view results table of top 10 DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # TO-DO: add gene row name tag
       # output table
       write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
     }
@@ -1417,6 +1418,7 @@ server <- function(input, output, session) {
       tested <- glmContrast()
       # retrieve gene IDS
       resultsTblNames <- retrieveGeneIDs(tested)
+      # TO-DO: add gene row name tag?
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }

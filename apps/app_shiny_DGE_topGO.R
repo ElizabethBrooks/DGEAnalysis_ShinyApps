@@ -494,7 +494,7 @@ ui <- fluidPage(
             plotOutput(outputId = "dotPlot"),
             downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
             tags$p(
-              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The dots are colored by the enrichment test p-values.")
+              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.")
             ),
             tags$hr(),
             # TO-DO: fix downloading of subgraphs
