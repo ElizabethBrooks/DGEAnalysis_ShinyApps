@@ -59,7 +59,8 @@ ui <- fluidPage(
       ),
       # show panel depending on input files check
       conditionalPanel(
-        condition = "output.inputsUploaded && !input.runAnalysis",
+        #condition = "output.inputsUploaded && !input.runAnalysis",
+        condition = "output.inputsUploaded && !input.runUpload",
         tags$hr(),
         tags$p(
           "Click to Upload Data:"
@@ -136,6 +137,12 @@ ui <- fluidPage(
         ),
         tags$p(
           HTML("<b>2.</b> uploading a <i>.csv</i> files with the experimental design")
+        ),
+        tags$p(
+          HTML("<b>3.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
+        ),
+        tags$p(
+          HTML("<b>4.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
         ),
         tags$br(),
         tags$p(
@@ -805,8 +812,10 @@ server <- function(input, output, session) {
       list <- normalizeData()
       # compute counts per million (CPM) using normalized library sizes
       normList <- cpm(list, normalized.lib.sizes=TRUE)
+      # add gene row name tag
+      normList <- as_tibble(normList, rownames = "gene")
       # output table
-      write.table(normList, file, sep=",", row.names=TRUE)
+      write.table(normList, file, sep=",", row.names=FALSE, quote=FALSE)
     }
   )
   
@@ -1168,6 +1177,7 @@ server <- function(input, output, session) {
   #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
   
+  # TO-DO: add FDR cut off filter
   # download table with number of filtered genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
@@ -1179,12 +1189,14 @@ server <- function(input, output, session) {
       tested <- pairwiseTest()
       # view results table of top 10 DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # TO-DO: add gene row name tag
+      # add gene row name tag
+      resultsTbl <- as_tibble(resultsTbl, rownames = "gene")
       # output table
-      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+      write.table(resultsTbl, file, sep=",", row.names=FALSE, quote=FALSE)
     }
   )
   
+  # TO-DO: add FDR cut off filter
   # function to retrieve gene IDs from results tables
   retrieveGeneIDs <- function(tested){
     # view results table of top 10 DE genes
@@ -1212,7 +1224,6 @@ server <- function(input, output, session) {
       tested <- pairwiseTest()
       # add commas
       resultsTblNames <- retrieveGeneIDs(tested)
-      # TO-DO: add gene row name tag?
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }
@@ -1390,6 +1401,7 @@ server <- function(input, output, session) {
     }
   )
   
+  # TO-DO: add FDR cut off filter
   # download table with number of filtered genes
   output$glmResults <- downloadHandler(
     filename = function() {
@@ -1401,12 +1413,14 @@ server <- function(input, output, session) {
       tested <- glmContrast()
       # view results table of top 10 DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # TO-DO: add gene row name tag
+      # add gene row name tag
+      resultsTbl <- as_tibble(resultsTbl, rownames = "gene")
       # output table
-      write.table(resultsTbl, file, sep=",", row.names=TRUE, quote=FALSE)
+      write.table(resultsTbl, file, sep=",", row.names=FALSE, quote=FALSE)
     }
   )
   
+  # TO-DO: add FDR cut off filter
   # download table with number of filtered genes IDs
   output$glmResultsIDs <- downloadHandler(
     filename = function() {
@@ -1418,7 +1432,6 @@ server <- function(input, output, session) {
       tested <- glmContrast()
       # retrieve gene IDS
       resultsTblNames <- retrieveGeneIDs(tested)
-      # TO-DO: add gene row name tag?
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }

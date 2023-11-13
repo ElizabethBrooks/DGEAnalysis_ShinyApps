@@ -14,6 +14,7 @@ library(edgeR)
 library(statmod)
 library(ggplot2)
 library(rcartocolor)
+library(dplyr)
 
 #  plotting palettes
 plotColors <- carto_pal(12, "Safe")
@@ -39,7 +40,7 @@ targets <- read.csv(file="/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/edge
 ##
 
 #Setup a design matrix
-group <- factor(paste(targets$treatment,targets$genotype,sep="."))
+group <- factor(targets[,1])
 #cbind(targets,Group=group)
 #Create DGE list object
 list <- DGEList(counts=countsTable,group=group)
@@ -47,8 +48,8 @@ colnames(list) <- rownames(targets)
 
 #Plot the library sizes before normalization
 #jpeg("glmQLF_plotBarsBefore.jpg")
-barplot(list$samples$lib.size*1e-6, names=1:24, ylab="Library size (millions)")
-dev.off()
+barplot(list$samples$lib.size*1e-6, names=1:ncol(list), ylab="Library size (millions)")
+#dev.off()
 
 #Retain genes only if it is expressed at a minimum level
 keep <- filterByExpr(list)
@@ -61,18 +62,20 @@ list <- calcNormFactors(list)
 #list$samples
 #Write normalized counts to file
 normList <- cpm(list, normalized.lib.sizes=TRUE)
-write.table(normList, file="glmQLF_normalizedCounts.csv", sep=",", row.names=TRUE, quote=FALSE)
+# add gene row name tag
+normList <- as_tibble(normList, rownames = "gene")
+#write.table(normList, file="glmQLF_normalizedCounts.csv", sep=",", row.names=FALSE, quote=FALSE)
 
 #Write log transformed normalized counts to file
 normListLog <- cpm(list, normalized.lib.sizes=TRUE, log=TRUE)
-write.table(normListLog, file="glmQLF_normalizedCounts_logTransformed.csv", sep=",", row.names=TRUE, quote=FALSE)
+#write.table(normListLog, file="glmQLF_normalizedCounts_logTransformed.csv", sep=",", row.names=TRUE, quote=FALSE)
 
 #Verify TMM normalization using a MD plot
 #Write plot to file
 #jpeg("glmQLF_plotMDBefore.jpg")
 plotMD(cpm(list, log=TRUE), column=1)
 abline(h=0, col=plotColorSubset[3], lty=2, lwd=2)
-dev.off()
+#dev.off()
 
 #Use a MDS plot to visualizes the differences
 # between the expression profiles of different samples
@@ -88,7 +91,7 @@ dev.off()
 #Write plot without legend to file
 #jpeg("glmQLF_plotMDS_noLegend.jpg")
 plotMDS(list, col=colors[group], pch=points[group])
-dev.off()
+#dev.off()
 
 # Create a PCA plot with a legend
 #jpeg("glmQLF_plotPCA.jpg")
@@ -101,7 +104,7 @@ dev.off()
 # Create a PCA plot without a legend
 #jpeg("glmQLF_plotPCA_noLegend.jpg")
 plotMDS(list, col=colors[group], pch=points[group], gene.selection="common")
-dev.off()
+#dev.off()
 
 ##
 #The experimental design is parametrized with a one-way layout, 
@@ -117,7 +120,7 @@ list <- estimateDisp(list, design, robust=TRUE)
 #Write plot to file
 #jpeg("glmQLF_plotBCV.jpg")
 plotBCV(list)
-dev.off()
+#dev.off()
 
 #Now, estimate and plot the QL dispersions
 fit <- glmQLFit(list, design, robust=TRUE)
@@ -125,7 +128,7 @@ fit <- glmQLFit(list, design, robust=TRUE)
 #Write plot to file
 #jpeg("glmQLF_plotQLDisp.jpg")
 plotQLDisp(fit)
-dev.off()
+#dev.off()
 
 # view column order
 colnames(fit)
@@ -143,7 +146,7 @@ summary(decideTests(treat.anov.treatment))
 # export tables of DE genes
 #Write tags table of DE genes to file
 tagsTblANOVATreatment <- topTags(treat.anov.treatment, n=nrow(treat.anov.treatment$table), adjust.method="fdr")$table
-write.table(tagsTblANOVATreatment, file="glmQLF_2WayANOVA_treatment_topTags_LFC1.2.csv", sep=",", row.names=TRUE, quote=FALSE)
+#write.table(tagsTblANOVATreatment, file="glmQLF_2WayANOVA_treatment_topTags_LFC1.2.csv", sep=",", row.names=TRUE, quote=FALSE)
 
 
 # MD plots
@@ -151,7 +154,7 @@ write.table(tagsTblANOVATreatment, file="glmQLF_2WayANOVA_treatment_topTags_LFC1
 #jpeg("glmQLF_2WayANOVA_treatment_plotMD_LFC1.2.jpg")
 plotMD(treat.anov.treatment)
 abline(h=c(-1, 1), col="blue")
-dev.off()
+#dev.off()
 
 
 # Volcano plots
@@ -167,7 +170,7 @@ ggplot(data=tagsTblANOVATreatment, aes(x=logFC, y=-log10(FDR), color = topDE)) +
   geom_point() +
   theme_minimal() +
   scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down"))
-dev.off()
+#dev.off()
 # create volcano plot with labels
 labelSetTreatment <- tagsTblANOVATreatment[tagsTblANOVATreatment$topDE == "UP" | tagsTblANOVATreatment$topDE == "DOWN",]
 #jpeg("glmQLF_2WayANOVA_treatment_volcanoLabeled_LFC1.2.jpg")
@@ -176,7 +179,7 @@ ggplot(data=tagsTblANOVATreatment, aes(x=logFC, y=-log10(FDR), color = topDE)) +
   ggrepel::geom_text_repel(data = labelSetTreatment, aes(label = row.names(labelSetTreatment))) +
   theme_minimal() +
   scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down"))
-dev.off()
+#dev.off()
 # identify significantly DE genes by FDR
 tagsTblANOVATreatment.glm_keep <- tagsTblANOVATreatment$FDR < 0.05
 # create filtered results table of DE genes

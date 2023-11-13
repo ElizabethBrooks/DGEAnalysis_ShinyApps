@@ -142,7 +142,7 @@ ui <- fluidPage(
           HTML("<ul><li>pannzer2 resulting <i>GO prediction details</i></li></ul>")
         ),
         tags$p(
-          HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after checking the format of the inputs")
+          HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
         ),
         tags$p(
           HTML("<b>6.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
