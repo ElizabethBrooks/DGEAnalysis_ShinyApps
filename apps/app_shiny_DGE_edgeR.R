@@ -57,7 +57,7 @@ ui <- fluidPage(
         multiple = FALSE,
         accept = ".csv"
       ),
-      # show panel depending on input files check
+      # show panel depending on inputs check
       conditionalPanel(
         #condition = "output.inputsUploaded && !input.runAnalysis",
         condition = "output.inputsUploaded && !input.runUpload",
@@ -67,7 +67,7 @@ ui <- fluidPage(
         ),  
         actionButton("runUpload", "Upload")
       ),
-      # show panel depending on input files check
+      # show panel depending on upload check
       conditionalPanel(
         condition = "input.runUpload && output.inputCheck && !input.runAnalysis",
         tags$hr(),
@@ -79,6 +79,12 @@ ui <- fluidPage(
       # show panel depending on input files
       conditionalPanel(
         condition = "input.runAnalysis && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        tags$hr(),
+        # To-DO: connect
+        tags$p(
+          "Click to Update Analysis:"
+        ),  
+        actionButton("updateAnalysis", "Update Analysis"),
         tags$hr(),
         tags$p(
           "Select Analysis Type:"
