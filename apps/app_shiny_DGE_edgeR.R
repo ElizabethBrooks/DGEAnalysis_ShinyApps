@@ -79,12 +79,12 @@ ui <- fluidPage(
       # show panel depending on input files
       conditionalPanel(
         condition = "input.runAnalysis && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        tags$hr(),
+        #tags$hr(),
         # To-DO: connect
-        tags$p(
-          "Click to Update Analysis:"
-        ),  
-        actionButton("updateAnalysis", "Update Analysis"),
+        #tags$p(
+          #"Click to Update Analysis:"
+        #),  
+        #actionButton("updateAnalysis", "Update Analysis"),
         tags$hr(),
         tags$p(
           "Select Analysis Type:"
