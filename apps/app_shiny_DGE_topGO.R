@@ -166,7 +166,10 @@ ui <- fluidPage(
           HTML("<ul><li>the second column of GO terms must be in a comma separated list format</li></ul>")
         ),
         tags$p(
-          HTML("<ul><li>the first column must be tab separated from the second column</li></ul>")
+          HTML("<ul><li>the first column must be tab or space separated from the second column</li></ul>")
+        ),
+        tags$p(
+          HTML("<ul><li>the first column of gene IDs must match the gene IDs contained in the gene score table</li></ul>")
         ),
         tags$p(
           HTML("<b>Tip 2:</b> It is possible to create a gene-to-GO term annotations table with "),
@@ -361,7 +364,7 @@ ui <- fluidPage(
                   HTML("<b>Available Test Statistics:</b>")
                 ),
                 tags$p(
-                  HTML("<b>1.</b> Fisher's exact test is based on gene counts and can be used to perform overrepresentation analysis of GO terms")
+                  HTML("<b>1.</b> Fisher's exact test is based on gene counts and can be used to perform over representation analysis of GO terms")
                 ),
                 tags$p(
                   HTML("<b>2.</b> Kolmogorov-Smirnov (KS) like test computes enrichment based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
@@ -454,7 +457,7 @@ ui <- fluidPage(
                 HTML("<b>Density Plot</b>")
               ),
               plotOutput(outputId = "densityPlot"),
-              downloadButton(outputId = "downloadDensity", label = "Download Plot"),
+              #downloadButton(outputId = "downloadDensity", label = "Download Plot"),
               tags$br(),
               tags$p(
                 "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
@@ -771,7 +774,7 @@ server <- function(input, output, session) {
       return(NULL)
     }
     # read in the file
-    GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "\t", row.names=NULL, colClasses = c(goid = "character"))
+    GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "", row.names=NULL, colClasses = c(goid = "character"))
     # check if input mappings are from pannzer2
     if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
       # re-format mappings from pannzer2
