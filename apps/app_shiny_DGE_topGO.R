@@ -457,7 +457,7 @@ ui <- fluidPage(
                 HTML("<b>Density Plot</b>")
               ),
               plotOutput(outputId = "densityPlot"),
-              #downloadButton(outputId = "downloadDensity", label = "Download Plot"),
+              downloadButton(outputId = "downloadDensity", label = "Download Plot"),
               tags$br(),
               tags$p(
                 "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
