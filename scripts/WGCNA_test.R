@@ -1,4 +1,8 @@
 #!/usr/bin/env Rscript
+#!/usr/bin/env Rscript
+
+# created by: Elizabeth Brooks
+# last update: 19 Feb 2024
 
 # script to create a network for a subset of samples using WGNCA
 

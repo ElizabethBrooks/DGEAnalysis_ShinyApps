@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+# created by: Elizabeth Brooks
+# last update: 19 Feb 2024
+
 #Install edgeR and statmod, this should only need to be done once
 #if (!requireNamespace("BiocManager", quietly = TRUE))
 #    install.packages("BiocManager")
