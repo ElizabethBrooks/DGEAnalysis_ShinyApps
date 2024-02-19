@@ -135,8 +135,7 @@ colnames(fit)
 
 
 # testing explicit nested contrast
-con.all.nest <- makeContrasts(treatment = (UV.E05 + UV.R2 + UV.Y023 + UV.Y05)/4
-                              - (VIS.E05 + VIS.R2 + VIS.Y023 + VIS.Y05)/4,
+con.all.nest <- makeContrasts(treatment = (treat.high + treat.low) - (cntrl.high + cntrl.low),
                               levels=design)
 # summary table
 treat.anov.treatment <- glmTreat(fit, contrast=con.all.nest[,"treatment"], lfc=log2(1.2))
@@ -184,3 +183,17 @@ ggplot(data=tagsTblANOVATreatment, aes(x=logFC, y=-log10(FDR), color = topDE)) +
 tagsTblANOVATreatment.glm_keep <- tagsTblANOVATreatment$FDR < 0.05
 # create filtered results table of DE genes
 tagsTblANOVATreatment.filtered <- tagsTblANOVATreatment[tagsTblANOVATreatment.glm_keep,]
+
+# heatmap
+# view DGE genes
+# subset counts table by DE gene set
+DGESubset <- tagsTblANOVATreatment[!grepl("NA", tagsTblANOVATreatment$topDE),]
+logcounts = cpm(list, log=TRUE)
+logcountsSubset <- subset(logcounts,
+                          grepl(
+                            paste0(rownames(DGESubset), collapse = "|"),
+                            rownames(logcounts),
+                            ignore.case = TRUE
+                          )
+                        )
+heatmap(logcountsSubset, main= "Heatmap of DGE")

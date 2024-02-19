@@ -406,6 +406,13 @@ ui <- fluidPage(
                   align="center",
                   HTML("<b>Results Exploration</b>")
                 ),
+                tags$br(),
+                imageOutput(outputId = "heatmapPairwiseDGE", height="100%", width="100%"),
+                downloadButton(outputId = "downloadHeatmapPairwiseDGE", label = "Download Plot"),
+                tags$p(
+                  "The heatmap of significantly DE genes from the pairwise analysis by the log2 CPM expression values.",
+                ),
+                tags$br(),
                 imageOutput(outputId = "pairwiseMD", height="100%", width="100%"),
                 downloadButton(outputId = "downloadPairwiseMD", label = "Download Plot"),
                 tags$p(
@@ -492,6 +499,12 @@ ui <- fluidPage(
                 tags$p(
                   align="center",
                   HTML("<b>Results Exploration</b>")
+                ),
+                tags$br(),
+                imageOutput(outputId = "heatmapGLMDGE", height="100%", width="100%"),
+                downloadButton(outputId = "downloadHeatmapGLMDGE", label = "Download Plot"),
+                tags$p(
+                  "The heatmap of significantly DE gene from the ANOVA-like analysis by the log2 CPM expression values.",
                 ),
                 tags$br(),
                 imageOutput(outputId = "glmMD", height="100%", width="100%"),
@@ -974,7 +987,7 @@ server <- function(input, output, session) {
   # render heatmap of individual RNA-seq samples using moderated log CPM
   output$heatmap <- renderImage({
     # save the plot
-    exportFile <- "heatmapPlot.png"
+    exportFile <- "heatmapPlotSamples.png"
     png(exportFile)
     createHeatmap()
     dev.off()
@@ -985,7 +998,7 @@ server <- function(input, output, session) {
   # download handler for the heatmap plot
   output$downloadHeatmap <- downloadHandler(
     filename = function() {
-      "heatmapPlot.png"
+      "heatmapPlotSamples.png"
     },
     content = function(file) {
       # save the plot
@@ -1082,6 +1095,62 @@ server <- function(input, output, session) {
     # return the formatted results summary
     resultsTable
   })
+  
+  # heatmap of DGE 
+  createHeatmapDGE <- function(tested){
+    # calculate scaling factors
+    list <- filterNorm()
+    # create a results table of DE genes
+    resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+    # add column for identifying direction of DE gene expression
+    resultsTbl$topDE <- "NA"
+    # identify significantly up DE genes
+    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+    # identify significantly down DE genes
+    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+    # identify significantly DE genes by FDR and LFC
+    DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+    # calculate the log CPM of the gene count data
+    logcpm <- cpm(list, log=TRUE)
+    # subset the log CPM by the DGE set
+    logcpmSubset <- subset(logcpm,
+                           grepl(
+                             paste0(rownames(DGESubset), collapse = "|"),
+                             rownames(logcpm),
+                             ignore.case = TRUE
+                           )
+    )
+    # create the DGE heatmap
+    heatmap(logcpmSubset, main= "Heatmap of DGE")
+  }
+  
+  # render heatmap of pairwise DGE
+  output$heatmapPairwiseDGE <- renderImage({
+    # perform exact test
+    tested <- pairwiseTest()
+    # save the plot
+    exportFile <- "heatmapPlotPairwiseDGE.png"
+    png(exportFile)
+    createHeatmapDGE(tested)
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "Invalid Results")
+  }, deleteFile = TRUE)
+  
+  # download handler for the pairwise heatmap plot
+  output$downloadHeatmapPairwiseDGE <- downloadHandler(
+    filename = function() {
+      "heatmapPlotPairwiseDGE.png"
+    },
+    content = function(file) {
+      # perform exact test
+      tested <- pairwiseTest()
+      # save the plot
+      png(file)
+      createHeatmapDGE(tested)
+      dev.off()
+    }
+  )
   
   # plot of log-fold change against log-counts per million with DE genes highlighted
   createMD <- function(tested, inputLFC){
@@ -1351,6 +1420,34 @@ server <- function(input, output, session) {
     # return the formatted results summary
     resultsTable
   })
+  
+  # render heatmap of pairwise DGE
+  output$heatmapGLMDGE <- renderImage({
+    # perform glm test
+    tested <- glmContrast()
+    # save the plot
+    exportFile <- "heatmapPlotGLMDGE.png"
+    png(exportFile)
+    createHeatmapDGE(tested)
+    dev.off()
+    # Return a list
+    list(src = exportFile, alt = "Invalid Results")
+  }, deleteFile = TRUE)
+  
+  # download handler for the pairwise heatmap plot
+  output$downloadHeatmapGLMDGE <- downloadHandler(
+    filename = function() {
+      "heatmapPlotGLMDGE.png"
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- glmContrast()
+      # save the plot
+      png(file)
+      createHeatmapDGE(tested)
+      dev.off()
+    }
+  )
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
   output$glmMD <- renderImage({
