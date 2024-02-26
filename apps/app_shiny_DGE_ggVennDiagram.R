@@ -1,7 +1,14 @@
 # created by: Elizabeth Brooks
-# last update: 12 October 2023
+# last update: 26 October 2023
 
 #### Setup ####
+
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "ggVennDiagram", "gplots")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
 
 # load packages
 suppressPackageStartupMessages({

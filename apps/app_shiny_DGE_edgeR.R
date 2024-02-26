@@ -1,7 +1,19 @@
 # created by: Elizabeth Brooks
-# last update: 19 Feb 2024
+# last update: 26 Feb 2024
 
 #### Setup ####
+
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+biocList <- c("edgeR")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
 # load packages 
 suppressPackageStartupMessages({
@@ -277,6 +289,7 @@ ui <- fluidPage(
               align="center",
               HTML("<b>Data Normalization</b>")
             ),
+            # TO-DO : note hoe libraries are the collection of reads associated with each sample
             imageOutput(outputId = "librarySizes", height="100%", width="100%"),
             downloadButton(outputId = "downloadLibrarySizes", label = "Download Plot"),
             tags$p(
@@ -335,6 +348,9 @@ ui <- fluidPage(
             tags$br(),
             imageOutput(outputId = "BCV", height="100%", width="100%"),
             downloadButton(outputId = "downloadBCV", label = "Download Plot"),
+            # TO-DO: note how the negative binomial distribution is used to identify genes with sufficiently large counts to be considered a real signal
+            # and measures what it expects to be missing data, or a measure of dispersion (e.g., BCV^2 0.4 indicates a 20% difference between samples)
+            # models biological noise, rather than sequencing noise (e.g., library size normalization)
             tags$p(
               "The biological coefficient of variation (BCV) plot is the square root of the dispersion parameter under the negative binomial model and is equivalent to estimating the dispersions of the negative binomial model."
             )
@@ -388,6 +404,7 @@ ui <- fluidPage(
                 tags$p(
                   HTML("<b>Differentially Expressed Genes Table:</b>")
                 ),
+                # TO-DO: add table of all DE in addition to significantly DE genes
                 downloadButton(outputId = "pairwiseResults", label = "Download Table"),
                 tags$p(
                   "A comparison or contrast is a linear combination of means for a group of samples.",
@@ -481,6 +498,7 @@ ui <- fluidPage(
                 tags$p(
                   HTML("<b>Differentially Expressed Genes Table:</b>")
                 ),
+                # TO-DO: add table of all DE in addition to significantly DE genes
                 downloadButton(outputId = "glmResults", label = "Download Table"),
                 tags$p(
                   "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
@@ -649,6 +667,7 @@ server <- function(input, output, session) {
     if(is.null(input$geneCountsTable)){
       return(NULL)
     }
+    # TO-DO: note that the first column must contain the gene names
     # read the file
     geneCounts <- read.csv(file = input$geneCountsTable$datapath, row.names=1)
     # TO-DO: consider adding check for trimming lines of non-count data
@@ -883,6 +902,8 @@ server <- function(input, output, session) {
   }, colnames = FALSE)
   
   # PCA plot
+  # TO-DO : note how it can be used to visualize the signal to noise relationship within the data
+  # (e.g., between group vs within group variation)
   createPCA <- function(){
     # retrieve input design table
     group <- designFactors()
@@ -974,6 +995,7 @@ server <- function(input, output, session) {
     }
   )
   
+  # TO-DO: increase plot margins
   # heatmap of individual RNA-seq samples using moderated log CPM
   createHeatmap <- function(){
     # calculate scaling factors

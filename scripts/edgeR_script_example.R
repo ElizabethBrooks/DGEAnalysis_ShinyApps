@@ -1,13 +1,19 @@
 #!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 19 Feb 2024
+# last update: 26 Feb 2024
 
-#Install edgeR and statmod, this should only need to be done once
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install("edgeR")
-#install.packages("statmod")
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+biocList <- c("edgeR")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
 #Turn off scientific notation
 options(scipen = 999)

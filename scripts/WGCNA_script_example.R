@@ -2,17 +2,25 @@
 #!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 19 Feb 2024
+# last update: 26 Feb 2024
 
-# script to create a network for a subset of samples using WGNCA
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "dplyr", "matrixStats", "Hmisc", "splines", "foreach", "doParallel", "fastcluster", "dynamicTreeCut", "survival")
+biocList <- c("WGCNA", "GO.db", "impute", "preprocessCore")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
-# install pacakges, if necessary
-#if (!require("BiocManager", quietly = TRUE))
-#  install.packages("BiocManager")
-#BiocManager::install("WGCNA")
-
-#Load the WGCNA and edgeR packages
+# load libraries
+library(shiny)
+library(shinythemes)
 library(WGCNA)
+library(dplyr)
 
 #The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)

@@ -1,22 +1,28 @@
 #!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 19 Feb 2024
+# last update: 26 Feb 2024
 
-#if (!requireNamespace("BiocManager", quietly=TRUE))
-#   install.packages("BiocManager")
-#BiocManager::install('_______')
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+biocList <- c("edgeR")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
 #Load the libraries
-#library(filesstrings)
+library(shiny)
+library(shinythemes)
 library(topGO)
-#library(edgeR)
-#library(GO.db)
-#library(reshape2)
 library(ggplot2)
 library(Rgraphviz)
-#library(statmod)
-#library("animation")
+library(tidyr)
+library(rcartocolor)
 
 
 # turn off scientific notation

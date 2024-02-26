@@ -1,7 +1,19 @@
 # created by: Elizabeth Brooks
-# last update: 16 January 2024
+# last update: 26 January 2024
 
 #### Setup ####
+
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "tidyr", "Rgraphviz")
+biocList <- c("topGO")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
 
 # TO-DO: double check this increase on maximum upload size for servers
 options(shiny.maxRequestSize=30*1024^2)
@@ -367,7 +379,7 @@ ui <- fluidPage(
                   HTML("<b>1.</b> Fisher's exact test is based on gene counts and can be used to perform over representation analysis of GO terms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Kolmogorov-Smirnov (KS) like test computes enrichment based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
+                  HTML("<b>2.</b> Kolmogorov-Smirnov (KS) like test computes enrichment or rank based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
                 )
               )
             ),
@@ -496,8 +508,9 @@ ui <- fluidPage(
             tags$br(),
             plotOutput(outputId = "dotPlot"),
             downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
+            # TO-DO: make sure to note enriched or overrepresented for outputs
             tags$p(
-              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.")
+              HTML("The above dot plot shows the <i>up to the top 5</i> most enriched or overrepresented GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.")
             ),
             tags$hr(),
             # TO-DO: fix downloading of subgraphs

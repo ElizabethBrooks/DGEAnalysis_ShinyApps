@@ -1,12 +1,28 @@
 #!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 19 Feb 2024
+# last update: 26 Feb 2024
 
+# install any missing packages
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+biocList <- c("edgeR")
+newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
+newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
+if(length(newPackages)){
+  install.packages(newPackages)
+}
+if(length(newBioc)){
+  BiocManager::install(newBioc)
+}
+
+# load libraries
 library(ggVennDiagram)
 library(ggplot2)
 library(gplots)
 
+#Set working directory
+workingDir="/Users/bamflappy/Downloads"
+setwd(workingDir)
 
 #venn <- Venn(list(A=1:3,B=2:5,C=4:8))
 #data <- process_data(venn)
@@ -54,3 +70,12 @@ vennSets <- ggplot() +
   theme_void()
 #return plot
 vennSets
+
+# create venn lists
+vennList <- venn(lst, show.plot = FALSE)
+# retrieve intersections
+listAtt <- attributes(vennList)$intersections
+# output table
+write.table(listAtt, "vennIntersections.csv", sep=",", row.names=TRUE, quote=FALSE)
+
+
