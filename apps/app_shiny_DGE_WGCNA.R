@@ -265,11 +265,11 @@ ui <- fluidPage(
             tags$p(
               HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
             ),
+            #tags$p(
+              #HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
+            #),
             tags$p(
-              HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
-            ),
-            tags$p(
-              HTML("<b>Tip 6:</b> Tables of gene counts with missing data may produce an error.")
+              HTML("<b>Tip 5:</b> Tables of gene counts with missing data may produce an error.")
             )
             #tags$p(
               #HTML("<b>Tip 7:</b> Repeatedly changing the inputs may cause the application to stop working.")
@@ -433,7 +433,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Tip:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values.")
+              HTML("<b>Tip 2:</b> Errors can result from a combination of high <i>Soft Thresholding Power</i> or <i>Minimum Module Size</i> values.")
             ),
             tags$br(),
             fluidRow(
@@ -458,7 +458,7 @@ ui <- fluidPage(
               HTML("<b>Helpful Tips</b>")
             ),
             tags$p(
-              HTML("<b>Tip 1:</b> In general, it is best to select the lowest power for which the scale-free topology fit index reaches a 0.90 value.")
+              HTML("<b>Tip 1:</b> The <i>Soft Thresholding Power</i> and <i>Minimum Module Size</i> should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds."
             ),
             tags$p(
               HTML("<b>Tip 2:</b> Note that the 0 number label is reserved for unassigned genes.")
@@ -549,7 +549,7 @@ ui <- fluidPage(
             downloadButton(outputId = "eigengeneDownload", label = "Download Table"),
             tags$br(),
             tags$p(
-              "The calculated eigengene expresison values for each module."
+              "The calculated ME expression values for each module."
             )
           ),
           
@@ -614,12 +614,11 @@ server <- function(input, output, session) {
     exCountsTable <- data.frame(
       Gene = c("gene-1", "gene-2", "gene-3", "gene-4", "gene-5"),
       SampleOne = c(55.4739214515074,55.4922106735603,50.8277794324053,49.0577237706748,35.0116413707558),
+      SampleTwo = c(1.29009119654668,3.14106852869209,1.78343085727738,1.66722101765504,0.89916090304527),
       SampleThree = c(60.6342862376941,58.6332792022524,66.8786571479017,55.1899392420091,47.5157990031686),
       SampleFour = c(41.2829182894939,77.4796903744049,73.1206651483725,52.7370530534754,59.1863461267538),
       SampleFive = c(169.001946747616,187.417088878628,135.540745153081,199.9102243655,132.544070903575),
-      SampleSix = c(21.9315503412936,24.0815253866394,33.8851862882702,34.3404066394723,26.6755362824806),
-      SampleSeven = c(1.29009119654668,3.14106852869209,1.78343085727738,1.66722101765504,0.89916090304527),
-      SampleEight = c(32.2522799136671,42.9279365587919,60.6366491474309,33.1139635452055,32.5108098442732)
+      SampleSix = c(21.9315503412936,24.0815253866394,33.8851862882702,34.3404066394723,26.6755362824806)
     )
   })
   
