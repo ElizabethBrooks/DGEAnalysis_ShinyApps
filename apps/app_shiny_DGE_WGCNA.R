@@ -458,7 +458,7 @@ ui <- fluidPage(
               HTML("<b>Helpful Tips</b>")
             ),
             tags$p(
-              HTML("<b>Tip 1:</b> The <i>Soft Thresholding Power</i> and <i>Minimum Module Size</i> should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds."
+              HTML("<b>Tip 1:</b> The <i>Soft Thresholding Power</i> and <i>Minimum Module Size</i> should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds.")
             ),
             tags$p(
               HTML("<b>Tip 2:</b> Note that the 0 number label is reserved for unassigned genes.")
