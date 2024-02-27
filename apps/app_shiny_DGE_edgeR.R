@@ -4,7 +4,7 @@
 #### Setup ####
 
 # install any missing packages
-packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr", "statmod")
 biocList <- c("edgeR")
 newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
@@ -402,11 +402,11 @@ ui <- fluidPage(
                 tableOutput(outputId = "pairwiseSummary"),
                 tags$br(),
                 tags$p(
-                  HTML("<b>Differentially Expressed Genes Table:</b>")
+                  HTML("<b>DGE Analysis Results Table:</b>")
                 ),
-                # TO-DO: add table of all DE in addition to significantly DE genes
                 downloadButton(outputId = "pairwiseResults", label = "Download Table"),
                 tags$p(
+                  "A table of DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button.",
                   "A comparison or contrast is a linear combination of means for a group of samples.",
                   "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
                 ),
@@ -496,11 +496,12 @@ ui <- fluidPage(
                 tableOutput(outputId = "glmSummary"),
                 tags$br(),
                 tags$p(
-                  HTML("<b>Differentially Expressed Genes Table:</b>")
+                  HTML("<b>DGE Analysis Results Table:</b>")
                 ),
                 # TO-DO: add table of all DE in addition to significantly DE genes
                 downloadButton(outputId = "glmResults", label = "Download Table"),
                 tags$p(
+                  "A table of DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button.",
                   "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
                   "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.",
                   "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."

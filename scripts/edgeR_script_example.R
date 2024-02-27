@@ -4,7 +4,7 @@
 # last update: 26 Feb 2024
 
 # install any missing packages
-packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr", "statmod")
 biocList <- c("edgeR")
 newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
