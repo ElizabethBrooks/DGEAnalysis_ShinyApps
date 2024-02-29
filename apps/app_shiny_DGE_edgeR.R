@@ -1136,13 +1136,8 @@ server <- function(input, output, session) {
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # subset the log CPM by the DGE set
-    logcpmSubset <- subset(logcpm,
-                           grepl(
-                             paste0(rownames(DGESubset), collapse = "|"),
-                             rownames(logcpm),
-                             ignore.case = TRUE
-                           )
-    )
+    selected_rows <- rownames(logcpm) %in% rownames(DGESubset)
+    logcpmSubset <- logcpm[selected_rows, ]
     # create the DGE heatmap
     heatmap(logcpmSubset, main= "Heatmap of DGE")
   }
