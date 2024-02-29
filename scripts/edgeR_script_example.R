@@ -204,5 +204,5 @@ logcountsSubset <- subset(logcounts,
                             rownames(logcounts),
                             ignore.case = TRUE
                           )
-                        )
+)
 heatmap(logcountsSubset, main= "Heatmap of DGE")

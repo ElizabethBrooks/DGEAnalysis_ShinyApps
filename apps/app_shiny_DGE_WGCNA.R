@@ -231,11 +231,11 @@ ui <- fluidPage(
         )
         #tags$br(),
         #tags$p(
-          #align="center",
-          #HTML("<b>Warning!</b>")
+        #align="center",
+        #HTML("<b>Warning!</b>")
         #),
         #tags$p(
-          #HTML("The application will stop working if errors have been produced from a too high <i>Minimum Branch Cluster Size</i> or too low <i>Branch Cut Height</i>.")
+        #HTML("The application will stop working if errors have been produced from a too high <i>Minimum Branch Cluster Size</i> or too low <i>Branch Cut Height</i>.")
         #)
       ),
       
@@ -266,13 +266,13 @@ ui <- fluidPage(
               HTML("<b>Tip 4:</b> Make sure to read the additional <i>Helpful Tips</i> and information that can be found throughout the analysis steps.")
             ),
             #tags$p(
-              #HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
+            #HTML("<b>Tip 5:</b> Changing the input normalized gene counts or experimental design tables in the left-hand sidebar may produce <i>temporary</i> errors.")
             #),
             tags$p(
               HTML("<b>Tip 5:</b> Tables of gene counts with missing data may produce an error.")
             )
             #tags$p(
-              #HTML("<b>Tip 7:</b> Repeatedly changing the inputs may cause the application to stop working.")
+            #HTML("<b>Tip 7:</b> Repeatedly changing the inputs may cause the application to stop working.")
             #)
           ),
           
@@ -454,7 +454,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-                align="center",
+              align="center",
               HTML("<b>Helpful Tips</b>")
             ),
             tags$p(
@@ -467,9 +467,9 @@ ui <- fluidPage(
               HTML("<b>Tip 3:</b> Note that the grey color label is reserved for unassigned genes.")
             ),
             #tags$p(
-              #HTML("<b>Tip 4:</b> The thresholding procedure is describe in "),
-              #tags$a("\"WGCNA: an R package for weighted correlation network analysis\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
-              #"(e.g., Category 1: Functions for network construction)."
+            #HTML("<b>Tip 4:</b> The thresholding procedure is describe in "),
+            #tags$a("\"WGCNA: an R package for weighted correlation network analysis\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
+            #"(e.g., Category 1: Functions for network construction)."
             #),
             tags$hr(),
             tags$p(
@@ -588,9 +588,9 @@ ui <- fluidPage(
               "."
             )#,
             #tags$p(
-              #"Frequently asked questions are available at ", 
-              #tags$a("WGCNA package FAQ", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/faq.html"), 
-              #"."
+            #"Frequently asked questions are available at ", 
+            #tags$a("WGCNA package FAQ", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/faq.html"), 
+            #"."
             #)
           )
         )
@@ -689,7 +689,7 @@ server <- function(input, output, session) {
     }
     # make sure there are at least three columns
     #if(ncol(dataInput) < 3) { 
-        #return(NULL)
+    #return(NULL)
     #}
     # return gene counts
     dataInput
@@ -719,7 +719,7 @@ server <- function(input, output, session) {
     # return the design
     targets
   })
-
+  
   # check if input files have been uploaded
   output$inputsUploaded <- function(){
     # check if the input files are valid
@@ -731,7 +731,7 @@ server <- function(input, output, session) {
     return(TRUE)
   }
   outputOptions(output, 'inputsUploaded', suspendWhenHidden=FALSE)
-
+  
   # compare input design and counts samples
   compareSamples <- function(){
     # check if the input files are valid
@@ -860,8 +860,8 @@ server <- function(input, output, session) {
         # Optionally, print the gene and sample names that were removed:
         if (sum(!gsg$goodGenes)>0){
           geneList <- c(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
-      }else{
-        geneList <- c("Input normalized counts for the genes are good.")
+        }else{
+          geneList <- c("Input normalized counts for the genes are good.")
         }
       }else{
         geneList <- c("Input normalized counts for the genes are good.")
@@ -1004,7 +1004,7 @@ server <- function(input, output, session) {
       step=1
     )
   })
-
+  
   # function to create clustering plot
   createSamplesOutliers <- function(){
     # require input data
@@ -1088,7 +1088,7 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
-    
+  
   # function to filter expression data
   filterData <- function(){
     # check if the inputs are valid
@@ -1173,7 +1173,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
-
+  
   # download handler for the clustering plot
   output$downloadClusterSamples <- downloadHandler(
     filename = function() {
@@ -1260,7 +1260,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
-
+  
   # download handler for the powers plot
   output$downloadPlotThreshold <- downloadHandler(
     filename = function() {
@@ -1329,7 +1329,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
-
+  
   # download handler for the clustering plot
   output$downloadHclustPlot <- downloadHandler(
     filename = function() {
@@ -1383,7 +1383,7 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
-
+  
   # function to convert module labels
   convertLabels <- function(){
     # require valid inputs
@@ -1414,7 +1414,7 @@ server <- function(input, output, session) {
     # return table
     infoTable
   })
-
+  
   # function to create plot of dendorgram with colors
   createPlotColorDendro <- function(){
     # check inputs
@@ -1526,7 +1526,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "Invalid Results", height = "500px")
   }, deleteFile = TRUE)
-
+  
   # download handler for the eigengenes plot
   output$downloadPlotEigengenes <- downloadHandler(
     filename = function() {
@@ -1631,7 +1631,7 @@ server <- function(input, output, session) {
     # Return a list
     list(src = exportFile, alt = "Invalid Results", height = "700px")
   }, deleteFile = TRUE)
-
+  
   # download handler for the dendrogram plot
   output$downloadPlotTrimmedDendro <- downloadHandler(
     filename = function() {

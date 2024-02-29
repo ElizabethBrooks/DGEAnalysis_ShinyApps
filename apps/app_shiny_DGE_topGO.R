@@ -1,11 +1,11 @@
 # created by: Elizabeth Brooks
-# last update: 26 January 2024
+# last update: 28 January 2024
 
 #### Setup ####
 
 # install any missing packages
-packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "tidyr", "Rgraphviz")
-biocList <- c("topGO")
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "tidyr")
+biocList <- c("topGO", "Rgraphviz")
 newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
 if(length(newPackages)){
@@ -217,7 +217,7 @@ ui <- fluidPage(
           HTML("<b>Tip 5:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-          #HTML("<b>Tip 6:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+        #HTML("<b>Tip 6:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
         tags$p(
@@ -368,7 +368,7 @@ ui <- fluidPage(
                   inputId = "testStat",
                   label = NULL,
                   choices = c("Fisher" = "fisher",
-                    "Kolmogorov-Smirnov" = "ks"),
+                              "Kolmogorov-Smirnov" = "ks"),
                   selected = "fisher"
                 ),
                 tags$br(),
@@ -566,7 +566,7 @@ ui <- fluidPage(
               "The forth line is showing the number of signifcant genes and the total number of genes annotated to the respective GO term."
             )
           ),
-            
+          
           # results tab
           tabPanel(
             "Results",
@@ -873,7 +873,7 @@ server <- function(input, output, session) {
         if(eval(parse(text = paste(geneUniverse[i], input$universeCut, sep=" ")))){
           interesting_DE_genes[i] = 1
         }
-     }
+      }
       interesting_DE_genes <- setNames(interesting_DE_genes, names(geneUniverse))
       return(interesting_DE_genes)
     }
@@ -892,8 +892,8 @@ server <- function(input, output, session) {
     GO_maps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
     GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
-                    geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
-                    gene2GO = GO_maps)
+                   geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
+                   gene2GO = GO_maps)
   }
   
   # TO-DO: this causes additional function calls
@@ -1021,7 +1021,7 @@ server <- function(input, output, session) {
     list_GO_terms <- usedGO(GO_data)
     # retrieve results table
     GO_Results_table <- GenTable(GO_data, weightFisher = GO_Results, orderBy = 'weightFisher', 
-                                    topNodes = length(list_GO_terms))
+                                 topNodes = length(list_GO_terms))
   }
   
   # function to get significant BP, MF, or CC GO terms
@@ -1220,5 +1220,4 @@ server <- function(input, output, session) {
 
 # create the Shiny app object 
 shinyApp(ui = ui, server = server)
-          
-          
+

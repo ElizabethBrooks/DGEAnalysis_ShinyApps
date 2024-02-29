@@ -1,8 +1,7 @@
 #!/usr/bin/env Rscript
-#!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 26 Feb 2024
+# last update: 29 Feb 2024
 
 # install any missing packages
 packageList <- c("BiocManager", "shiny", "shinythemes", "dplyr", "matrixStats", "Hmisc", "splines", "foreach", "doParallel", "fastcluster", "dynamicTreeCut", "survival")

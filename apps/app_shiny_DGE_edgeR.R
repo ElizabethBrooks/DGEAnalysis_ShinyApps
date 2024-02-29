@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# last update: 26 Feb 2024
+# last update: 29 Feb 2024
 
 #### Setup ####
 
@@ -48,26 +48,30 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
-      # header for file uploads
-      tags$p(
-        "Upload table of gene counts (*.csv):"
-      ),
-      # select a file
-      fileInput(
-        "geneCountsTable", 
-        label = NULL,
-        multiple = FALSE,
-        accept = ".csv"
-      ),
-      # header for comparison selection
-      tags$p(
-        "Upload table with the experimental design (*.csv):"),
-      # select a file
-      fileInput(
-        "expDesignTable", 
-        label = NULL,
-        multiple = FALSE,
-        accept = ".csv"
+      # show panel depending on run button
+      conditionalPanel(
+        condition = "!input.runUpload",
+        # header for file uploads
+        tags$p(
+          "Upload table of gene counts (*.csv):"
+        ),
+        # select a file
+        fileInput(
+          "geneCountsTable", 
+          label = NULL,
+          multiple = FALSE,
+          accept = ".csv"
+        ),
+        # header for comparison selection
+        tags$p(
+          "Upload table with the experimental design (*.csv):"),
+        # select a file
+        fileInput(
+          "expDesignTable", 
+          label = NULL,
+          multiple = FALSE,
+          accept = ".csv"
+        )
       ),
       # show panel depending on inputs check
       conditionalPanel(
@@ -82,22 +86,23 @@ ui <- fluidPage(
       # show panel depending on upload check
       conditionalPanel(
         condition = "input.runUpload && output.inputCheck && !input.runAnalysis",
-        tags$hr(),
         tags$p(
           "Click to Run Analysis:"
         ),  
         actionButton("runAnalysis", "Run Analysis"),
       ),
+      # show panel depending on new uploads
+      #conditionalPanel(
+      #condition = "output.inputsUploaded && !output.inputCheck",
+      #tags$hr(),
+      #tags$p(
+      #  "Click to Update Inputs:"
+      #),  
+      #actionButton("inputsUpdate", "Update Inputs"),
+      #),
       # show panel depending on input files
       conditionalPanel(
-        condition = "input.runAnalysis && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
-        #tags$hr(),
-        # To-DO: connect
-        #tags$p(
-          #"Click to Update Analysis:"
-        #),  
-        #actionButton("updateAnalysis", "Update Analysis"),
-        tags$hr(),
+        condition = "input.runAnalysis && output.normalizeResultsCompleted",
         tags$p(
           "Select Analysis Type:"
         ),
@@ -169,10 +174,22 @@ ui <- fluidPage(
         tags$hr(),
         tags$p(
           align = "center",
-          HTML("<b>Helpful Tip</b>")
+          HTML("<b>Helpful Tips</b>")
         ),
         tags$p(
-          HTML("<b>Tip:</b> If the tables of gene counts were created using <i>HTSeq</i>, you may need to delete the last five lines of gene count statistics (e.g., __not_aligned) before uploading for DGE analysis.")
+          HTML("<b>Tip 1:</b> If the tables of gene counts were created using <i>HTSeq</i>, you may need to delete the last five lines of gene count statistics (e.g., __not_aligned) before uploading for DGE analysis.")
+        ),
+        tags$p(
+          HTML("<b>Tip 2:</b> The input gene counts table is expected to contain <i>numeric</i> integer values."),
+        ),
+        tags$p(
+          HTML("<b>Tip 3:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <i>character</i> values.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> Sample names in the first line of the gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 5:</b> The input gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
         ),
         tags$hr(),
         tags$p(
@@ -203,45 +220,45 @@ ui <- fluidPage(
       ),
       
       # warning text
-      conditionalPanel(
-        condition = "output.inputsUploaded && !output.inputCheck",
-        tags$h1(
-          "Warning", 
-          align="center"
-        ),
-        tags$br(),
-        tags$p(
-          "The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
-        ),
-        tags$br(),
-        tags$p(
-          "Please check that each of the input files were uploaded correctly in the left-hand side bar."
-        ),
-        tags$p(
-          HTML("Please <b>allow a moment for processing</b> after uploading new input file(s).")
-        ),
-        tags$hr(),
-        tags$p(
-          align = "center",
-          HTML("<b>Helpful Tips</b>")
-        ),
-        tags$p(
-          HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <i>numeric</i> integer values."),
-        ),
-        tags$p(
-          HTML("<b>Tip 2:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <i>character</i> values.")
-        ),
-        tags$p(
-          HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
-        ),
-        tags$p(
-          HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
-        )
-      ),
+      #conditionalPanel(
+      #condition = "output.inputsUploaded && !output.inputCheck",
+      #tags$h1(
+      #"Warning", 
+      #align="center"
+      #),
+      #tags$br(),
+      #tags$p(
+      #"The data in the uploaded file(s) are not of the correct type or the sample names do not match.",
+      #),
+      #tags$br(),
+      #tags$p(
+      #"Please check that each of the input files were uploaded correctly in the left-hand side bar."
+      #),
+      #tags$p(
+      #HTML("Please <b>allow a moment for processing</b> after uploading new input file(s).")
+      #),
+      #tags$hr(),
+      #tags$p(
+      #align = "center",
+      #HTML("<b>Helpful Tips</b>")
+      #),
+      #tags$p(
+      #HTML("<b>Tip 1:</b> The input gene counts table is expected to contain <i>numeric</i> integer values."),
+      #),
+      #tags$p(
+      #HTML("<b>Tip 2:</b> Sample names contained in the first column of the gene counts and experimental design tables are expected to be <i>character</i> values.")
+      #),
+      #tags$p(
+      #HTML("<b>Tip 3:</b> Sample names in the first line of the gene counts table <i>must match</i> the sample names contained in the first column of the experimental design table.")
+      #),
+      #tags$p(
+      #HTML("<b>Tip 4:</b> The input gene counts and experimental design tables must end in the <i>.csv</i> file extension.")
+      #)
+      #),
       
       # processing text
       conditionalPanel(
-        condition = "output.inputCheck && !(output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "output.inputCheck && !output.normalizeResultsCompleted",
         tags$h1(
           "Processing", 
           align="center"
@@ -252,7 +269,7 @@ ui <- fluidPage(
       
       # results text and plots
       conditionalPanel(
-        condition = "(input.runAnalysis && output.inputCheck) && (output.pairwiseResultsCompleted || output.glmResultsCompleted)",
+        condition = "(input.runAnalysis && output.inputCheck) && output.normalizeResultsCompleted",
         # set of tab panels
         tabsetPanel(
           type = "tabs",
@@ -373,19 +390,36 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                HTML("<b>Choose factor levels for comparison:</b>")
+                "A comparison or contrast is a linear combination of means for a group of samples.",
+                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
               ),
-              # select variable for the first level
-              selectInput(
-                inputId = "levelOne",
-                label = "First Level",
-                choices = c("")
-              ),
-              # select variable for the second level
-              selectInput(
-                inputId = "levelTwo",
-                label = "Second Level",
-                choices = c("")
+              tags$br(),
+              fluidRow(
+                column(
+                  width = 6,
+                  tags$p(
+                    HTML("<b>Choose factor levels for comparison:</b>")
+                  ),
+                  # select variable for the first level
+                  selectInput(
+                    inputId = "levelOne",
+                    label = "First Level",
+                    choices = c("")
+                  ),
+                  # select variable for the second level
+                  selectInput(
+                    inputId = "levelTwo",
+                    label = "Second Level",
+                    choices = c("")
+                  )
+                ),
+                column(
+                  width = 6,
+                  tags$p(
+                    HTML("<b>Click to Analyze:</b>")
+                  ),  
+                  actionButton("pairwiseUpdate", "Analyze")
+                )
               ),
               # show pairwise results
               conditionalPanel(
@@ -401,22 +435,43 @@ ui <- fluidPage(
                 ),
                 tableOutput(outputId = "pairwiseSummary"),
                 tags$br(),
-                tags$p(
-                  HTML("<b>DGE Analysis Results Table:</b>")
-                ),
-                downloadButton(outputId = "pairwiseResults", label = "Download Table"),
-                tags$p(
-                  "A table of DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button.",
-                  "A comparison or contrast is a linear combination of means for a group of samples.",
-                  "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
-                ),
-                tags$br(),
-                tags$p(
-                  HTML("<b>Differentially Expressed Genes IDs:</b>")
-                ),
-                downloadButton(outputId = "pairwiseResultsIDs", label = "Download Table"),
-                tags$p(
-                  "A list of the DE gene IDs from the pairwise analysis may be downloaded by clicking the above button.",
+                fluidRow(
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>DGE Analysis Results Table:</b>")
+                    ),
+                    downloadButton(outputId = "pairwiseResults", label = "Download Table"),
+                    tags$p(
+                      "A table of pairwise DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button."
+                    ),
+                    tags$br(),
+                    tags$p(
+                      HTML("<b>DGE Analysis Significant Results Table:</b>")
+                    ),
+                    downloadButton(outputId = "pairwiseSigResults", label = "Download Table"),
+                    tags$p(
+                      "A table of pairwise DGE analysis significant results sorted by increasing p-values may be downloaded by clicking the above button."
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>DE Genes IDs:</b>")
+                    ),
+                    downloadButton(outputId = "pairwiseResultsIDs", label = "Download Table"),
+                    tags$p(
+                      "A list of the DE gene IDs from the pairwise analysis may be downloaded by clicking the above button.",
+                    ),
+                    tags$br(),
+                    tags$p(
+                      HTML("<b>Significantly DE Genes IDs:</b>")
+                    ),
+                    downloadButton(outputId = "pairwiseSigResultsIDs", label = "Download Table"),
+                    tags$p(
+                      "A list of the significantly DE gene IDs from the pairwise analysis may be downloaded by clicking the above button.",
+                    )
+                  )
                 ),
                 tags$hr(),
                 tags$p(
@@ -462,9 +517,32 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                HTML("<b>Enter expression for comparison:</b>")
+                "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
+                "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.",
+                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
               ),
-              textInput("compareExpression", "Expression"),
+              tags$br(),
+              fluidRow(
+                column(
+                  width = 6,
+                  tags$p(
+                    HTML("<b>Enter expression for comparison:</b>")
+                  ),
+                  textInput("compareExpression", "Expression")
+                ),
+                column(
+                  width = 6,
+                  tags$p(
+                    HTML("<b>Click to Analyze:</b>")
+                  ),  
+                  actionButton("glmUpdate", "Analyze")
+                )
+              ),
+              tags$br(),
+              tags$p(
+                HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same as in the experimental design file and shown in the left-hand sidebar.")
+              ),
+              tags$br(),
               tags$p(
                 "Valid expressions must consist of the factors contained in the input experimental design file, which is displayed in the left-hand sidebar."
               ),
@@ -473,13 +551,8 @@ ui <- fluidPage(
                 tags$a("edgeR manual", href = "https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf"),
                 " (e.g., sections 3.2.6 & 4.4.9)."
               ),
-              #tags$p(
-                #"A detailed description of designing model expressions are provided in the paper",
-                #tags$a("\"A guide to creating design matrices for gene expression experiments\"", href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/"),
-                #" (e.g., studies with multiple factors)."
-              #),
               tags$p(
-                HTML("<b>Tip!</b> Make sure that the factors used in the expression are spelled the same as in the experimental design file and shown in the left-hand sidebar.")
+                HTML("A detailed description of designing model expressions is provided in the paper \"A guide to creating design matrices for gene expression experiments\" <i>doi: 10.12688/f1000research.27893.1</i> (e.g., studies with multiple factors).")
               ),
               # show glm results
               conditionalPanel(
@@ -495,24 +568,43 @@ ui <- fluidPage(
                 ),
                 tableOutput(outputId = "glmSummary"),
                 tags$br(),
-                tags$p(
-                  HTML("<b>DGE Analysis Results Table:</b>")
-                ),
-                # TO-DO: add table of all DE in addition to significantly DE genes
-                downloadButton(outputId = "glmResults", label = "Download Table"),
-                tags$p(
-                  "A table of DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button.",
-                  "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
-                  "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.",
-                  "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
-                ),
-                tags$br(),
-                tags$p(
-                  HTML("<b>Differentially Expressed Genes IDs:</b>")
-                ),
-                downloadButton(outputId = "glmResultsIDs", label = "Download Table"),
-                tags$p(
-                  "A list of the DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button.",
+                fluidRow(
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>DGE Analysis Results Table:</b>")
+                    ),
+                    downloadButton(outputId = "glmResults", label = "Download Table"),
+                    tags$p(
+                      "A table of GLM DGE analysis results sorted by increasing p-values may be downloaded by clicking the above button."
+                    ),
+                    tags$br(),
+                    tags$p(
+                      HTML("<b>DGE Analysis Significant Results Table:</b>")
+                    ),
+                    downloadButton(outputId = "glmSigResults", label = "Download Table"),
+                    tags$p(
+                      "A table of GLM DGE analysis significant results sorted by increasing p-values may be downloaded by clicking the above button."
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>DE Gene IDs:</b>")
+                    ),
+                    downloadButton(outputId = "glmResultsIDs", label = "Download Table"),
+                    tags$p(
+                      "A list of the DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button.",
+                    ),
+                    tags$br(),
+                    tags$p(
+                      HTML("<b>Significantly DE Gene IDs:</b>")
+                    ),
+                    downloadButton(outputId = "glmSigResultsIDs", label = "Download Table"),
+                    tags$p(
+                      "A list of the significantly DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button.",
+                    )
+                  )
                 ),
                 tags$hr(),
                 tags$p(
@@ -826,6 +918,15 @@ server <- function(input, output, session) {
     list <- DGEList(counts=geneCounts,group=group)
   }
   
+  # check if results have completed
+  output$normalizeResultsCompleted <- function(){
+    if(is.null(normalizeData())){
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  outputOptions(output, 'normalizeResultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  
   # function for normalized data filtering
   filterNorm <- function(){
     # begin to construct the DGE list object
@@ -867,7 +968,7 @@ server <- function(input, output, session) {
     # create barplot of library sizes before normalization
     barplot(list$samples$lib.size*1e-6, names=1:numSamples, ylab="Library size (millions)", main = "Library Sizes Before Normalization")
   }
-    
+  
   # render plot of library sizes before normalization
   output$librarySizes <- renderImage({
     # save the plot
@@ -1078,7 +1179,8 @@ server <- function(input, output, session) {
   })
   
   # function to calculate table of DE genes
-  pairwiseTest <- function(){
+  #pairwiseTest <- function(){
+  pairwiseTest <- eventReactive(input$pairwiseUpdate, {
     # require valid inputs
     if(is.null(compareSamples())){
       return(NULL)
@@ -1091,9 +1193,8 @@ server <- function(input, output, session) {
     list <- estimateDisp(list)
     # perform exact test
     exactTest(list, pair=c(input$levelOne, input$levelTwo))
-  }
+  })
   
-  # TO-DO: this causes additional function calls
   # check if results have completed
   output$pairwiseResultsCompleted <- function(){
     if(is.null(pairwiseTest())){
@@ -1107,7 +1208,7 @@ server <- function(input, output, session) {
   output$pairwiseSummary <- renderTable({
     # perform exact test
     tested <- pairwiseTest()
-    # view the total number of differentially expressed genes at a p-value of 0.05
+    # view the total number of differentially expressed genes at a FDR and LFC cut off
     DGEgenes = decideTests(tested,p.value=input$FDRcut, lfc=input$LFCcut)
     resultsSummary <- summary(DGEgenes)
     # create the results summary
@@ -1275,12 +1376,11 @@ server <- function(input, output, session) {
   #brushedPoints(resultsTbl, input$volcano_brush, xvar = "logFC", yvar = "negLog10FDR")
   #})
   
-  # TO-DO: add FDR cut off filter
-  # download table with number of filtered genes
+  # download table with number of DE genes
   output$pairwiseResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseTopDEGs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseDEGs.csv", sep = "_")
     },
     content = function(file) {
       # perform exact test
@@ -1294,7 +1394,32 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: add FDR cut off filter
+  # download table with number of filtered DE genes
+  output$pairwiseSigResults <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$levelTwo, input$levelOne, "pairwiseSigDEGs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform exact test
+      tested <- pairwiseTest()
+      # view results table of DE genes
+      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # add column for identifying direction of DE gene expression
+      resultsTbl$topDE <- "NA"
+      # identify significantly up DE genes
+      resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+      # identify significantly down DE genes
+      resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+      # identify significantly DE genes by FDR and LFC
+      DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+      # add gene row name tag
+      resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
+      # output table
+      write.table(resultsTbl.out, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
   # function to retrieve gene IDs from results tables
   retrieveGeneIDs <- function(tested){
     # view results table of top 10 DE genes
@@ -1311,17 +1436,57 @@ server <- function(input, output, session) {
     resultsTblNames
   }
   
-  # download table with number of filtered genes IDs
+  # function to retrieve gene IDs from results tables
+  retrieveSigGeneIDs <- function(tested){
+    # view results table of DE genes
+    resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+    # add column for identifying direction of DE gene expression
+    resultsTbl$topDE <- "NA"
+    # identify significantly up DE genes
+    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+    # identify significantly down DE genes
+    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+    # identify significantly DE genes by FDR and LFC
+    DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+    # retrieve gene IDS
+    resultsTblNames <- rownames(DGESubset)
+    # add commas
+    resultsTblNames <- paste(resultsTblNames, ",", sep="")
+    # retrieve last entry
+    lastEntry <- resultsTblNames[length(resultsTblNames)]
+    # remove extra trailing comma
+    resultsTblNames[length(resultsTblNames)] <- gsub(",", "\n", lastEntry)
+    # return list of gene IDs
+    resultsTblNames
+  }
+  
+  # download table with number of DE genes IDs
   output$pairwiseResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseTopDEGs_geneIDs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseDEGs_geneIDs.csv", sep = "_")
     },
     content = function(file) {
       # perform glm test
       tested <- pairwiseTest()
       # add commas
       resultsTblNames <- retrieveGeneIDs(tested)
+      # output table
+      writeLines(resultsTblNames, con = file, sep = "")
+    }
+  )
+  
+  # download table with number of filtered DE genes IDs
+  output$pairwiseSigResultsIDs <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$levelTwo, input$levelOne, "pairwiseSigDEGs_geneIDs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- pairwiseTest()
+      # add commas
+      resultsTblNames <- retrieveSigGeneIDs(tested)
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }
@@ -1404,7 +1569,8 @@ server <- function(input, output, session) {
   })
   
   # function to perform glm contrasts
-  glmContrast <- function(){
+  #glmContrast <- function(){
+  glmContrast <- eventReactive(input$glmUpdate, {
     # require the expression
     req(input$compareExpression)
     # set the input expression as global
@@ -1418,7 +1584,7 @@ server <- function(input, output, session) {
                                  levels=design)
     # look at genes with significant expression across all UV groups
     glmTreat(fit, contrast=glmContrast)
-  }
+  })
   
   # check if results have completed
   output$glmResultsCompleted <- function(){
@@ -1433,7 +1599,7 @@ server <- function(input, output, session) {
   output$glmSummary <- renderTable({
     # perform glm test
     tested <- glmContrast()
-    # view the total number of differentially expressed genes at a p-value of 0.05
+    # view the total number of differentially expressed genes at a FDR and LFC cut off
     resultsSummary <- summary(decideTests(tested), p.value=input$FDRcut, lfc=input$LFCcut)
     # create the results summary
     resultsTable <- data.frame(
@@ -1527,17 +1693,16 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: add FDR cut off filter
   # download table with number of filtered genes
   output$glmResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$compareExpression, "glmTopDEGs.csv", sep = "_")
+      paste(input$compareExpression, "glmDEGs.csv", sep = "_")
     },
     content = function(file) {
       # perform glm test
       tested <- glmContrast()
-      # view results table of top 10 DE genes
+      # view results table of DE genes
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # add gene row name tag
       resultsTbl <- as_tibble(resultsTbl, rownames = "gene")
@@ -1546,8 +1711,33 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: add FDR cut off filter
-  # download table with number of filtered genes IDs
+  # download table with number of filtered genes
+  output$glmSigResults <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$compareExpression, "glmSigDEGs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- glmContrast()
+      # view results table of DE genes
+      resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+      # add column for identifying direction of DE gene expression
+      resultsTbl$topDE <- "NA"
+      # identify significantly up DE genes
+      resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+      # identify significantly down DE genes
+      resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+      # identify significantly DE genes by FDR and LFC
+      DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+      # add gene row name tag
+      resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
+      # output table
+      write.table(resultsTbl.out, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # download table with number of DE genes IDs
   output$glmResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
@@ -1558,6 +1748,22 @@ server <- function(input, output, session) {
       tested <- glmContrast()
       # retrieve gene IDS
       resultsTblNames <- retrieveGeneIDs(tested)
+      # output table
+      writeLines(resultsTblNames, con = file, sep = "")
+    }
+  )
+  
+  # download table with number of filtered DE genes IDs
+  output$glmSigResultsIDs <- downloadHandler(
+    filename = function() {
+      # setup output file name
+      paste(input$compareExpression, "glmSigDEGs_geneIDs.csv", sep = "_")
+    },
+    content = function(file) {
+      # perform glm test
+      tested <- glmContrast()
+      # retrieve gene IDS
+      resultsTblNames <- retrieveSigGeneIDs(tested)
       # output table
       writeLines(resultsTblNames, con = file, sep = "")
     }

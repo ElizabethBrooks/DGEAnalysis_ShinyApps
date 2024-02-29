@@ -1,11 +1,11 @@
 #!/usr/bin/env Rscript
 
 # created by: Elizabeth Brooks
-# last update: 26 Feb 2024
+# last update: 28 Feb 2024
 
 # install any missing packages
-packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr")
-biocList <- c("edgeR")
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "tidyr")
+biocList <- c("topGO", "Rgraphviz")
 newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
 if(length(newPackages)){
@@ -31,14 +31,26 @@ options(scipen = 999)
 # the following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
+# set the statistic for gene scoring
+#statisticInput <- "FDR"
+#statisticInput <- "number"
+statisticInput <- "color"
 
-# retrieve input DE results
+# set the expression for gene scoring
+#expressionInput <- "< 0.05" # example expression for edgeR FDR statistic
+#expressionInput <- "== 1" # example expression for WGCNA number statistic
+expressionInput <- "== purple" # example expression for WGCNA color statistic
+
+# retrieve input edgeR or WGCNA results tables
 #DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_topDEGs.csv", row.names=1)
-DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_topDEGs.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_topDEGs.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_topDEGs.csv", row.names=1)
+DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_geneModules.csv", row.names=1)
 
 # retrieve mappings created by pannzer2
 #GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
-GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
 
 # re-format mappings from pannzer2
 GOmaps_pannzer_fmt <- split(GOmaps_pannzer$goid,GOmaps_pannzer$qpid)
@@ -50,47 +62,28 @@ colnames(GOmaps_pannzer_out) <- NULL
 
 # output re-formatted mappings from pannzer2
 #write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
-write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
 
 # retrieve gene to GO map
 #GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.fmt.txt")
-GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt")
+#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt")
+GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_GO.fmt.txt")
 
 
 ## GO enrichment
 # create named list of all genes (gene universe) and p-values
 # the gene universe is set to be the list of all genes contained in the gene2GO list of annotated genes
-list_genes <- as.numeric(DGE_results_table$FDR)
+list_genes <- as.numeric(DGE_results_table[,statisticInput])
 list_genes <- setNames(list_genes, rownames(DGE_results_table))
 list_genes_filtered <- list_genes[names(list_genes) %in% names(GOmaps)]
-
-testInput <- "== 1"
-testExp <- strsplit(testInput, split = " ")[[1]][1]
-testComp <- strsplit(testInput, split = " ")[[1]][2]
-
-testCheck <- try(
-  if(eval(parse(text = paste(which(colors() == "1"), testExp, which(colors() == testComp), sep=" ")))){
-    print("yes")
-  },
-  silent = TRUE
-)
-if(class(testCheck) == "try-error"){
-  if(eval(parse(text = paste("1", testExp, testComp, sep=" ")))){
-    print("yes")
-  }
-}
-
-if(eval(parse(text = paste(which(colors() == "purple3"), "==", which(colors() == "purple3"), sep=" ")))){
-  print("yes")
-}
 
 
 # create function to return list of interesting DE genes (0 == not significant, 1 == significant)
 get_interesting_DE_genes <- function(geneUniverse){
   interesting_DE_genes <- rep(0, length(geneUniverse))
   for(i in 1:length(geneUniverse)){
-    tmpInput <- "< 0.05"
-    if(eval(parse(text = paste(geneUniverse[i], tmpInput, sep=" ")))){
+    if(eval(parse(text = paste(geneUniverse[i], expressionInput, sep=" ")))){
       interesting_DE_genes[i] = 1
     }
   }
@@ -193,6 +186,31 @@ showGroupDensity(BP_GO_data, whichGO = BP_topSigGO_ID, ranks = TRUE)
 ## 
 # testing
 ##
+
+# testing functions for evaluating input expressions for get_interesting_DE_genes
+testInput <- "== 1"
+testExp <- strsplit(testInput, split = " ")[[1]][1]
+testComp <- strsplit(testInput, split = " ")[[1]][2]
+
+testCheck <- try(
+  if(eval(parse(text = paste(which(colors() == "1"), testExp, which(colors() == testComp), sep=" ")))){
+    print("yes")
+  },
+  silent = TRUE
+)
+if(class(testCheck) == "try-error"){
+  if(eval(parse(text = paste("1", testExp, testComp, sep=" ")))){
+    print("yes")
+  }
+}
+
+if(eval(parse(text = paste(which(colors() == "purple3"), "==", which(colors() == "purple3"), sep=" ")))){
+  print("yes")
+}
+
+if(eval(parse(text = paste(which(colors() == "purple3"), "==", which(colors() == "green"), sep=" ")))){
+  print("yes")
+}
 
 #showSigOfNodes(BP_GO_data, score(BP_GO_results), firstSigNodes = 5, useInfo = 'all')
 
