@@ -206,3 +206,16 @@ logcountsSubset <- subset(logcounts,
                           )
 )
 heatmap(logcountsSubset, main= "Heatmap of DGE")
+
+# calculate the log CPM of the gene count data
+logcpm <- cpm(list, log=TRUE)
+
+# combine all columns into one period separated
+exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
+rownames(exp_factor) <- colnames(logcpm)
+#Create heatmap for Interaction Effect
+as.ggplot(
+  pheatmap(logcpm, scale="row", annotation_col = exp_factor, 
+           main="Heatmap of RNA-seq Samples", show_rownames = FALSE, fontsize = 12,
+           color = colorRampPalette(c(plotColors[5], "white", plotColors[6]))(100))
+)

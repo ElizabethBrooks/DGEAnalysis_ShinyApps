@@ -4,7 +4,7 @@
 #### Setup ####
 
 # install any missing packages
-packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr", "statmod")
+packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "dplyr", "statmod", "pheatmap", "ggplotify")
 biocList <- c("edgeR")
 newPackages <- packageList[!(packageList %in% installed.packages()[,"Package"])]
 newBioc <- biocList[!(biocList %in% installed.packages()[,"Package"])]
@@ -23,6 +23,8 @@ suppressPackageStartupMessages({
   library(rcartocolor)
   library(edgeR)
   library(dplyr)
+  library(pheatmap)
+  library(ggplotify)
 })
 
 # color blind safe plotting palettes
@@ -115,6 +117,7 @@ ui <- fluidPage(
         tags$p(
           "Set Cut Offs:"
         ),
+        # log2?
         sliderInput(
           "LFCcut", 
           tags$p("Fold Change Cut Off"), 
@@ -356,8 +359,10 @@ ui <- fluidPage(
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
-            imageOutput(outputId = "heatmap", height="100%", width="100%"),
-            downloadButton(outputId = "downloadHeatmap", label = "Download Plot"),
+            #imageOutput(outputId = "heatmap", height="100%", width="100%"),
+            #downloadButton(outputId = "downloadHeatmap", label = "Download Plot"),
+            plotOutput(outputId = "pheatmap"),
+            downloadButton(outputId = "downloadPheatmap", label = "Download Plot"),
             tags$p(
               "The heatmap uses hierarchical clustering of the individual samples by the log2 CPM expression values.",
               "Furthermore, the log2 CPM that has undefined values avoided and poorly defined log fold changes (logFC) for low counts shrunk towards zero"
@@ -479,8 +484,10 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                imageOutput(outputId = "heatmapPairwiseDGE", height="100%", width="100%"),
-                downloadButton(outputId = "downloadHeatmapPairwiseDGE", label = "Download Plot"),
+                #imageOutput(outputId = "heatmapPairwiseDGE", height="100%", width="100%"),
+                #downloadButton(outputId = "downloadHeatmapPairwiseDGE", label = "Download Plot"),
+                plotOutput(outputId = "pheatmapPairwiseDGE"),
+                downloadButton(outputId = "downloadPheatmapPairwiseDGE", label = "Download Plot"),
                 tags$p(
                   "The heatmap of significantly DE genes from the pairwise analysis by the log2 CPM expression values.",
                 ),
@@ -612,8 +619,10 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                imageOutput(outputId = "heatmapGLMDGE", height="100%", width="100%"),
-                downloadButton(outputId = "downloadHeatmapGLMDGE", label = "Download Plot"),
+                #imageOutput(outputId = "heatmapGLMDGE", height="100%", width="100%"),
+                #downloadButton(outputId = "downloadHeatmapGLMDGE", label = "Download Plot"),
+                plotOutput(outputId = "pheatmapGLMDGE"),
+                downloadButton(outputId = "downloadPheatmapGLMDGE", label = "Download Plot"),
                 tags$p(
                   "The heatmap of significantly DE gene from the ANOVA-like analysis by the log2 CPM expression values.",
                 ),
@@ -1097,38 +1106,77 @@ server <- function(input, output, session) {
     }
   )
   
-  # TO-DO: increase plot margins
-  # heatmap of individual RNA-seq samples using moderated log CPM
-  createHeatmap <- function(){
+  # # heatmap of individual RNA-seq samples using moderated log CPM
+  # createHeatmap <- function(){
+  #   # retrieve input design
+  #   targets <- inputDesign()
+  #   # calculate scaling factors
+  #   list <- filterNorm()
+  #   # calculate the log CPM of the gene count data
+  #   logcpm <- cpm(list, log=TRUE)
+  #   # create heatmap of individual RNA-seq samples using moderated log CPM
+  #   heatmap(logcpm, main = "Heatmap of RNA-seq Samples", labRow = FALSE, margins = c(8,1))
+  # }
+  
+  # # render heatmap of individual RNA-seq samples using moderated log CPM
+  # output$heatmap <- renderImage({
+  #   # save the plot
+  #   exportFile <- "heatmapPlotSamples.png"
+  #   png(exportFile)
+  #   createHeatmap()
+  #   dev.off()
+  #   # Return a list
+  #   list(src = exportFile, alt = "Invalid Results")
+  # }, deleteFile = TRUE)
+  
+  # # download handler for the heatmap plot
+  # output$downloadHeatmap <- downloadHandler(
+  #   filename = function() {
+  #     "heatmapPlotSamples.png"
+  #   },
+  #   content = function(file) {
+  #     # save the plot
+  #     png(file)
+  #     createHeatmap()
+  #     dev.off()
+  #   }
+  # )
+  
+  # pheatmap of individual RNA-seq samples using moderated log CPM
+  createPheatmap <- function(){
+    # retrieve input design
+    targets <- inputDesign()
     # calculate scaling factors
     list <- filterNorm()
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
+    #Create data frame with the experimental design layout
+    exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
+    rownames(exp_factor) <- colnames(logcpm)
     # create heatmap of individual RNA-seq samples using moderated log CPM
-    heatmap(logcpm, main = "Heatmap of RNA-seq Samples")
+    as.ggplot(
+      pheatmap(logcpm, scale="row", annotation_col = exp_factor, 
+               main="Heatmap of RNA-seq Samples", show_rownames = FALSE,
+               color = colorRampPalette(c(plotColors[5], "white", plotColors[6]))(100))
+    )
   }
   
-  # render heatmap of individual RNA-seq samples using moderated log CPM
-  output$heatmap <- renderImage({
-    # save the plot
-    exportFile <- "heatmapPlotSamples.png"
-    png(exportFile)
-    createHeatmap()
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+  # render pheatmap of individual RNA-seq samples using moderated log CPM
+  output$pheatmap <- renderPlot({
+    # create the plot
+    createPheatmap()
+  })
   
-  # download handler for the heatmap plot
-  output$downloadHeatmap <- downloadHandler(
+  # download handler for the pheatmap plot
+  output$downloadPheatmap <- downloadHandler(
     filename = function() {
-      "heatmapPlotSamples.png"
+      "pheatmapPlotSamples.png"
     },
     content = function(file) {
+      # create the plot
+      pheatmapPlot <- createPheatmap()
       # save the plot
-      png(file)
-      createHeatmap()
-      dev.off()
+      ggsave(file, plot = pheatmapPlot, bg = "white", device = "png")
     }
   )
   
@@ -1220,20 +1268,66 @@ server <- function(input, output, session) {
     resultsTable
   })
   
-  # heatmap of DGE 
-  createHeatmapDGE <- function(tested){
+  # # heatmap of DGE 
+  # createHeatmapDGE <- function(tested){
+  #   # calculate scaling factors
+  #   list <- filterNorm()
+  #   # create a results table of DE genes by FDR and LFC
+  #   resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
+  #   # identify significantly DE genes
+  #   DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
+  #   # calculate the log CPM of the gene count data
+  #   logcpm <- cpm(list, log=TRUE)
+  #   # subset the log CPM by the DGE set
+  #   logcpmSubset <- subset(logcpm,
+  #                          grepl(
+  #                            paste0(rownames(DGESubset), collapse = "|"),
+  #                            rownames(logcpm),
+  #                            ignore.case = TRUE
+  #                          )
+  #   )
+  #   # create the DGE heatmap
+  #   heatmap(logcpmSubset, main= "Heatmap of Significantly DE Genes", labRow = FALSE, margins = c(8,1))
+  # }
+  
+  # # render heatmap of pairwise DGE
+  # output$heatmapPairwiseDGE <- renderImage({
+  #   # perform exact test
+  #   tested <- pairwiseTest()
+  #   # save the plot
+  #   exportFile <- "heatmapPlotPairwiseDGE.png"
+  #   png(exportFile)
+  #   createHeatmapDGE(tested)
+  #   dev.off()
+  #   # Return a list
+  #   list(src = exportFile, alt = "Invalid Results")
+  # }, deleteFile = TRUE)
+  
+  # # download handler for the pairwise heatmap plot
+  # output$downloadHeatmapPairwiseDGE <- downloadHandler(
+  #   filename = function() {
+  #     "heatmapPlotPairwiseDGE.png"
+  #   },
+  #   content = function(file) {
+  #     # perform exact test
+  #     tested <- pairwiseTest()
+  #     # save the plot
+  #     png(file)
+  #     createHeatmapDGE(tested)
+  #     dev.off()
+  #   }
+  # )
+  
+  # pheatmap of DGE 
+  createPheatmapDGE <- function(tested){
+    # retrieve input design
+    targets <- inputDesign()
     # calculate scaling factors
     list <- filterNorm()
-    # create a results table of DE genes
+    # create a results table of DE genes by FDR and LFC
     resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-    # add column for identifying direction of DE gene expression
-    resultsTbl$topDE <- "NA"
-    # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
-    # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
-    # identify significantly DE genes by FDR and LFC
-    DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+    # identify significantly DE genes
+    DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
     # calculate the log CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # subset the log CPM by the DGE set
@@ -1244,56 +1338,56 @@ server <- function(input, output, session) {
                              ignore.case = TRUE
                            )
     )
-    # create the DGE heatmap
-    heatmap(logcpmSubset, main= "Heatmap of DGE")
+    # combine all columns into one period separated
+    exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
+    rownames(exp_factor) <- colnames(logcpmSubset)
+    #Create heatmap for Interaction Effect
+    as.ggplot(
+      pheatmap(logcpmSubset, scale="row", annotation_col = exp_factor, 
+               main="Heatmap of RNA-seq Samples", show_rownames = FALSE,
+               color = colorRampPalette(c(plotColors[5], "white", plotColors[6]))(100))
+    )
   }
   
-  # render heatmap of pairwise DGE
-  output$heatmapPairwiseDGE <- renderImage({
+  # render pheatmap of pairwise DGE
+  output$pheatmapPairwiseDGE <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
-    # save the plot
-    exportFile <- "heatmapPlotPairwiseDGE.png"
-    png(exportFile)
-    createHeatmapDGE(tested)
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    # create the plot
+    createPheatmapDGE(tested)
+  })
   
   # download handler for the pairwise heatmap plot
-  output$downloadHeatmapPairwiseDGE <- downloadHandler(
+  output$downloadPheatmapPairwiseDGE <- downloadHandler(
     filename = function() {
-      "heatmapPlotPairwiseDGE.png"
+      "pheatmapPlotPairwiseDGE.png"
     },
     content = function(file) {
       # perform exact test
       tested <- pairwiseTest()
+      # create the plot
+      pheatmapPlot <- createPheatmapDGE(tested)
       # save the plot
-      png(file)
-      createHeatmapDGE(tested)
-      dev.off()
+      ggsave(file, plot = pheatmapPlot, bg = "white", device = "png")
     }
   )
   
   # plot of log-fold change against log-counts per million with DE genes highlighted
-  createMD <- function(tested, inputLFC){
+  createMD <- function(tested){
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*inputLFC), inputLFC), col="blue") 
+    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
   }
   
   # render plot of log-fold change against log-counts per million with DE genes highlighted
   output$pairwiseMD <- renderImage({
     # perform exact test
     tested <- pairwiseTest()
-    # retrieve input LFC cut
-    inputLFC <- input$LFCcut
     # save the plot
     exportFile <- "pairwiseMDPlot.png"
     png(exportFile)
-    createMD(tested, inputLFC)
+    createMD(tested)
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
@@ -1308,11 +1402,9 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform exact test
       tested <- pairwiseTest()
-      # retrieve input LFC cut
-      inputLFC <- input$LFCcut
       # save the plot
       png(file)
-      createMD(tested, inputLFC)
+      createMD(tested)
       dev.off()
     }
   )
@@ -1324,9 +1416,11 @@ server <- function(input, output, session) {
     # add column for identifying direction of DE gene expression
     resultsTbl$topDE <- "NA"
     # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+    #resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
+    resultsTbl$topDE[sign(resultsTbl$logFC) == 1 & resultsTbl$FDR < input$FDRcut] <- "Up"
     # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+    #resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
+    resultsTbl$topDE[sign(resultsTbl$logFC) == -1 & resultsTbl$FDR < input$FDRcut] <- "Down"
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
@@ -1336,7 +1430,8 @@ server <- function(input, output, session) {
       scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down")) +
       ggtitle("Volcano Plot") +
       theme(plot.title = element_text(hjust = 0.5)) +
-      theme(plot.title = element_text(face="bold"))
+      theme(plot.title = element_text(face="bold")) +
+      xlab("LFC")
   }
   
   # render volcano plot
@@ -1403,16 +1498,10 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform exact test
       tested <- pairwiseTest()
-      # view results table of DE genes
+      # create a results table of DE genes by FDR and LFC
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # add column for identifying direction of DE gene expression
-      resultsTbl$topDE <- "NA"
-      # identify significantly up DE genes
-      resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
-      # identify significantly down DE genes
-      resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
-      # identify significantly DE genes by FDR and LFC
-      DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+      # identify significantly DE genes
+      DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
       # add gene row name tag
       resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
       # output table
@@ -1438,16 +1527,10 @@ server <- function(input, output, session) {
   
   # function to retrieve gene IDs from results tables
   retrieveSigGeneIDs <- function(tested){
-    # view results table of DE genes
+    # create a results table of DE genes by FDR and LFC
     resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-    # add column for identifying direction of DE gene expression
-    resultsTbl$topDE <- "NA"
-    # identify significantly up DE genes
-    resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
-    # identify significantly down DE genes
-    resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
-    # identify significantly DE genes by FDR and LFC
-    DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+    # identify significantly DE genes
+    DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
     # retrieve gene IDS
     resultsTblNames <- rownames(DGESubset)
     # add commas
@@ -1610,31 +1693,54 @@ server <- function(input, output, session) {
     resultsTable
   })
   
-  # render heatmap of pairwise DGE
-  output$heatmapGLMDGE <- renderImage({
+  # # render heatmap of GLM DGE
+  # output$heatmapGLMDGE <- renderImage({
+  #   # perform glm test
+  #   tested <- glmContrast()
+  #   # save the plot
+  #   exportFile <- "heatmapPlotGLMDGE.png"
+  #   png(exportFile)
+  #   createHeatmapDGE(tested)
+  #   dev.off()
+  #   # Return a list
+  #   list(src = exportFile, alt = "Invalid Results")
+  # }, deleteFile = TRUE)
+  
+  # # download handler for the GLM heatmap plot
+  # output$downloadHeatmapGLMDGE <- downloadHandler(
+  #   filename = function() {
+  #     "heatmapPlotGLMDGE.png"
+  #   },
+  #   content = function(file) {
+  #     # perform glm test
+  #     tested <- glmContrast()
+  #     # save the plot
+  #     png(file)
+  #     createHeatmapDGE(tested)
+  #     dev.off()
+  #   }
+  # )
+  
+  # render pheatmap of GLM DGE
+  output$pheatmapGLMDGE <- renderPlot({
     # perform glm test
     tested <- glmContrast()
-    # save the plot
-    exportFile <- "heatmapPlotGLMDGE.png"
-    png(exportFile)
-    createHeatmapDGE(tested)
-    dev.off()
-    # Return a list
-    list(src = exportFile, alt = "Invalid Results")
-  }, deleteFile = TRUE)
+    # cretae the plot
+    createPheatmapDGE(tested)
+  })
   
-  # download handler for the pairwise heatmap plot
-  output$downloadHeatmapGLMDGE <- downloadHandler(
+  # download handler for the GLM heatmap plot
+  output$downloadPheatmapGLMDGE <- downloadHandler(
     filename = function() {
       "heatmapPlotGLMDGE.png"
     },
     content = function(file) {
       # perform glm test
       tested <- glmContrast()
+      # create the plot
+      pheatmapPlot <- createPheatmapDGE(tested)
       # save the plot
-      png(file)
-      createHeatmapDGE(tested)
-      dev.off()
+      ggsave(file, plot = pheatmapPlot, bg = "white", device = "png")
     }
   )
   
@@ -1642,12 +1748,10 @@ server <- function(input, output, session) {
   output$glmMD <- renderImage({
     # perform glm test
     tested <- glmContrast()
-    # retrieve input LFC cut
-    inputLFC <- input$LFCcut
     # save the plot
     exportFile <- "glmMDPlot.png"
     png(exportFile)
-    createMD(tested, inputLFC)
+    createMD(tested)
     dev.off()
     # Return a list
     list(src = exportFile, alt = "Invalid Results")
@@ -1661,11 +1765,9 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform glm test
       tested <- glmContrast()
-      # retrieve input LFC cut
-      inputLFC <- input$LFCcut
       # save the plot
       png(file)
-      createMD(tested, inputLFC)
+      createMD(tested)
       dev.off()
     }
   )
@@ -1720,16 +1822,10 @@ server <- function(input, output, session) {
     content = function(file) {
       # perform glm test
       tested <- glmContrast()
-      # view results table of DE genes
+      # create a results table of DE genes by FDR and LFC
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
-      # add column for identifying direction of DE gene expression
-      resultsTbl$topDE <- "NA"
-      # identify significantly up DE genes
-      resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
-      # identify significantly down DE genes
-      resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
-      # identify significantly DE genes by FDR and LFC
-      DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
+      # identify significantly DE genes
+      DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
       # add gene row name tag
       resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
       # output table
