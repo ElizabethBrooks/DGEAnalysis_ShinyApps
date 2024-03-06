@@ -45,7 +45,7 @@ ui <- fluidPage(
   #theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Functional Enrichment Analysis with topGO"),
+  titlePanel("Functional Analysis with topGO"),
   
   # setup sidebar layout
   sidebarLayout(
@@ -161,7 +161,7 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          "Note that the GO term enrichment analysis results and plots may take several moments to process depending on the size of the input tables."
+          "Note that the GO term analysis results and plots may take several moments to process depending on the size of the input tables."
         ),
         tags$hr(),
         tags$p(
@@ -205,7 +205,7 @@ ui <- fluidPage(
         ),
         tags$p(
           HTML("<b>Tip 3:</b> The input gene score table should <i>not</i> be filtered in advance."),
-          "The enrichment analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
+          "The functional analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
         ),
         tags$p(
           HTML("<b>Tip 4:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
@@ -282,7 +282,7 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          "The GO term enrichment analysis results and plots may take several moments to process depending on the size of the input tables."
+          "The GO term analysis results and plots may take several moments to process depending on the size of the input tables."
         )
       ),
       
@@ -319,16 +319,16 @@ ui <- fluidPage(
             )
           ),
           
-          # Enrichment tab
+          # Analysis tab
           tabPanel(
-            "Enrichment",
+            "Analysis",
             tags$br(),
             tags$p(
               align = "center",
-              HTML("<b>Functional Enrichment</b>")
+              HTML("<b>Functional Analysis</b>")
             ),
             tags$p(
-              "Begin the functional enrichment analysis by selecting a test statistic and algorithm below."
+              "Begin the functional enrichment or over-representation analysis by selecting a test statistic and algorithm below."
             ),
             tags$br(),
             fluidRow(
@@ -353,7 +353,7 @@ ui <- fluidPage(
                   HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Classic algorithm performs enrichment analysis by testing the over-representation of GO terms within the group of diferentially expressed genes")
+                  HTML("<b>2.</b> Classic algorithm performs functional analysis by testing the over-representation of GO terms within the group of diferentially expressed genes")
                 ),
                 tags$p(
                   HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method")

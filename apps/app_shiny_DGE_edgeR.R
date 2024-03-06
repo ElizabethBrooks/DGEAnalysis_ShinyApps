@@ -31,6 +31,10 @@ suppressPackageStartupMessages({
 plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 
+# set default values
+defaultLFC <- 1.2
+defaultFDR <- 0.05
+
 #### UI ####
 
 # Define UI 
@@ -52,7 +56,7 @@ ui <- fluidPage(
       
       # show panel depending on run button
       conditionalPanel(
-        condition = "!input.runUpload",
+        condition = "!input.runAnalysis",
         # header for file uploads
         tags$p(
           "Upload table of gene counts (*.csv):"
@@ -77,31 +81,12 @@ ui <- fluidPage(
       ),
       # show panel depending on inputs check
       conditionalPanel(
-        #condition = "output.inputsUploaded && !input.runAnalysis",
-        condition = "output.inputsUploaded && !input.runUpload",
-        tags$hr(),
-        tags$p(
-          "Click to Upload Data:"
-        ),  
-        actionButton("runUpload", "Upload")
-      ),
-      # show panel depending on upload check
-      conditionalPanel(
-        condition = "input.runUpload && output.inputCheck && !input.runAnalysis",
+        condition = "output.inputsUploaded && !input.runAnalysis",
         tags$p(
           "Click to Run Analysis:"
         ),  
         actionButton("runAnalysis", "Run Analysis"),
       ),
-      # show panel depending on new uploads
-      #conditionalPanel(
-      #condition = "output.inputsUploaded && !output.inputCheck",
-      #tags$hr(),
-      #tags$p(
-      #  "Click to Update Inputs:"
-      #),  
-      #actionButton("inputsUpdate", "Update Inputs"),
-      #),
       # show panel depending on input files
       conditionalPanel(
         condition = "input.runAnalysis && output.normalizeResultsCompleted",
@@ -117,22 +102,27 @@ ui <- fluidPage(
         tags$p(
           "Set Cut Offs:"
         ),
-        # log2?
+        # glmTreat vs exactTest
         sliderInput(
-          "LFCcut", 
+          "cutLFC", 
           tags$p("Fold Change Cut Off"), 
           min=0, 
           max=10, 
           step=0.1,
-          value=1.2
+          value=defaultLFC
         ),
         sliderInput(
-          "FDRcut",
+          "cutFDR",
           tags$p("FDR Cut Off"),
           min = 0, 
           max = 0.1, 
-          value=0.05 
+          value=defaultFDR 
         ),
+        tags$br(),
+        tags$p(
+          "Click to Update Analysis:"
+        ),  
+        actionButton("inputsUpdate", "Update Analysis"),
         tags$hr(),
         tags$p(
           "Design Table:"
@@ -159,16 +149,16 @@ ui <- fluidPage(
           HTML("Start in the left-hand sidebar by:")
         ),
         tags$p(
-          HTML("<b>1.</b> uploading a <i>.csv</i> file with the gene counts")
+          HTML("<b>1.</b> browsing for a <i>.csv</i> file with the gene counts")
         ),
         tags$p(
-          HTML("<b>2.</b> uploading a <i>.csv</i> files with the experimental design")
+          HTML("<b>2.</b> browsing for a <i>.csv</i> files with the experimental design")
         ),
+        #tags$p(
+          #HTML("<b>3.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
+        #),
         tags$p(
-          HTML("<b>3.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
-        ),
-        tags$p(
-          HTML("<b>4.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
+          HTML("<b>3.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
         ),
         tags$br(),
         tags$p(
@@ -347,7 +337,7 @@ ui <- fluidPage(
             downloadButton(outputId = "downloadPCA", label = "Download Plot"),
             tags$p(
               "In a principal component analysis (PCA) plot the distances between samples approximate the expression differences.",
-              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples and the same genes were selected for all comparisons.",
+              "The expression differences were calculated as the the average of the largest (leading) absolute log2 fold changes between each pair of samples and the same genes were selected for all comparisons.",
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
@@ -355,7 +345,7 @@ ui <- fluidPage(
             downloadButton(outputId = "downloadMDS", label = "Download Plot"),
             tags$p(
               "In a multidimensional scaling (MDS) plot the distances between samples approximate the expression differences.",
-              "The expression differences were calculated as the the average of the largest (leading) absolute log-fold changes between each pair of samples and the top genes were selected separately for each pairwise comparison.",
+              "The expression differences were calculated as the the average of the largest (leading) absolute log2 fold changes (LFCs) between each pair of samples and the top genes were selected separately for each pairwise comparison.",
               "Note that the points are replaced by the sample name and colored by the associated factor level (e.g., cntrl or treat)."
             ),
             tags$br(),
@@ -395,8 +385,8 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                "A comparison or contrast is a linear combination of means for a group of samples.",
-                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
+                "Exact tests are performed to identify differences in the means between two groups of negative-binomially distributed counts.",
+                "A comparison or contrast is a linear combination of means for groups of samples."
               ),
               tags$br(),
               fluidRow(
@@ -435,10 +425,23 @@ ui <- fluidPage(
                   HTML("<b>Pairwise Results</b>")
                 ),
                 tags$br(),
-                tags$p(
-                  HTML("<b>Number of Differentially Expressed Genes:</b>")
+                fluidRow(
+                  column(
+                    width = 6,
+                    imageOutput(outputId = "pairwiseMD", height="100%", width="100%"),
+                    downloadButton(outputId = "downloadPairwiseMD", label = "Download Plot"),
+                    tags$p(
+                      "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>Number of Differentially Expressed Genes:</b>")
+                    ),
+                    tableOutput(outputId = "pairwiseSummary")
+                  )
                 ),
-                tableOutput(outputId = "pairwiseSummary"),
                 tags$br(),
                 fluidRow(
                   column(
@@ -484,18 +487,12 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                #imageOutput(outputId = "heatmapPairwiseDGE", height="100%", width="100%"),
-                #downloadButton(outputId = "downloadHeatmapPairwiseDGE", label = "Download Plot"),
-                plotOutput(outputId = "pheatmapPairwiseDGE"),
-                downloadButton(outputId = "downloadPheatmapPairwiseDGE", label = "Download Plot"),
+                #imageOutput(outputId = "heatmapPairwise", height="100%", width="100%"),
+                #downloadButton(outputId = "downloadHeatmapPairwise", label = "Download Plot"),
+                plotOutput(outputId = "pheatmapPairwise"),
+                downloadButton(outputId = "downloadPheatmapPairwise", label = "Download Plot"),
                 tags$p(
                   "The heatmap of significantly DE genes from the pairwise analysis by the log2 CPM expression values.",
-                ),
-                tags$br(),
-                imageOutput(outputId = "pairwiseMD", height="100%", width="100%"),
-                downloadButton(outputId = "downloadPairwiseMD", label = "Download Plot"),
-                tags$p(
-                  "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
                 ),
                 tags$br(),
                 plotOutput(outputId = "pairwiseVolcano"),
@@ -524,9 +521,13 @@ ui <- fluidPage(
               ),
               tags$br(),
               tags$p(
-                "The GLM was used to perform ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
-                "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.",
-                "It is common to consider genes with FDR adjusted p-values < 0.05 to be significantly DE."
+                "The GLM is used to perform an ANOVA-like analysis to identify any significant main effect associated with an explanatory variable.",
+                "An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl."
+              ),
+              tags$br(),
+              tags$p(
+                "Additionally, genes above the input log2 fold change (LFC) threshold are identified as significantly DE using t-tests relative to a threshold (TREAT) with the glmTreat function of edgeR.",
+                "If the input LFC cut off is set to 0, then the glmQLFTest function is used instead."
               ),
               tags$br(),
               fluidRow(
@@ -570,10 +571,23 @@ ui <- fluidPage(
                   HTML("<b>GLM Results</b>")
                 ),
                 tags$br(),
-                tags$p(
-                  HTML("<b>Number of Differentially Expressed Genes:</b>")
+                fluidRow(
+                  column(
+                    width = 6,
+                    imageOutput(outputId = "glmMD", height="100%", width="100%"),
+                    downloadButton(outputId = "downloadGLMMD", label = "Download Plot"),
+                    tags$p(
+                      "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
+                    )
+                  ),
+                  column(
+                    width = 6,
+                    tags$p(
+                      HTML("<b>Number of Differentially Expressed Genes:</b>")
+                    ),
+                    tableOutput(outputId = "glmSummary")
+                  )
                 ),
-                tableOutput(outputId = "glmSummary"),
                 tags$br(),
                 fluidRow(
                   column(
@@ -616,31 +630,6 @@ ui <- fluidPage(
                 tags$hr(),
                 tags$p(
                   align="center",
-                  HTML("<b>Results Exploration</b>")
-                ),
-                tags$br(),
-                #imageOutput(outputId = "heatmapGLMDGE", height="100%", width="100%"),
-                #downloadButton(outputId = "downloadHeatmapGLMDGE", label = "Download Plot"),
-                plotOutput(outputId = "pheatmapGLMDGE"),
-                downloadButton(outputId = "downloadPheatmapGLMDGE", label = "Download Plot"),
-                tags$p(
-                  "The heatmap of significantly DE gene from the ANOVA-like analysis by the log2 CPM expression values.",
-                ),
-                tags$br(),
-                imageOutput(outputId = "glmMD", height="100%", width="100%"),
-                downloadButton(outputId = "downloadGLMMD", label = "Download Plot"),
-                tags$p(
-                  "The mean-difference (MD) plot shows the log fold changes expression differences versus average log CPM values."
-                ),
-                tags$br(),
-                plotOutput(outputId = "glmVolcano"),
-                downloadButton(outputId = "downloadGLMVolcano", label = "Download Plot"),
-                tags$p(
-                  "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
-                ),
-                tags$hr(),
-                tags$p(
-                  align="center",
                   HTML("<b>Model Exploration</b>")
                 ),
                 tags$br(),
@@ -649,6 +638,25 @@ ui <- fluidPage(
                 tags$p(
                   "Above is a plot of the genewise quasi-likelihood (QL) dispersion against the log2 CPM gene expression levels.",
                   "Dispersion estimates are obtained after fitting negative binomial models and calculating dispersion estimates."
+                ),
+                tags$hr(),
+                tags$p(
+                  align="center",
+                  HTML("<b>Results Exploration</b>")
+                ),
+                tags$br(),
+                #imageOutput(outputId = "heatmapGLM", height="100%", width="100%"),
+                #downloadButton(outputId = "downloadHeatmapGLM", label = "Download Plot"),
+                plotOutput(outputId = "pheatmapGLM"),
+                downloadButton(outputId = "downloadPheatmapGLM", label = "Download Plot"),
+                tags$p(
+                  "The heatmap of significantly DE gene from the ANOVA-like analysis by the log2 CPM expression values.",
+                ),
+                tags$br(),
+                plotOutput(outputId = "glmVolcano"),
+                downloadButton(outputId = "downloadGLMVolcano", label = "Download Plot"),
+                tags$p(
+                  "The volcano plot is a scatterplot that displays the association between statistical significance (e.g., p-value) and magnitude of gene expression (fold change)."
                 )
               )
             )
@@ -873,7 +881,7 @@ server <- function(input, output, session) {
   outputOptions(output, 'inputCheck', suspendWhenHidden=FALSE)
   
   # update inputs for comparisons
-  observeEvent(input$runUpload, {
+  observeEvent(input$runAnalysis, {
     # retrieve input design table
     group <- levels(designFactors())
     # update and set the first select items
@@ -897,6 +905,22 @@ server <- function(input, output, session) {
       "compareExpression",
       value = tmpExpression
     )
+  })
+  
+  # setup reactive LFC value
+  valueLFC <- reactiveVal(defaultLFC)
+  
+  # update LFC value
+  observeEvent(input$inputsUpdate, {
+    valueLFC(input$cutLFC)
+  })
+  
+  # setup reactive FDR value
+  valueFDR <- reactiveVal(defaultFDR)
+  
+  # update LFC value
+  observeEvent(input$inputsUpdate, {
+    valueFDR(input$cutFDR)
   })
   
   # render experimental design table
@@ -1106,19 +1130,19 @@ server <- function(input, output, session) {
     }
   )
   
-  # # heatmap of individual RNA-seq samples using moderated log CPM
+  # # heatmap of individual RNA-seq samples using moderated log2 CPM
   # createHeatmap <- function(){
   #   # retrieve input design
   #   targets <- inputDesign()
   #   # calculate scaling factors
   #   list <- filterNorm()
-  #   # calculate the log CPM of the gene count data
+  #   # calculate the log2 CPM of the gene count data
   #   logcpm <- cpm(list, log=TRUE)
-  #   # create heatmap of individual RNA-seq samples using moderated log CPM
+  #   # create heatmap of individual RNA-seq samples using moderated log2 CPM
   #   heatmap(logcpm, main = "Heatmap of RNA-seq Samples", labRow = FALSE, margins = c(8,1))
   # }
   
-  # # render heatmap of individual RNA-seq samples using moderated log CPM
+  # # render heatmap of individual RNA-seq samples using moderated log2 CPM
   # output$heatmap <- renderImage({
   #   # save the plot
   #   exportFile <- "heatmapPlotSamples.png"
@@ -1142,18 +1166,18 @@ server <- function(input, output, session) {
   #   }
   # )
   
-  # pheatmap of individual RNA-seq samples using moderated log CPM
+  # pheatmap of individual RNA-seq samples using moderated log2 CPM
   createPheatmap <- function(){
     # retrieve input design
     targets <- inputDesign()
     # calculate scaling factors
     list <- filterNorm()
-    # calculate the log CPM of the gene count data
+    # calculate the log2 CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     #Create data frame with the experimental design layout
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpm)
-    # create heatmap of individual RNA-seq samples using moderated log CPM
+    # create heatmap of individual RNA-seq samples using moderated log2 CPM
     as.ggplot(
       pheatmap(logcpm, scale="row", annotation_col = exp_factor, 
                main="Heatmap of RNA-seq Samples", show_rownames = FALSE,
@@ -1161,7 +1185,7 @@ server <- function(input, output, session) {
     )
   }
   
-  # render pheatmap of individual RNA-seq samples using moderated log CPM
+  # render pheatmap of individual RNA-seq samples using moderated log2 CPM
   output$pheatmap <- renderPlot({
     # create the plot
     createPheatmap()
@@ -1228,7 +1252,7 @@ server <- function(input, output, session) {
   
   # function to calculate table of DE genes
   #pairwiseTest <- function(){
-  pairwiseTest <- eventReactive(input$pairwiseUpdate, {
+  pairwiseTest <- eventReactive(list(input$inputsUpdate, input$pairwiseUpdate), {
     # require valid inputs
     if(is.null(compareSamples())){
       return(NULL)
@@ -1257,7 +1281,7 @@ server <- function(input, output, session) {
     # perform exact test
     tested <- pairwiseTest()
     # view the total number of differentially expressed genes at a FDR and LFC cut off
-    DGEgenes = decideTests(tested,p.value=input$FDRcut, lfc=input$LFCcut)
+    DGEgenes = decideTests(tested,p.value=valueFDR(), lfc=valueLFC())
     resultsSummary <- summary(DGEgenes)
     # create the results summary
     resultsTable <- data.frame(
@@ -1275,10 +1299,10 @@ server <- function(input, output, session) {
   #   # create a results table of DE genes by FDR and LFC
   #   resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
   #   # identify significantly DE genes
-  #   DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
-  #   # calculate the log CPM of the gene count data
+  #   DGESubset <- resultsTbl[resultsTbl$FDR < valueFDR(),]
+  #   # calculate the log2 CPM of the gene count data
   #   logcpm <- cpm(list, log=TRUE)
-  #   # subset the log CPM by the DGE set
+  #   # subset the log2 CPM by the DGE set
   #   logcpmSubset <- subset(logcpm,
   #                          grepl(
   #                            paste0(rownames(DGESubset), collapse = "|"),
@@ -1291,11 +1315,11 @@ server <- function(input, output, session) {
   # }
   
   # # render heatmap of pairwise DGE
-  # output$heatmapPairwiseDGE <- renderImage({
+  # output$heatmapPairwise <- renderImage({
   #   # perform exact test
   #   tested <- pairwiseTest()
   #   # save the plot
-  #   exportFile <- "heatmapPlotPairwiseDGE.png"
+  #   exportFile <- "heatmapPlotPairwise.png"
   #   png(exportFile)
   #   createHeatmapDGE(tested)
   #   dev.off()
@@ -1304,9 +1328,9 @@ server <- function(input, output, session) {
   # }, deleteFile = TRUE)
   
   # # download handler for the pairwise heatmap plot
-  # output$downloadHeatmapPairwiseDGE <- downloadHandler(
+  # output$downloadHeatmapPairwise <- downloadHandler(
   #   filename = function() {
-  #     "heatmapPlotPairwiseDGE.png"
+  #     "heatmapPlotPairwise.png"
   #   },
   #   content = function(file) {
   #     # perform exact test
@@ -1327,10 +1351,10 @@ server <- function(input, output, session) {
     # create a results table of DE genes by FDR and LFC
     resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
     # identify significantly DE genes
-    DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
-    # calculate the log CPM of the gene count data
+    DGESubset <- resultsTbl[resultsTbl$FDR < valueFDR(),]
+    # calculate the log2 CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
-    # subset the log CPM by the DGE set
+    # subset the log2 CPM by the DGE set
     logcpmSubset <- subset(logcpm,
                            grepl(
                              paste0(rownames(DGESubset), collapse = "|"),
@@ -1350,7 +1374,7 @@ server <- function(input, output, session) {
   }
   
   # render pheatmap of pairwise DGE
-  output$pheatmapPairwiseDGE <- renderPlot({
+  output$pheatmapPairwise <- renderPlot({
     # perform exact test
     tested <- pairwiseTest()
     # create the plot
@@ -1358,9 +1382,9 @@ server <- function(input, output, session) {
   })
   
   # download handler for the pairwise heatmap plot
-  output$downloadPheatmapPairwiseDGE <- downloadHandler(
+  output$downloadPheatmapPairwise <- downloadHandler(
     filename = function() {
-      "pheatmapPlotPairwiseDGE.png"
+      "pheatmapPlotPairwise.png"
     },
     content = function(file) {
       # perform exact test
@@ -1372,15 +1396,15 @@ server <- function(input, output, session) {
     }
   )
   
-  # plot of log-fold change against log-counts per million with DE genes highlighted
+  # plot of log2-fold change against log2-counts per million with DE genes highlighted
   createMD <- function(tested){
     # return MD plot
     plotMD(tested, main = "Mean-Difference (MD) Plot")
     # add blue lines to indicate 2-fold changes
-    abline(h=c((-1*input$LFCcut), input$LFCcut), col="blue") 
+    abline(h=c((-1*valueLFC()), valueLFC()), col="blue") 
   }
   
-  # render plot of log-fold change against log-counts per million with DE genes highlighted
+  # render plot of log2-fold change against log2-counts per million with DE genes highlighted
   output$pairwiseMD <- renderImage({
     # perform exact test
     tested <- pairwiseTest()
@@ -1416,11 +1440,11 @@ server <- function(input, output, session) {
     # add column for identifying direction of DE gene expression
     resultsTbl$topDE <- "NA"
     # identify significantly up DE genes
-    #resultsTbl$topDE[resultsTbl$logFC > input$LFCcut & resultsTbl$FDR < input$FDRcut] <- "Up"
-    resultsTbl$topDE[sign(resultsTbl$logFC) == 1 & resultsTbl$FDR < input$FDRcut] <- "Up"
+    #resultsTbl$topDE[resultsTbl$logFC > valueLFC() & resultsTbl$FDR < valueFDR()] <- "Up"
+    resultsTbl$topDE[sign(resultsTbl$logFC) == 1 & resultsTbl$FDR < valueFDR()] <- "Up"
     # identify significantly down DE genes
-    #resultsTbl$topDE[resultsTbl$logFC < (-1*input$LFCcut) & resultsTbl$FDR < input$FDRcut] <- "Down"
-    resultsTbl$topDE[sign(resultsTbl$logFC) == -1 & resultsTbl$FDR < input$FDRcut] <- "Down"
+    #resultsTbl$topDE[resultsTbl$logFC < (-1*valueLFC()) & resultsTbl$FDR < valueFDR()] <- "Down"
+    resultsTbl$topDE[sign(resultsTbl$logFC) == -1 & resultsTbl$FDR < valueFDR()] <- "Down"
     # add column with -log10(FDR) values
     resultsTbl$negLog10FDR <- -log10(resultsTbl$FDR)
     # create volcano plot
@@ -1489,6 +1513,7 @@ server <- function(input, output, session) {
     }
   )
   
+  # TO-DO: add LFC cut off filter?
   # download table with number of filtered DE genes
   output$pairwiseSigResults <- downloadHandler(
     filename = function() {
@@ -1501,7 +1526,7 @@ server <- function(input, output, session) {
       # create a results table of DE genes by FDR and LFC
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # identify significantly DE genes
-      DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
+      DGESubset <- resultsTbl[resultsTbl$FDR < valueFDR(),]
       # add gene row name tag
       resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
       # output table
@@ -1530,7 +1555,7 @@ server <- function(input, output, session) {
     # create a results table of DE genes by FDR and LFC
     resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
     # identify significantly DE genes
-    DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
+    DGESubset <- resultsTbl[resultsTbl$FDR < valueFDR(),]
     # retrieve gene IDS
     resultsTblNames <- rownames(DGESubset)
     # add commas
@@ -1653,7 +1678,7 @@ server <- function(input, output, session) {
   
   # function to perform glm contrasts
   #glmContrast <- function(){
-  glmContrast <- eventReactive(input$glmUpdate, {
+  glmContrast <- eventReactive(list(input$inputsUpdate, input$glmUpdate), {
     # require the expression
     req(input$compareExpression)
     # set the input expression as global
@@ -1666,7 +1691,7 @@ server <- function(input, output, session) {
     glmContrast <- makeContrasts(glmSet = inputExpression,
                                  levels=design)
     # look at genes with significant expression across all UV groups
-    glmTreat(fit, contrast=glmContrast)
+    glmTreat(fit, contrast=glmContrast, lfc=valueLFC())
   })
   
   # check if results have completed
@@ -1683,7 +1708,8 @@ server <- function(input, output, session) {
     # perform glm test
     tested <- glmContrast()
     # view the total number of differentially expressed genes at a FDR and LFC cut off
-    resultsSummary <- summary(decideTests(tested), p.value=input$FDRcut, lfc=input$LFCcut)
+    DGEgenes = decideTests(tested,p.value=valueFDR(), lfc=valueLFC())
+    resultsSummary <- summary(DGEgenes)
     # create the results summary
     resultsTable <- data.frame(
       Direction = c("Down", "NotSig", "Up"),
@@ -1694,11 +1720,11 @@ server <- function(input, output, session) {
   })
   
   # # render heatmap of GLM DGE
-  # output$heatmapGLMDGE <- renderImage({
+  # output$heatmapGLM <- renderImage({
   #   # perform glm test
   #   tested <- glmContrast()
   #   # save the plot
-  #   exportFile <- "heatmapPlotGLMDGE.png"
+  #   exportFile <- "heatmapPlotGLM.png"
   #   png(exportFile)
   #   createHeatmapDGE(tested)
   #   dev.off()
@@ -1707,9 +1733,9 @@ server <- function(input, output, session) {
   # }, deleteFile = TRUE)
   
   # # download handler for the GLM heatmap plot
-  # output$downloadHeatmapGLMDGE <- downloadHandler(
+  # output$downloadHeatmapGLM <- downloadHandler(
   #   filename = function() {
-  #     "heatmapPlotGLMDGE.png"
+  #     "heatmapPlotGLM.png"
   #   },
   #   content = function(file) {
   #     # perform glm test
@@ -1722,7 +1748,7 @@ server <- function(input, output, session) {
   # )
   
   # render pheatmap of GLM DGE
-  output$pheatmapGLMDGE <- renderPlot({
+  output$pheatmapGLM <- renderPlot({
     # perform glm test
     tested <- glmContrast()
     # cretae the plot
@@ -1730,9 +1756,9 @@ server <- function(input, output, session) {
   })
   
   # download handler for the GLM heatmap plot
-  output$downloadPheatmapGLMDGE <- downloadHandler(
+  output$downloadPheatmapGLM <- downloadHandler(
     filename = function() {
-      "heatmapPlotGLMDGE.png"
+      "heatmapPlotGLM.png"
     },
     content = function(file) {
       # perform glm test
@@ -1744,7 +1770,7 @@ server <- function(input, output, session) {
     }
   )
   
-  # render plot of log-fold change against log-counts per million with DE genes highlighted
+  # render plot of log2-fold change against log2-counts per million with DE genes highlighted
   output$glmMD <- renderImage({
     # perform glm test
     tested <- glmContrast()
@@ -1825,7 +1851,7 @@ server <- function(input, output, session) {
       # create a results table of DE genes by FDR and LFC
       resultsTbl <- topTags(tested, n=nrow(tested$table), adjust.method="fdr")$table
       # identify significantly DE genes
-      DGESubset <- resultsTbl[resultsTbl$FDR < input$FDRcut,]
+      DGESubset <- resultsTbl[resultsTbl$FDR < valueFDR(),]
       # add gene row name tag
       resultsTbl.out <- as_tibble(DGESubset, rownames = "gene")
       # output table
