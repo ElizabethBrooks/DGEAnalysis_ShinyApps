@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# last update: 27 February 2024
+# last update: 8 March 2024
 
 #### Setup ####
 
@@ -586,12 +586,15 @@ ui <- fluidPage(
               "A tutorial of the network analysis performed in this application can be found in the URL entry for ", 
               tags$a("WGCNA: Weighted Correlation Network Analysis", href = "https://CRAN.R-project.org/package=WGCNA"), 
               "."
-            )#,
+            ),
             #tags$p(
             #"Frequently asked questions are available at ", 
             #tags$a("WGCNA package FAQ", href = "https://horvath.genetics.ucla.edu/html/CoexpressionNetwork/Rpackages/WGCNA/faq.html"), 
             #"."
-            #)
+            #),
+            tags$p(
+              "This project was funded by the National Science Foundation grant \"Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia\" (2220695/2324639 to Sen Xu and 2220696 to Michael E. Pfrender)."
+            )
           )
         )
       )

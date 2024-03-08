@@ -719,6 +719,9 @@ ui <- fluidPage(
               "A tutorial of the biostatistical analysis performed in this application is provided in ", 
               tags$a("Downstream Bioinformatics Analysis of Omics Data with edgeR", href = "https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/"), 
               "."
+            ),
+            tags$p(
+              "This project was funded by the National Science Foundation grant \"Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia\" (2220695/2324639 to Sen Xu and 2220696 to Michael E. Pfrender)."
             )
           )
         )

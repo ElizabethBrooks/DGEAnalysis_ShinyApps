@@ -206,13 +206,16 @@ resultsTbl.filtered <- resultsTbl[resultsTbl.glm_keep,]
 # subset counts table by DE gene set
 DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
 logcounts = cpm(list, log=TRUE)
-logcountsSubset <- subset(logcounts,
-                          grepl(
-                            paste0(rownames(DGESubset), collapse = "|"),
-                            rownames(logcounts),
-                            ignore.case = TRUE
-                          )
-)
+# subset the log2 CPM by the DGE set
+#logcpmSubset <- subset(logcpm,
+#                       grepl(
+#                         paste0(rownames(DGESubset), collapse = "|"),
+#                         rownames(logcpm),
+#                         ignore.case = TRUE
+#                       )
+#)
+DGESubset.keep <- rownames(logcpm) %in% rownames(DGESubset)
+logcountsSubset <- logcpm[DGESubset.keep, ]
 heatmap(logcountsSubset, main= "Heatmap of DGE")
 
 # calculate the log CPM of the gene count data

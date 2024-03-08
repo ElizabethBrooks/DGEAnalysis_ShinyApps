@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# last update: 26 October 2023
+# last update: 8 March 2024
 
 #### Setup ####
 
@@ -370,6 +370,9 @@ ui <- fluidPage(
               "Example sets of gene IDs are also provided on",
               tags$a("GitHub", href = "https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data/ggVennDiagram"),
               "."
+            ),
+            tags$p(
+              "This project was funded by the National Science Foundation grant \"Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia\" (2220695/2324639 to Sen Xu and 2220696 to Michael E. Pfrender)."
             )
           )
         )

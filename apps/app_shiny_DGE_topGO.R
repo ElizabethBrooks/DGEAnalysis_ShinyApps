@@ -1,5 +1,5 @@
 # created by: Elizabeth Brooks
-# last update: 28 January 2024
+# last update: 8 March 2024
 
 #### Setup ####
 
@@ -673,6 +673,9 @@ ui <- fluidPage(
               "More information about the analysis performed in this application is provided in ", 
               tags$a("Gene set enrichment analysis with topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"), 
               "."
+            ),
+            tags$p(
+              "This project was funded by the National Science Foundation grant \"Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia\" (2220695/2324639 to Sen Xu and 2220696 to Michael E. Pfrender)."
             )
           )
         )
