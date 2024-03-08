@@ -29,7 +29,6 @@ suppressPackageStartupMessages({
 
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")
-plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 
 # set default values
 defaultLFC <- 1.2
