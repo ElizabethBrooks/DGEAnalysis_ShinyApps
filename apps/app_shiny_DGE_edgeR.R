@@ -1291,13 +1291,15 @@ server <- function(input, output, session) {
     # calculate the log2 CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # subset the log2 CPM by the DGE set
-    logcpmSubset <- subset(logcpm,
-                           grepl(
-                             paste0(rownames(DGESubset), collapse = "|"),
-                             rownames(logcpm),
-                             ignore.case = TRUE
-                           )
-    )
+    #logcpmSubset <- subset(logcpm,
+    #                       grepl(
+    #                         paste0(rownames(DGESubset), collapse = "|"),
+    #                         rownames(logcpm),
+    #                         ignore.case = TRUE
+    #                       )
+    #)
+    DGESubset.keep <- rownames(logcpm) %in% rownames(DGESubset)
+    logcpmSubset <- logcpm[DGESubset.keep, ]
     # combine all columns into one period separated
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpmSubset)
@@ -1664,13 +1666,15 @@ server <- function(input, output, session) {
     # calculate the log2 CPM of the gene count data
     logcpm <- cpm(list, log=TRUE)
     # subset the log2 CPM by the DGE set
-    logcpmSubset <- subset(logcpm,
-                           grepl(
-                             paste0(rownames(resultsTbl), collapse = "|"),
-                             rownames(logcpm),
-                             ignore.case = TRUE
-                           )
-    )
+    #logcpmSubset <- subset(logcpm,
+    #                       grepl(
+    #                         paste0(rownames(DGESubset), collapse = "|"),
+    #                         rownames(logcpm),
+    #                         ignore.case = TRUE
+    #                       )
+    #)
+    DGESubset.keep <- rownames(logcpm) %in% rownames(DGESubset)
+    logcpmSubset <- logcpm[DGESubset.keep, ]
     # combine all columns into one period separated
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpmSubset)
