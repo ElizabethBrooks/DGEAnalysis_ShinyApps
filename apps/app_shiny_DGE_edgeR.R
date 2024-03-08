@@ -467,7 +467,8 @@ ui <- fluidPage(
                     ),
                     downloadButton(outputId = "pairwiseSigResults", label = "Download Table"),
                     tags$p(
-                      "A table of pairwise DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
+                      "A table of pairwise DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
+                      "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   ),
                   column(
@@ -485,7 +486,8 @@ ui <- fluidPage(
                     ),
                     downloadButton(outputId = "pairwiseSigResultsIDs", label = "Download Table"),
                     tags$p(
-                      "A list of the significantly DE gene IDs from the pairwise analysis may be downloaded by clicking the above button."
+                      "A list of the significantly DE gene IDs from the pairwise analysis may be downloaded by clicking the above button.",
+                      "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   )
                 ),
@@ -595,7 +597,8 @@ ui <- fluidPage(
                     ),
                     tableOutput(outputId = "glmSummary"),
                     tags$p(
-                      "The above table shows the number of significantly DE genes that were up- or down-expressed in the input comparison. Signifigance was determined by the input LFC and FDR cut offs."
+                      "The above table shows the number of significantly DE genes that were up- or down-expressed in the input comparison.",
+                      "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   )
                 ),
@@ -621,7 +624,8 @@ ui <- fluidPage(
                     ),
                     downloadButton(outputId = "glmSigResults", label = "Download Table"),
                     tags$p(
-                      "A table of GLM DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
+                      "A table of GLM DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
+                      "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   ),
                   column(
@@ -639,7 +643,8 @@ ui <- fluidPage(
                     ),
                     downloadButton(outputId = "glmSigResultsIDs", label = "Download Table"),
                     tags$p(
-                      "A list of the significantly DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button."
+                      "A list of the significantly DE gene IDs from the ANOVA-like analysis may be downloaded by clicking the above button.",
+                      "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   )
                 ),
