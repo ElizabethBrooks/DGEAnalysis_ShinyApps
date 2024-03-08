@@ -35,14 +35,20 @@ plotColorSubset <- c(plotColors[4], plotColors[5], plotColors[6])
 ##
 
 # import gene count data
-inputTable <- read.csv(file="/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/edgeR/example3_daphnia_counts.csv", row.names=1)
+inputData <- read.csv(file="/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/edgeR/example3_daphnia_counts.csv", row.names=1)
 
-# trim the data table
-countsTable <- head(inputTable, - 5)
+# trim the data table of htseq stats
+removeList <- c("__no_feature", "__ambiguous", "__too_low_aQual", "__not_aligned", "__alignment_not_unique")
+inputTable <- inputData[!row.names(inputData) %in% removeList,]
 
 # import grouping factor
 targets <- read.csv(file="/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/edgeR/example3_daphnia_design_edgeR.csv", row.names=1)
 
+# set LFC cut off
+cutLFC <- log2(1.2)
+
+# set FDR cut off
+cutFDR <- 0.05
 
 ##
 # Analysis
@@ -147,56 +153,58 @@ colnames(fit)
 con.all.nest <- makeContrasts(treatment = (treat.high + treat.low) - (cntrl.high + cntrl.low),
                               levels=design)
 # summary table
-treat.anov.treatment <- glmTreat(fit, contrast=con.all.nest[,"treatment"], lfc=log2(1.2))
-summary(decideTests(treat.anov.treatment))
+treat.anov <- glmTreat(fit, contrast=con.all.nest[,"treatment"], lfc=cutLFC)
+summary(decideTests(treat.anov))
 
 
 # export tables of DE genes
 #Write tags table of DE genes to file
-tagsTblANOVATreatment <- topTags(treat.anov.treatment, n=nrow(treat.anov.treatment$table), adjust.method="fdr")$table
-#write.table(tagsTblANOVATreatment, file="glmQLF_2WayANOVA_treatment_topTags_LFC1.2.csv", sep=",", row.names=TRUE, quote=FALSE)
+resultsTbl <- topTags(treat.anov, n=nrow(treat.anov$table), adjust.method="fdr")$table
+#write.table(resultsTbl, file="glmQLF_topTags.csv", sep=",", row.names=TRUE, quote=FALSE)
 
+# filter by FDR and LFC cut off
+DGESubset <- resultsTbl[(resultsTbl$logFC > cutLFC & resultsTbl$FDR < cutFDR) | (resultsTbl$logFC < (-1*cutLFC) & resultsTbl$FDR < cutFDR),]
 
 # MD plots
 #Write plot to file
-#jpeg("glmQLF_2WayANOVA_treatment_plotMD_LFC1.2.jpg")
-plotMD(treat.anov.treatment)
-abline(h=c(-1, 1), col="blue")
+#jpeg("glmQLF_plotMD.jpg")
+plotMD(treat.anov)
+abline(h=c((-1*cutLFC), cutLFC), col="blue")
 #dev.off()
 
 
 # Volcano plots
 # add column for identifying direction of DE gene expression
-tagsTblANOVATreatment$topDE <- "NA"
+resultsTbl$topDE <- "NA"
 # identify significantly up DE genes
-tagsTblANOVATreatment$topDE[tagsTblANOVATreatment$logFC > 1 & tagsTblANOVATreatment$FDR < 0.05] <- "UP"
+resultsTbl$topDE[resultsTbl$logFC > 1 & resultsTbl$FDR < cutFDR] <- "UP"
 # identify significantly down DE genes
-tagsTblANOVATreatment$topDE[tagsTblANOVATreatment$logFC < -1 & tagsTblANOVATreatment$FDR < 0.05] <- "DOWN"
+resultsTbl$topDE[resultsTbl$logFC < -1 & resultsTbl$FDR < cutFDR] <- "DOWN"
 # create volcano plot
-#jpeg("glmQLF_2WayANOVA_treatment_volcano_LFC1.2.jpg")
-ggplot(data=tagsTblANOVATreatment, aes(x=logFC, y=-log10(FDR), color = topDE)) + 
+#jpeg("glmQLF_volcano.jpg")
+ggplot(data=resultsTbl, aes(x=logFC, y=-log10(FDR), color = topDE)) + 
   geom_point() +
   theme_minimal() +
   scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down"))
 #dev.off()
 # create volcano plot with labels
-labelSetTreatment <- tagsTblANOVATreatment[tagsTblANOVATreatment$topDE == "UP" | tagsTblANOVATreatment$topDE == "DOWN",]
-#jpeg("glmQLF_2WayANOVA_treatment_volcanoLabeled_LFC1.2.jpg")
-ggplot(data=tagsTblANOVATreatment, aes(x=logFC, y=-log10(FDR), color = topDE)) + 
+labelSetTreatment <- resultsTbl[resultsTbl$topDE == "UP" | resultsTbl$topDE == "DOWN",]
+#jpeg("glmQLF_volcanoLabeled.jpg")
+ggplot(data=resultsTbl, aes(x=logFC, y=-log10(FDR), color = topDE)) + 
   geom_point() +
   ggrepel::geom_text_repel(data = labelSetTreatment, aes(label = row.names(labelSetTreatment))) +
   theme_minimal() +
   scale_colour_discrete(type = plotColorSubset, breaks = c("Up", "Down"))
 #dev.off()
 # identify significantly DE genes by FDR
-tagsTblANOVATreatment.glm_keep <- tagsTblANOVATreatment$FDR < 0.05
+resultsTbl.glm_keep <- resultsTbl$FDR < cutFDR
 # create filtered results table of DE genes
-tagsTblANOVATreatment.filtered <- tagsTblANOVATreatment[tagsTblANOVATreatment.glm_keep,]
+resultsTbl.filtered <- resultsTbl[resultsTbl.glm_keep,]
 
 # heatmap
 # view DGE genes
 # subset counts table by DE gene set
-DGESubset <- tagsTblANOVATreatment[!grepl("NA", tagsTblANOVATreatment$topDE),]
+DGESubset <- resultsTbl[!grepl("NA", resultsTbl$topDE),]
 logcounts = cpm(list, log=TRUE)
 logcountsSubset <- subset(logcounts,
                           grepl(
