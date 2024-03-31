@@ -14,11 +14,11 @@ A tutorial of the biostatistical analysis performed in this application is provi
 
 ## PDF 
 
-The tutorials for using the applications or creating scripts for the different analyses can be found in the tutorials folder of this repository.
+The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository.
 
 ## Example Data Sets
 
-Example gene counts and experimental design tables are also provided in the [data directory](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) of this repository.
+Example gene counts and experimental design tables are also provided in the [data](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) folder of this repository.
 
 An example RNA-seq data set may be obtained from [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0147651319302684) and [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/).
 
