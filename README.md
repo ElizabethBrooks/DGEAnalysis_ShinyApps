@@ -16,7 +16,7 @@ git clone https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps.git
 
 <b>Second</b>, if running the app locally, you will need to install or update [R and Posit](https://posit.co/download/rstudio-desktop/).
 
-<b>Third</b>, before clicking the "Run App" button in Posit, make sure to install all of the necessary R packages for each of the applications.
+<b>Third</b>, open Posit (formerly RStudio) and before clicking the "Run App" button, make sure to install all of the necessary R packages for each of the applications.
 
 ### Differential Gene Expression (DGE) Analysis with edgeR
 ```
@@ -88,7 +88,7 @@ The tutorials for using the applications or creating scripts for the different a
 
 Example gene counts and experimental design tables are also provided in the [data](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) folder of this repository.
 
-An example RNA-seq data set may be obtained from [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0147651319302684) and [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/).
+A sample RNA-seq data set may also be obtained from [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/), for example.
 
 ## Acknowledgements
 
@@ -98,7 +98,11 @@ This project was funded by the National Science Foundation grant "Collaborative 
 
 ## Methods
 
-Differential expression (DE) analysis to identify UVR responsive genes across D. melanica genotypes was conducted using the edgeR package v3.42.2 (Chen, Lun & Smyth, 2016) in R v4.3.0 (R Core Team, 2023). Library sizes were calculated for each RNA-seq sample before normalizing with trimmed mean of M-values (TMM) between each pair of samples. The clustering of samples with a PCA was performed using edgeR to create a multidimensional scaling (MDS) plot of the distances between gene expression profiles, in which the same genes were selected for all comparisons. Two-way ANOVAs were calculated using generalized linear models (GLMs) to identify genes with significant DE above a 1.2 log2 fold-change (LFC) threshold using t-tests relative to a threshold (TREAT) with the glmTreat function of edgeR (McCarthy & Smyth, 2009). We considered genes with a FDR adjusted p < 0.05 and above a 1.2 fold-change to be significantly DE.
+### Differential Gene Expression (DGE) Analysis with edgeR
+
+Differential expression (DE) analysis was used to identify DE genes using the edgeR package v3.42.2 (Chen, Lun & Smyth, 2016) in R v4.3.0 (R Core Team, 2023). Library sizes were calculated for each sample before normalizing with trimmed mean of M-values (TMM) between each pair of samples. The clustering of samples with a PCA was performed using edgeR to create a multidimensional scaling (MDS) plot of the distances between gene expression profiles, in which the same genes were selected for all comparisons. Two-way ANOVAs were calculated using generalized linear models (GLMs) to identify genes with significant DE above an input log2 fold-change (LFC) threshold using t-tests relative to a threshold (TREAT) with the glmTreat function of edgeR (McCarthy & Smyth, 2009). The resulting tables of DE genes can be filtered by statistical or biological significance, including false discoverey rate (FDR) or LFC.
+
+
 
 ## Analysis Pipeline 
 ![DGE Analysis Pipeline](RNASeqWorkflow_1Sep2023.jpg)
