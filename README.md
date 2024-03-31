@@ -1,8 +1,14 @@
 # DGEAnalysis_ShinyApps
 
-These are shiny applications for various differential gene expression (DGE) analysis created by [Elizabeth Brooks](https://www.linkedin.com/in/elizabethmbrooks/).
+These are R shiny applications for analyzing count data produced by genomic sequencing technologies, such as RNA-seq. The applications guide users through biological data assessment, processing and analysis. The different analyses available include differential expression (DE), network, and functional analysis.
 
-The latest version of this application may be downloaded from this repository.
+## Download Instructions
+
+The latest version of this application may be downloaded from [this repository](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/).
+
+To download the code onto a local computer or server space, click the green code button near the top of the page and copy the link. Then, in the terminal:
+
+git clone https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps.git
 
 ## Tutorials
 
@@ -27,7 +33,12 @@ An example RNA-seq data set may be obtained from [ScienceDirect](https://www.sci
 
 ## Acknowledgements
 
+The applications were created by [Elizabeth Brooks](https://www.linkedin.com/in/elizabethmbrooks/).
+
 This project was funded by the National Science Foundation grant "Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia"  (2220695/2324639  to Sen Xu and 2220696 to Michael E. Pfrender).
 
-## DGE Analysis Pipeline 
+## Analysis Pipeline 
 ![DGE Analysis Pipeline](RNASeqWorkflow_1Sep2023.jpg)
+
+## References
+
