@@ -4,17 +4,23 @@ These are shiny applications for various differential gene expression (DGE) anal
 
 The latest version of this application may be downloaded from this repository.
 
+## Tutorials
+
+### Web
+
+Gene tables were may be created from RNA-seq data as described in [Bioinformatics Analysis of Omics Data with the Shell & R](https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/).
+
+A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
+
+## PDF 
+
+The tutorials for using the applications or creating scripts for the different analyses can be found in the tutorials folder of this repository.
+
 ## Example Data Sets
 
 Example gene counts and experimental design tables are also provided in the [data directory](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) of this repository.
 
 An example RNA-seq data set may be obtained from [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0147651319302684) and [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/).
-
-## Helpful Information
-
-Gene tables were may be created from RNA-seq data as described in [Bioinformatics Analysis of Omics Data with the Shell & R](https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/).
-
-A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
 
 ## Acknowledgements
 
