@@ -46,7 +46,7 @@ ui <- fluidPage(
   #theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Weighted Gene Co-Expression Network Analysis (WGCNA)"),
+  titlePanel("Weighted Gene Co-Expression Network Analysis with WGCNA"),
   
   # setup sidebar layout
   sidebarLayout(
