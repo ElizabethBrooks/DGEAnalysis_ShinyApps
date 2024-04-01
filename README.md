@@ -2,10 +2,13 @@
 
 These are R shiny applications provide a framework for analyzing biological data produced by genomic sequencing technologies, such as RNA-seq. Users are guided through biological data assessment, processing and analysis. The different analyses available include differential expression (DE), network, and functional analysis.
 
-The analysis framework begins with the assessment and processing of count data, which can be produced using multiple bioinformatics software tools.
+![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
 
 ## Analysis Framework 
-![DGE Analysis Pipeline](RNASeqWorkflow_1Sep2023.jpg)
+
+The analysis framework begins with the assessment and processing of count data, which can be produced using multiple bioinformatics software tools.
+
+![Analysis Framework](images/RNASeqWorkflow_1Sep2023.jpg)
 
 ## Tutorials
 
@@ -22,7 +25,7 @@ Gene tables were may be created from RNA-seq data as described in [Bioinformatic
 
 The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository.
 
-## Example Data Sets
+### Example Data Sets
 
 Example gene counts and experimental design tables are also provided in the [data](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/data) folder of this repository.
 
