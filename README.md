@@ -2,8 +2,6 @@
 
 These are R shiny applications provide a framework for analyzing biological data produced by genomic sequencing technologies, such as RNA-seq. Users are guided through biological data assessment, processing and analysis. The different analyses available include differential expression (DE), network, and functional analysis.
 
-![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
-
 ## Shiny Applications & Features
 * <b>Differential Gene Expression (DGE) Analysis with edgeR</b>
 	* Clustering analysis using distance based PCA and MDS
@@ -28,6 +26,8 @@ These are R shiny applications provide a framework for analyzing biological data
 * <b>Analysis of Set Relationships with ggVennDiagram</b>
 	* Venn diagrams with ggVennDiagram
 	* Extraction of subsets with gplots
+
+![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
 
 ## Analysis Framework 
 
