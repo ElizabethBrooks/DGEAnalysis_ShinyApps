@@ -15,13 +15,13 @@ Some assumptions are made about the system and its properties, such as the:
 
 ## WGCNA
 
-The weighted gene co-expression network analysis (WGCNA) R package can be used to describe the patterns of correlation between gene expression profiles, image data, genetic marker data, proteomics data, and other high-dimensional data.
+The weighted gene co-expression network analysis ([WGCNA](https://peterlangfelder.com/2018/11/25/signed-or-unsigned-which-network-type-is-preferable/)) R package can be used to describe the patterns of correlation between gene expression profiles, image data, genetic marker data, proteomics data, and other high-dimensional data.
 
-The WGCNA package constructs either signed or unsigned networks. Signed networks take into consideration the sign of correlations to determine the connectedness of pairs of nodes (e.g., genes), where strongly negatively correlated nodes are considered unconnected. Alternatively, unsigned networks can be used to detect genes that have mixed directions of expression. Unsigned networks are the default method of network construction in WGCNA.
+The WGCNA package constructs either [signed or unsigned networks](https://peterlangfelder.com/2018/11/25/signed-or-unsigned-which-network-type-is-preferable/). Signed networks take into consideration the sign of correlations to determine the connectedness of pairs of nodes (e.g., genes), where strongly negatively correlated nodes are considered unconnected. Alternatively, unsigned networks can be used to detect genes that have mixed directions of expression. Unsigned networks are the default method of network construction in WGCNA.
 
 ## Installation
 
-The WGCNA app can be run on a computer locally using RStudio. To run the app locally we need to download the WGCNA R Shiny app script. The script is in a GitHub repository and can be downloaded HERE.
+The WGCNA app can be run on a computer locally using Posit. To run the app locally we need to download the WGCNA R Shiny app script. The script is in a GitHub repository and can be downloaded [HERE](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main).
 
 <b>First,</b> download the GitHub repository using the git clone command in the terminal, for example:
 
@@ -29,7 +29,7 @@ The WGCNA app can be run on a computer locally using RStudio. To run the app loc
 git clone https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps.git
 ```
 
-<b>Next,</b> if running the app locally, we will need to install or update R and RStudio.
+<b>Next,</b> if running the app locally, we will need to install or update [R and Posit](https://posit.co/download/rstudio-desktop/) (formerly RStudio).
 
 <b>Lastly,</b> we need to install all of the necessary R packages with the software needed to run WGCNA and create plots with the results:
 
@@ -84,7 +84,7 @@ SampleSix,2
 
 ## Analysis Workflow
 
-To run the WGCNA app, open the R <b>script app_shiny_DGE_WGCNA.R</b> in RStudio and press the <i>Run App</i> button in the upper right corner of the source pane.
+To run the WGCNA app, open the R <b>script app_shiny_DGE_WGCNA.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
 
 ### Part One: Getting Started
 
@@ -133,4 +133,4 @@ The <b>calculated ME expression values for each module</b> can be visualized (e.
 
 ## Example Script
 
-An example R script named <b>script_example_WGCNA.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the scripts directory of the GitHub repository. The script is hard coded to work for an example data set and will need to be customized for use with other data.
+An example R script named <b>script_example_WGCNA.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. The script is hard coded to work for an example data set and will need to be customized for use with other data.
