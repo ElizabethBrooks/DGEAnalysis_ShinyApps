@@ -6,28 +6,28 @@ These are R shiny applications provide a framework for analyzing biological data
 
 ## Shiny Applications & Features
 * DGE analysis with edgeR
- * Clustering analysis using distance based PCA and MDS
- * Filtering
-  * to remove lowly-expressed genes
-  * by FDR adjusted p-value cut off
-  * by LFC cut off (exact tests only, since GLMs account for LFC cut offs)
- * Exact tests
- * ANOVA like analysis using GLMs
+	* Clustering analysis using distance based PCA and MDS
+	* Filtering
+ 		* to remove lowly-expressed genes
+ 		* by FDR adjusted p-value cut off
+ 		* by LFC cut off (exact tests only, since GLMs account for LFC cut offs)
+	* Exact tests
+	* ANOVA like analysis using GLMs
 * Co-Expression network analysis with WGCNA
- * Clustering analysis using hierarchical clustering
- * Filtering to
-  * remove bad genes and samples
-  * select genes associated with particular modules
- * Unsigned networks
+	* Clustering analysis using hierarchical clustering
+	* Filtering to
+ 		* remove bad genes and samples
+ 		* select genes associated with particular modules
+	* Unsigned networks
 * Functional analysis with topGO
- * Over-representation analysis using Fisher's exact tests
- * Enrichment like analysis using rank based Kolmogrov-Smirnov (KS) tests
- * Filtering
-  * by unadjusted p-value cut off
-  * by candidate GO term list
+	* Over-representation analysis using Fisher's exact tests
+	* Enrichment like analysis using rank based Kolmogrov-Smirnov (KS) tests
+	* Filtering
+ 		* by unadjusted p-value cut off
+ 		* by candidate GO term list
 * Set operations and gene list extractions
- * Venn diagrams with ggVennDiagram
- * Extraction of subsets with gplots
+	* Venn diagrams with ggVennDiagram
+	* Extraction of subsets with gplots
 
 ## Analysis Framework 
 
