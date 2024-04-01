@@ -21,7 +21,8 @@ The WGCNA package constructs either [signed or unsigned networks](https://peterl
 
 ## Installation
 
-The WGCNA app can be run on a computer locally using Posit. To run the app locally we need to download the WGCNA R Shiny app script. The script is in a GitHub repository and can be downloaded [HERE](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main).
+> [!TIP]
+> The WGCNA app can be run on a computer locally using Posit. To run the app locally we need to download the WGCNA R Shiny app script. The script is in a GitHub repository and can be downloaded [HERE](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main).
 
 <b>First,</b> download the GitHub repository using the git clone command in the terminal, for example:
 
@@ -68,7 +69,8 @@ gene-4,49.06,55.19,52.74,199.91,34.34,1.67
 gene-5,35.01,47.52,59.19,132.54,26.68,0.90
 ```
 
-Keep in mind that <i>tables of gene counts with missing data may produce an error</i>. Recall the assumption of correlation networks that calculating correlations on the data should make sense.
+> [!CAUTION]
+> Keep in mind that <i>tables of gene counts with missing data may produce an error</i>. Recall the assumption of correlation networks that calculating correlations on the data should make sense.
 
 The experimental design file must also be in the format required by WGCNA, for example: 
 
@@ -100,7 +102,8 @@ After uploading the normalized gene counts and experimental design, an appropria
 
 <b>Set</b> the branch cut height to remove apparent sample outliers. 
 
-Keep in mind that <i>errors can result from a high minimum branch cluster size or low branch cut height</i>, since this can result in the removal of a significant amount of data.
+> [!CAUTION]
+> Keep in mind that <i>errors can result from a high minimum branch cluster size or low branch cut height</i>, since this can result in the removal of a significant amount of data.
 
 ### Part Three: Network Construction and Module Detection
 
@@ -112,7 +115,8 @@ Co-expression networks need to be manually constructed by specifying a minimum m
 
 The minimum module size and soft thresholding power should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds.
 
-Keep in mind that <i>errors can result from a combination of high soft thresholding power or minimum module size values</i>, as this will create a small number of very large modules that may not be strongly correlated.
+> [!CAUTION]
+> Keep in mind that <i>errors can result from a combination of high soft thresholding power or minimum module size values</i>, as this will create a small number of very large modules that may not be strongly correlated.
 
 <b>Lastly,</b> select a cut height to merge close modules. It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation. The dendrogram that displays the clustering of module eigengenes (ME) shows the selected cut height.
 
@@ -133,4 +137,5 @@ The <b>calculated ME expression values for each module</b> can be visualized (e.
 
 ## Example Script
 
-An example R script named <b>script_example_WGCNA.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. The script is hard coded to work for an example data set and will need to be customized for use with other data.
+> [!NOTE]
+> An example R script named <b>script_example_WGCNA.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. The script is hard coded to work for an example data set and will need to be customized for use with other data.
