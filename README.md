@@ -4,6 +4,31 @@ These are R shiny applications provide a framework for analyzing biological data
 
 ![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
 
+## Shiny Applications & Features
+* DGE analysis with edgeR
+ * Clustering analysis using distance based PCA and MDS
+ * Filtering
+  * to remove lowly-expressed genes
+  * by FDR adjusted p-value cut off
+  * by LFC cut off (exact tests only, since GLMs account for LFC cut offs)
+ * Exact tests
+ * ANOVA like analysis using GLMs
+* Co-Expression network analysis with WGCNA
+ * Clustering analysis using hierarchical clustering
+ * Filtering to
+  * remove bad genes and samples
+  * select genes associated with particular modules
+ * Unsigned networks
+* Functional analysis with topGO
+ * Over-representation analysis using Fisher's exact tests
+ * Enrichment like analysis using rank based Kolmogrov-Smirnov (KS) tests
+ * Filtering
+  * by unadjusted p-value cut off
+  * by candidate GO term list
+* Set operations and gene list extractions
+ * Venn diagrams with ggVennDiagram
+ * Extraction of subsets with gplots
+
 ## Analysis Framework 
 
 The analysis framework begins with the assessment and processing of count data, which can be produced using multiple bioinformatics software tools.
@@ -12,18 +37,14 @@ The analysis framework begins with the assessment and processing of count data, 
 
 ## Tutorials
 
-### Web
+> [!TIP]
+> The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository or at the following pages of my website.
 
 Helpful information for downloading the applications in this repository can be found in the tutorial [GitHub Version Control Quick Start Guide](https://morphoscape.wordpress.com/2024/02/28/github-version-control-quick-start-guide/) 
 
 A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
 
 Gene tables were may be created from RNA-seq data as described in [Bioinformatics Analysis of Omics Data with the Shell & R](https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/).
-
-
-### PDF 
-
-The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository.
 
 ### Example Data Sets
 
@@ -33,7 +54,8 @@ A sample RNA-seq data set may also be obtained from [NCBI](https://www.ncbi.nlm.
 
 ## Installation
 
-Each of the R shiny applications can be run locally on your computer using R and Posit.
+> [!TIP]
+> Each of the R shiny applications can be run locally on your computer using R and Posit. Continue reading for helpful information on installing and running the apps.
 
 <b>First,</b> download this GitHub repository using the git clone command in the terminal as follows.
 
