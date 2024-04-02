@@ -104,6 +104,6 @@ Start in the left-hand sidebar by:
 ## Example Script
 
 > [!NOTE]
-> An example R script named <b>example_script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
+> An example R script named <b>script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
 
 The script is hard coded to work for an example data set and will need to be customized for use with other data sets.

@@ -40,7 +40,7 @@ Before running the EXAMPLE app, make sure to have ready the two .csv files with 
 
 ## Analysis Workflow
 
-To run the EXAMPLE app, open the R <b>script app_shiny_EXAMPLE.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
+To run the EXAMPLE app, open the R <b>script app_EXAMPLE.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
 
 ### Part One: Getting Started
 
@@ -61,6 +61,6 @@ To run the EXAMPLE app, open the R <b>script app_shiny_EXAMPLE.R</b> in Posit an
 ## Example Script
 
 > [!NOTE]
-> An example R script named <b>example_script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
+> An example R script named <b>script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
 
 The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
