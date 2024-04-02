@@ -58,7 +58,7 @@ This will create a folder, or directory named ND_BIO60132_Sp24 in the current di
 
 The ND_BIO60132_Sp24 code repository is owned by the GBCF-Bioinformatics Github account. If we want to make changes to this repository we need to create our own Github repository and add the downloaded code, or [create a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks) of the original repository.
 
-It can be simpler to add the downloaded code to our own Github repository. First, use the cd command to navigate into the folder for the repository that we downloaded using the git clone command.
+It can be easiest to add the downloaded code to our own Github repository. First, use the cd command to navigate into the folder for the repository that we downloaded using the git clone command.
 
 ```
 cd ND_BIO60132_Sp24
@@ -78,7 +78,8 @@ We can remove the hidden folder with the rm command by using a couple of flags.
 rm -rf .git
 ```
 
-The <b>r</b> flag allows us to recursively delete the contents of the folder. The <b>f</b> flag forces the removal of hidden folders and files.
+> [!NOTE]
+> The <b>r</b> flag allows us to recursively delete the contents of the folder. The <b>f</b> flag forces the removal of hidden folders and files.
 
 Now we can initialize a new repository using the git init command in the terminal, which will prepare the necessary hidden Git files for our new repository.
 
@@ -148,7 +149,8 @@ To add a key to a GitHub account:
 7. paste the key that we copied from the terminal into the "Key" box
 8. click the green "Add SSH key" button
 
-The newly added SSH key should appear on the list of "Authentication keys" in the "SSH keys" section of the page.
+> [!NOTE]
+> The newly added SSH key should appear on the list of "Authentication keys" in the "SSH keys" section of the page.
 
 ## Creating Github Repositories
 
@@ -171,7 +173,8 @@ First, we need to specify the remote location for the repository using the URL w
 git remote add origin git@github.com:YourUserName/YourRepository.git
 ```
 
-Note that if the HTTPS version of the repository URL was used, the upcoming git push command will report an error with a message stating that "Support for password authentication was removed on August 13, 2021." It is necessary to [generate and add a SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) to your GitHub account in order to make changes to a GitHub repository using the terminal.
+> [!NOTE]
+> Note that if the HTTPS version of the repository URL was used, the upcoming git push command will report an error with a message stating that "Support for password authentication was removed on August 13, 2021." It is necessary to [generate and add a SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) to your GitHub account in order to make changes to a GitHub repository using the terminal.
 
 Next, we need to specify the [default branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches#about-the-default-branch) to which we are adding changes.
 
@@ -193,7 +196,9 @@ We can use a few of the previous commands that we just learned to add further ch
 
 We should still be in the wpExampleRepository directory of the repository.
 
-Now open the README.md file using nano, vim, or your favorite text editor. Change the README, for example by adding the following [markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) (MD) text to line 3.
+Now open the README.md file using nano, vim, or your favorite text editor. 
+
+Change the README, for example by adding the following [markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) (MD) text to line 3.
 
 ```
 ## Hello
@@ -234,7 +239,10 @@ Now change the file. For example, add the following text to line 4.
 Hello!
 ```
 
-Click the “Commit changes…” button, then click “Commit changes”. It is possible to add further notes to the commit message in the “Commit changes” window, which can be very helpful for future reference.
+Click the “Commit changes…” button, then click “Commit changes”. 
+
+> [!TIP]
+> It is possible to add further notes to the commit message in the “Commit changes” window, which can be very helpful for future reference.
 
 ## Receiving Changes
 
@@ -244,12 +252,16 @@ We can receive the changes that we made on the webpage for the repository using 
 git pull
 ```
 
-We should see a message saying which files were changed. In this case, Analysis/01_Quality_Control/README was changed with 1 insertion. Now if we open the README file on our local computer or server, we will see the change we made to the file on the browser.
+We should see a message saying which files were changed. In this case, Analysis/01_Quality_Control/README was changed with 1 insertion. 
+
+Now if we open the README file on our local computer or server, we will see the change we made to the file on the browser.
 
 ## Key Tips
-* The <b>git status</b> command can be used to check the state of the local repository. The git status command will let you know if there are changes that have not yet been committed or pushed to the remote repository.
-* It is generally a good idea to perform a <b>git pull</b> command <i>before</i> making any changes and adding them using the <b>git push</b> command. This is particularly true if you make changes to your repository on multiple computers or through the repository webpage.
-* Check out this resource on [GitHub for Git](https://github.com/git-tips/tips) tips and tricks!
+
+> [!TIP]
+> * The <b>git status</b> command can be used to check the state of the local repository. The git status command will let you know if there are changes that have not yet been committed or pushed to the remote repository.
+> * It is generally a good idea to perform a <b>git pull</b> command <i>before</i> making any changes and adding them using the <b>git push</b> command. This is particularly true if you make changes to your repository on multiple computers or through the repository webpage.
+> * Check out this resource on [GitHub for Git](https://github.com/git-tips/tips) tips and tricks!
 
 The following diagram depicts the general flow of commands for downloading files from a public remote repository that you don’t own, in addition to adding and receiving changes to your own local or remote repository.
 
