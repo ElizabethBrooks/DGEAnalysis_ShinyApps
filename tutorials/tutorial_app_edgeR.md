@@ -1,16 +1,6 @@
 ## Differential Expression (DE) Analysis
 A common task when working with transcriptomic data is the identification of differentially expressed (DE) genes or tags between groups. In this tutorial users will learn how to perform biostatistical analysis with the edgeR shiny app, including pairwise and analysis of variance (ANOVA) like comparisons to identify significantly DE genes.
 
-### Exact Tests
-
-Exact tests are performed to identify differences in the means between two groups of negative-binomially distributed counts. A comparison or contrast is a linear combination of means for groups of samples.
-
-### ANOVAs
-
-The GLM is used to perform an ANOVA-like analysis to identify any significant main effect associated with an explanatory variable. An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.
-
-Additionally, genes above the input log2 fold change (LFC) threshold are identified as significantly DE using t-tests relative to a threshold (TREAT) with the glmTreat function of edgeR. If the input LFC cut off is set to 0 in the app then the glmQLFTest function is used instead.
-
 ## edgeR
 In this tutorial we will be performing differential expression (DE) analysis using [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) R package. 
 
@@ -129,17 +119,19 @@ The negative binomial distribution models biological noise rather than sequencin
 
 ### Part Four: Analysis & Results
 
-
-
 #### pairwise
 
-
+Exact tests are performed to identify differences in the means between two groups of negative-binomially distributed counts. A comparison or contrast is a linear combination of means for groups of samples.
 
 #### GLM
 
+The GLM is used to perform an ANOVA-like analysis to identify any significant main effect associated with an explanatory variable. An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.
 
+Additionally, genes above the input log2 fold change (LFC) threshold are identified as significantly DE using t-tests relative to a threshold (TREAT) with the glmTreat function of edgeR. If the input LFC cut off is set to 0 in the app then the glmQLFTest function is used instead.
 
 ## Example Script
 
 > [!NOTE]
-> An example R script named <b>example_script_edgeR.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
+> An example R script named <b>example_script_edgeR.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
+
+The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
