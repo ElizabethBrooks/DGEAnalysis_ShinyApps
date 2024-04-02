@@ -35,7 +35,7 @@ ui <- fluidPage(
   #theme = shinytheme("superhero"),
   
   # add application title
-  titlePanel("Analysis of Set Relationships with ggVennDiagram"),
+  titlePanel("Set Operations"),
   
   # setup sidebar layout
   sidebarLayout(

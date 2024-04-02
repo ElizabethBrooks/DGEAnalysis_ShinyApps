@@ -45,7 +45,7 @@ ui <- fluidPage(
   theme = shinytheme("yeti"),
   
   # add application title
-  titlePanel("Differential Gene Expression (DGE) Analysis with edgeR"),
+  titlePanel("Differential Expression (DE) Analysis with edgeR"),
   
   # setup sidebar layout
   sidebarLayout(
