@@ -297,7 +297,7 @@ ui <- fluidPage(
             imageOutput(outputId = "librarySizes", height="100%", width="100%"),
             downloadButton(outputId = "downloadLibrarySizes", label = "Download Plot"),
             tags$p(
-              "The plot of library sizes shows the sequencing library size for each sample before TMM normalization.",
+              "The plot of library sizes shows the sequencing library size for each sample before Trimmed Mean of M-values (TMM) normalization.",
               "Libraries are the collection of RNA-seq reads associated with each sample."
             ),
             tags$br(),
@@ -331,7 +331,7 @@ ui <- fluidPage(
             imageOutput(outputId = "PCA", height="100%", width="100%"),
             downloadButton(outputId = "downloadPCA", label = "Download Plot"),
             tags$p(
-              "In a principal component analysis (PCA) plot shows the distances between samples by the approximate the expression differences.",
+              "The above principal component analysis (PCA) plot shows the distances between samples by the approximate the expression differences.",
               "The expression differences were calculated as the the average of the largest absolute LFCs between each pair of samples and the same genes were selected for all comparisons.",
               "Note that the points are replaced by the sample name and colored by the associated factor level."
             ),
@@ -342,14 +342,14 @@ ui <- fluidPage(
             imageOutput(outputId = "MDS", height="100%", width="100%"),
             downloadButton(outputId = "downloadMDS", label = "Download Plot"),
             tags$p(
-              "In a multidimensional scaling (MDS) plot the shows distances between samples by the approximate the expression differences.",
+              "The above multidimensional scaling (MDS) plot shows the distances between samples by the approximate the expression differences.",
               "The expression differences were calculated as the the average of the largest absolute LFCs between each pair of samples and the top genes were selected separately for each pairwise comparison.",
               "Note that the points are replaced by the sample name and colored by the associated factor level."
             ),
             tags$br(),
             #imageOutput(outputId = "heatmap", height="100%", width="100%"),
             #downloadButton(outputId = "downloadHeatmap", label = "Download Plot"),
-            plotOutput(outputId = "pheatmap"),
+            imageOutput(outputId = "pheatmap", height="100%", width="100%"),
             downloadButton(outputId = "downloadPheatmap", label = "Download Plot"),
             tags$p(
               "The heatmap shows the hierarchical clustering of individual samples by the log2 CPM expression values.",
@@ -496,7 +496,7 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                plotOutput(outputId = "pheatmapPairwise"),
+                imageOutput(outputId = "pheatmapPairwise", height="100%", width="100%"),
                 downloadButton(outputId = "downloadPheatmapPairwise", label = "Download Plot"),
                 tags$p(
                   "The heatmap displays the hierarchical clustering of individual samples by the log2 CPM expression values of significantly DE genes from the pairwise analysis.",
@@ -665,7 +665,7 @@ ui <- fluidPage(
                   HTML("<b>Results Exploration</b>")
                 ),
                 tags$br(),
-                plotOutput(outputId = "pheatmapGLM"),
+                imageOutput(outputId = "pheatmapGLM", height="100%", width="100%"),
                 downloadButton(outputId = "downloadPheatmapGLM", label = "Download Plot"),
                 tags$p(
                   "The heatmap displays the hierarchical clustering of individual samples by the log2 CPM expression values of significantly DE genes from the GLM analysis.",
@@ -742,14 +742,14 @@ server <- function(input, output, session) {
     # create example counts table
     exCountsTable <- data.frame(
       Gene = c("gene-1", "gene-2", "gene-3", "gene-4", "gene-5"),
-      SampleOne = c(0, 0, 0, 0, 0),
-      SampleTwo = c(10, 20, 30, 40, 50),
-      SampleThree = c(111, 222, 333, 444, 555),
-      SampleFour = c(1, 2, 3, 4, 5),
-      SampleFive = c(0, 0, 0, 0, 0),
-      SampleSix = c(1000, 2000, 3000, 4000, 5000),
-      SampleSeven = c(11, 12, 13, 14, 15),
-      SampleEight = c(0, 0, 0, 0, 0)
+      SampleOne = c("0", "0", "0", "0", "0"),
+      SampleTwo = c("10", "20", "30", "40", "50"),
+      SampleThree = c("111", "222", "333", "444", "555"),
+      SampleFour = c("1", "2", "3", "4", "5"),
+      SampleFive = c("0", "0", "0", "0", "0"),
+      SampleSix = c("1000", "2000", "3000", "4000", "5000"),
+      SampleSeven = c("11", "12", "13", "14", "15"),
+      SampleEight = c("0", "0", "0", "0", "0")
     )
   })
   
@@ -758,18 +758,18 @@ server <- function(input, output, session) {
     # create example counts table
     exCountsTable <- data.frame(
       Gene = c("geneA", "geneB", "geneC"),
-      sample_1 = c(0, 0, 0),
-      sample_2 = c(10, 20, 30),
-      sample_3 = c(111, 222, 333),
-      sample_4 = c(1, 2, 3),
-      sample_5 = c(3, 3, 3),
-      sample_6 = c(1000, 2000, 3000),
-      sample_7 = c(11, 12, 13),
-      sample_8 = c(1, 1, 1),
-      sample_9 = c(123, 12, 1),
-      sample_10 = c(3, 32, 321),
-      sample_11 = c(33, 333, 33),
-      sample_12 = c(2, 2, 2)
+      sample_1 = c("0", "0", "0"),
+      sample_2 = c("10", "20", "30"),
+      sample_3 = c("111", "222", "333"),
+      sample_4 = c("1", "2", "3"),
+      sample_5 = c("3", "3", "3"),
+      sample_6 = c("1000", "2000", "3000"),
+      sample_7 = c("11", "12", "13"),
+      sample_8 = c("1", "1", "1"),
+      sample_9 = c("123", "12", "1"),
+      sample_10 = c("3", "32", "321"),
+      sample_11 = c("33", "333", "33"),
+      sample_12 = c("2", "2", "2")
     )
   })
   
@@ -1164,6 +1164,7 @@ server <- function(input, output, session) {
     #Create data frame with the experimental design layout
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpm)
+    # TO-DO: use color blind safe pallette for sample dendrogram
     # create heatmap of individual samples using moderated log2 CPM
     as.ggplot(
       pheatmap(logcpm, scale="row", annotation_col = exp_factor, 
@@ -1173,10 +1174,16 @@ server <- function(input, output, session) {
   }
   
   # render pheatmap of individual samples using moderated log2 CPM
-  output$pheatmap <- renderPlot({
+  output$pheatmap <- renderImage({
+    # save image
+    exportFile <- "pheatmapPlotSamples.png"
     # create the plot
-    createPheatmap()
-  })
+    pheatmapPlot <- createPheatmap()
+    # save the plot
+    ggsave(exportFile, plot = pheatmapPlot, bg = "white", device = "png")
+    # Return a list
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
+  }, deleteFile = TRUE)
   
   # download handler for the pheatmap plot
   output$downloadPheatmap <- downloadHandler(
@@ -1305,6 +1312,7 @@ server <- function(input, output, session) {
     # combine all columns into one period separated
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpmSubset)
+    # TO-DO: use color blind safe pallette for sample dendrogram
     #Create heatmap for DGE
     as.ggplot(
       pheatmap(logcpmSubset, scale="row", annotation_col = exp_factor, 
@@ -1314,10 +1322,16 @@ server <- function(input, output, session) {
   }
   
   # render pheatmap of pairwise DGE
-  output$pheatmapPairwise <- renderPlot({
+  output$pheatmapPairwise <- renderImage({
+    # save image
+    exportFile <- "pheatmapPlotPairwise.png"
     # create the plot
-    createPairwisePheatmapDGE()
-  })
+    pheatmapPlot <- createPairwisePheatmapDGE()
+    # save the plot
+    ggsave(exportFile, plot = pheatmapPlot, bg = "white", device = "png")
+    # Return a list
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
+  }, deleteFile = TRUE)
   
   # download handler for the pairwise heatmap plot
   output$downloadPheatmapPairwise <- downloadHandler(
@@ -1680,6 +1694,7 @@ server <- function(input, output, session) {
     # combine all columns into one period separated
     exp_factor <- data.frame(Sample = unlist(targets, use.names = FALSE))
     rownames(exp_factor) <- colnames(logcpmSubset)
+    # TO-DO: use color blind safe pallette for sample dendrogram
     #Create heatmap for DGE
     as.ggplot(
       pheatmap(logcpmSubset, scale="row", annotation_col = exp_factor, 
@@ -1689,10 +1704,16 @@ server <- function(input, output, session) {
   }
   
   # render pheatmap of GLM DGE
-  output$pheatmapGLM <- renderPlot({
-    # cretae the plot
-    createGLMPheatmapDGE()
-  })
+  output$pheatmapGLM <- renderImage({
+    # save image
+    exportFile <- "heatmapPlotGLM.png"
+    # create the plot
+    pheatmapPlot <- createPairwisePheatmapDGE()
+    # save the plot
+    ggsave(exportFile, plot = pheatmapPlot, bg = "white", device = "png")
+    # Return a list
+    list(src = exportFile, alt = "Invalid Results", height = "500px")
+  }, deleteFile = TRUE)
   
   # download handler for the GLM heatmap plot
   output$downloadPheatmapGLM <- downloadHandler(

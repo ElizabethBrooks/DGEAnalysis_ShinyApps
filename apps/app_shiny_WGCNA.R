@@ -87,6 +87,7 @@ ui <- fluidPage(
         tags$p(
           "Click to Upload Data:"
         ),  
+        # TO-DO: remove
         actionButton("runUpload", "Upload")
       ),
       # show panel depending on input files check
