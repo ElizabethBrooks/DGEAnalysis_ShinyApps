@@ -1,7 +1,20 @@
 ## Differential Expression (DE) Analysis
+
 A common task when working with transcriptomic data is the identification of differentially expressed (DE) genes or tags between groups. In this tutorial users will learn how to perform biostatistical analysis with the edgeR shiny app, including pairwise and analysis of variance (ANOVA) like comparisons to identify significantly DE genes.
 
+### Objectives
+
+<i>After completing this tutorial</i> you will know how to:
+* analyze quantified transcriptomic data
+* make comparisons using the experimental design
+* perform pairwise comparisons
+* perform ANOVA like comparisons
+* use different types of plots to explore the data and results
+* filter tables of DE genes by statistical and biological significance 
+* retrieve tables of DE genes
+
 ## edgeR
+
 In this tutorial we will be performing differential expression (DE) analysis using [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) R package. 
 
 Note that the DESeq2 and edgeR packages perform similarly and have the same underlying hypothesis that most genes are not DE, but use different normalization methods that may change the number of detected DE genes.

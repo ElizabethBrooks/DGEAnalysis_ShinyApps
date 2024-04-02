@@ -2,12 +2,22 @@
 
 Correlation networks are commonly used in the bioinformatic analysis of high-dimensional biological data sets. Weighted correlation network analysis can be used to find clusters, or modules of genes with correlated patterns of expression.
 
+### Objectives
+
+<i>After completing this tutorial</i> you will know how to:
+* filter the data and adjust correlation network parameters
+* create correlation networks using the experimental design
+* use different types of plots to explore the data and results
+* retrieve sets of genes associated with network modules
+* retrieve module eigenegene expression values
+
+### Background
+
 Gene co-expression networks can be used to increase the power of functional analysis. Co-expression networks are one of many ways to characterize the functionality of genes detected in a transcriptomic analysis.
 
 In correlation networks each node represents a variable (feature) and links represent correlations among the variables. Networks are used to determine the variables and groups (modules) of variables that are potentially important for a property of the system that is represented by the network.
 
 Some assumptions are made about the system and its properties, such as the:
-
 * collective behaviour of multiple nodes in the network should be relevant for the property under investigation
 * correlations should reflect, to some extent, functional relationships
 * functional relationships reflected in the correlations should be relevant for the property under investigation

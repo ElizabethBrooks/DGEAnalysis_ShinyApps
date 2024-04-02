@@ -3,6 +3,7 @@
 Conducting bioinformatic analyses often requires the use or development of several scripts with different pieces of code. It can be very helpful to keep track of our code and changes that we make by using a developer platform like Github.
 
 ### Objectives
+
 <i>After completing this tutorial</i> you will know how to:
 * download a GitHub repository in the terminal
 * modify Git files for a repository in the terminal
