@@ -265,4 +265,4 @@ Now if we open the README file on our local computer or server, we will see the 
 
 The following diagram depicts the general flow of commands for downloading files from a public remote repository that you don’t own, in addition to adding and receiving changes to your own local or remote repository.
 
-![GitHub Diagram](images/Github_Git_diagram.jpg)
+![GitHub Diagram](DGEAnalysis_ShinyApps/images/Github_Git_diagram.jpg)
