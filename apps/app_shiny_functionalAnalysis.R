@@ -1,5 +1,5 @@
-# created by: Elizabeth Brooks
-# last update: 8 March 2024
+# creator: Elizabeth Brooks
+# updated: 2 April 2024
 
 #### Setup ####
 
@@ -53,6 +53,8 @@ ui <- fluidPage(
     # setup sidebar panel
     sidebarPanel(
       
+      # TO-DO: fix scoreStat to allow or prohibit "color"
+      # also, limit the input stat options
       # request inputs
       tags$p(
         "Enter Statistic for Gene Scoring:"
@@ -189,19 +191,19 @@ ui <- fluidPage(
           " by:"
         ),
         tags$p(
-          HTML("<ul><li><b>first</b> navigating to the <i>Annotate</i> tab</li></ul>"),
+          HTML("<ul><li><b>first,</b> navigating to the <i>Annotate</i> tab</li></ul>"),
         ),
         tags$p(
-          HTML("<ul><li><b>second</b> uploading a list of protein sequences where the sequence names <i>must match</i> the gene names in the input gene score table</li></ul>"),
+          HTML("<ul><li><b>second,</b> uploading a list of protein sequences where the sequence names <i>must match</i> the gene names in the input gene score table</li></ul>"),
         ),
         tags$p(
-          HTML("<ul><li><b>third</b> selecting <i>Batch queue</i> and entering your email</li></ul>"),
+          HTML("<ul><li><b>third,</b> selecting <i>Batch queue</i> and entering your email</li></ul>"),
         ),
         tags$p(
-          HTML("<ul><li><b>fourth</b> selecting the <i>GO prediction details</i> link after recieving the pannzer2 results</li></ul>"),
+          HTML("<ul><li><b>fourth,</b> selecting the <i>GO prediction details</i> link after recieving the pannzer2 results</li></ul>"),
         ),
         tags$p(
-          HTML("<ul><li><b>fifth</b> right clicking and selecting <i>Save As...</i> to download the <i>GO.out.txt</i> annotations table</li></ul>"),
+          HTML("<ul><li><b>fifth,</b> right clicking and selecting <i>Save As...</i> to download the <i>GO.out.txt</i> annotations table</li></ul>"),
         ),
         tags$p(
           HTML("<b>Tip 3:</b> The input gene score table should <i>not</i> be filtered in advance."),
@@ -211,13 +213,13 @@ ui <- fluidPage(
           HTML("<b>Tip 4:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
-          HTML("<b>Tip 4:</b> The first column of the gene score table is expected to contain gene IDs.")
+          HTML("<b>Tip 5:</b> The first column of the gene score table is expected to contain gene IDs.")
         ),
         tags$p(
-          HTML("<b>Tip 5:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
+          HTML("<b>Tip 6:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-        #HTML("<b>Tip 6:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+        #HTML("<b>Tip 7:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
         tags$p(

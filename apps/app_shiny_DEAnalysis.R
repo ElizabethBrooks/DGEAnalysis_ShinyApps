@@ -1,5 +1,5 @@
-# created by: Elizabeth Brooks
-# last update: 8 March 2024
+# creator: Elizabeth Brooks
+# updated: 2 April 2024
 
 #### Setup ####
 

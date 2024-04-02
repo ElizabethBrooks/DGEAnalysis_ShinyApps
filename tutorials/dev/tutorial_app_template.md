@@ -34,6 +34,8 @@ The above code can also be found at the top of the R script for the edgeR app, w
 
 ## Data Format
 
+Before running the EXAMPLE app, make sure to have ready the two .csv files with the <b>EXAMPLE</b> and <b>EXAMPLE</b>. Example data for the EXAMPLE app can be found in the <i>data/EXAMPLE</i> directory of the GitHub repository.
+
 
 
 ## Analysis Workflow

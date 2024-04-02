@@ -56,7 +56,7 @@ The above code can also be found at the top of the R script for the edgeR app, w
 
 ## Data Format
 
-Before running the edgeR app, make sure to have ready the two .csv files with the <b>gene counts</b> and <b>experimental design</b>. Example data for the edgeR app can be found in the <i>data/edgeR</i> directory of the GitHub repository.
+Before running the edgeR DE analysis app, make sure to have ready the two .csv files with the <b>gene counts</b> and <b>experimental design</b>. Example data for the edgeR app can be found in the <i>data/DEAnalysis</i> directory of the GitHub repository.
 
 The following is a small example gene counts table:
 

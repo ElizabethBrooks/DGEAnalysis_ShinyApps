@@ -1,4 +1,4 @@
-## Correlation Networks
+## Network Analysis
 
 Correlation networks are commonly used in the bioinformatic analysis of high-dimensional biological data sets. Weighted correlation network analysis can be used to find clusters, or modules of genes with correlated patterns of expression.
 
@@ -66,7 +66,7 @@ The above code can also be found at the top of the R script for the WGCNA app, w
 
 ## Data Format
 
-Before running the WGCNA app, make sure to have ready the two .csv files with the <b>normalized gene counts</b> and <b>experimental design</b>. Example data for the WGCNA app can be found in the <i>data/WGCNA</i> directory of the GitHub repository.
+Before running the WGCNA network analysis app, make sure to have ready the two .csv files with the <b>normalized gene counts</b> and <b>experimental design</b>. Example data for the WGCNA app can be found in the <i>data/networkAnalysis</i> directory of the GitHub repository.
 
 The normalized gene counts can be produced using the edgeR app. The following is a small example normalized gene counts table:
 
@@ -102,7 +102,6 @@ SampleSix,2
 ### Part One: Getting Started
 
 Start in the left-hand sidebar by:
-
 1. uploading .csv files with the normalized gene counts and experimental design
 2. clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked
 3. clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis
