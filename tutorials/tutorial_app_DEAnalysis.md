@@ -7,11 +7,14 @@ A common task when working with transcriptomic data is the identification of dif
 <i>After completing this tutorial</i> you will know how to:
 * analyze quantified transcriptomic data
 * make comparisons using the experimental design
-* perform pairwise comparisons
-* perform ANOVA like comparisons
+* perform pairwise and ANOVA-like comparisons
 * use different types of plots to explore the data and results
 * filter tables of DE genes by statistical and biological significance 
 * retrieve tables of DE genes
+
+#### Background
+
+
 
 ## edgeR
 

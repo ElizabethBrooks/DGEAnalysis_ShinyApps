@@ -911,6 +911,10 @@ server <- function(input, output, session) {
   }
   outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
+  # TO-DO: double check the selection of interesting genes
+  # The user needs to provide the gene universe, GO annotations and either a
+  # criteria for selecting interesting genes (e.g. dierentially expressed genes) from the gene universe or a score
+  # associated with each gene.
   # function to perform BP, MF, or CC GO enrichment 
   performGO <- function(ontologyID){
     # require inputs

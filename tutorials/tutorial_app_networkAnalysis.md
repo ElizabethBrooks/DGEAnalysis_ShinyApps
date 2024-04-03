@@ -5,7 +5,7 @@ Correlation networks are commonly used in the bioinformatic analysis of high-dim
 ### Objectives
 
 <i>After completing this tutorial</i> you will know how to:
-* filter the data and adjust correlation network parameters
+* filter normalized count data and adjust correlation network parameters
 * create correlation networks using the experimental design
 * use different types of plots to explore the data and results
 * retrieve sets of genes associated with network modules

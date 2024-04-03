@@ -7,7 +7,7 @@
 <i>After completing this tutorial</i> you will know how to:
 * EXAMPLE
 
-## EXAMPLE
+## topGO
 
 
 

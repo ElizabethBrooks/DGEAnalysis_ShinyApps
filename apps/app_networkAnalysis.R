@@ -36,6 +36,9 @@ options(stringsAsFactors = FALSE)
 
 # TO-DO: hide plots for invalid inputs
 
+# To-DO: fix Windows OS images not showing
+# https://stackoverflow.com/questions/38011285/image-not-showing-in-shiny-app-r
+
 # Define UI 
 ui <- fluidPage(
   # view available themes
