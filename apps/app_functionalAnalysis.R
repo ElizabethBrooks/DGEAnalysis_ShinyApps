@@ -33,6 +33,8 @@ suppressPackageStartupMessages({
 plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[5], plotColors[6])
 
+# TO-DO: output example tables as csv
+
 #### UI ####
 
 # Define UI 
@@ -153,7 +155,7 @@ ui <- fluidPage(
           HTML("<ul><li>topGO expected gene-to-GO mappings</li></ul>")
         ),
         tags$p(
-          HTML("<ul><li>pannzer2 resulting <i>GO prediction details</i></li></ul>")
+          HTML("<ul><li>PANNZER2 resulting <i>GO prediction details</i></li></ul>")
         ),
         tags$p(
           HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
@@ -200,40 +202,40 @@ ui <- fluidPage(
           HTML("<ul><li><b>third,</b> selecting <i>Batch queue</i> and entering your email</li></ul>"),
         ),
         tags$p(
-          HTML("<ul><li><b>fourth,</b> selecting the <i>GO prediction details</i> link after recieving the pannzer2 results</li></ul>"),
+          HTML("<ul><li><b>fourth,</b> selecting the <i>GO prediction details</i> link after recieving the PANNZER2 results</li></ul>"),
         ),
         tags$p(
           HTML("<ul><li><b>fifth,</b> right clicking and selecting <i>Save As...</i> to download the <i>GO.out.txt</i> annotations table</li></ul>"),
         ),
+        #tags$p(
+        #  HTML("<b>Tip 3:</b> Valid statistic for gene scoring include <i>FDR</i> from DE analysis or module <i>number</i> from network analysis, and must be the same name as a column in the input gene score table.")
+        #),
+        #tags$p(
+        #  HTML("<b>Tip 4:</b> Valid expressions for gene scoring include:")
+        #),
+        #tags$p(
+        #  align = "center",
+        #  HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
+        #),
+        #tags$p(
+        #  align = "center",
+        #  HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
+        #),
         tags$p(
-          HTML("<b>Tip 3:</b> Valid statistic for gene scoring include <i>FDR</i> from DE analysis or module <i>number</i> from network analysis, and must be the same name as a column in the input gene score table.")
-        ),
-        tags$p(
-          HTML("<b>Tip 4:</b> Valid expressions for gene scoring include:")
-        ),
-        tags$p(
-          align = "center",
-          HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
-        ),
-        tags$p(
-          align = "center",
-          HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
-        ),
-        tags$p(
-          HTML("<b>Tip 5:</b> The input gene score table should <i>not</i> be filtered in advance."),
+          HTML("<b>Tip 3:</b> The input gene score table should <i>not</i> be filtered in advance."),
           "The functional analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
         ),
         tags$p(
-          HTML("<b>Tip 6:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
+          HTML("<b>Tip 4:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
-          HTML("<b>Tip 7:</b> The first column of the gene score table is expected to contain gene IDs.")
+          HTML("<b>Tip 5:</b> The first column of the gene score table is expected to contain gene IDs.")
         ),
         tags$p(
-          HTML("<b>Tip 8:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
+          HTML("<b>Tip 6:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-        #HTML("<b>Tip 9:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+        #HTML("<b>Tip 7:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
         tags$p(
@@ -265,14 +267,14 @@ ui <- fluidPage(
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>DGE analysis</i> gene score table with minimum expected columns for three genes:"),
+              HTML("<b>Example</b> <i>DGE analysis</i> gene score table of three genes with the minimum expected columns:"),
               tableOutput(outputId = "exampleDGEScoreSubset") 
             )
           ),
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>WGCNA</i> gene score table with minimum expected columns for three genes:"),
+              HTML("<b>Example</b> <i>WGCNA</i> gene score table of three genes with the minimum expected columns:"),
               tableOutput(outputId = "exampleWGCNAScoreSubset") 
             )
           )
@@ -284,7 +286,7 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Example</b> <i>pannzer2</i> gene-to-GO annotations for two genes:"),
+          HTML("<b>Example</b> <i>PANNZER2</i> gene-to-GO annotations for two genes:"),
           tableOutput(outputId = "examplePannzer")
         )
       ),
@@ -758,7 +760,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # render first example pannzer2 mappings table
+  # render first example PANNZER2 mappings table
   output$examplePannzer <- renderTable({
     # create example mappings table
     exMappingsTable <- data.frame(
@@ -807,21 +809,21 @@ server <- function(input, output, session) {
     }
     # read in the file
     GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "", row.names=NULL, colClasses = c(goid = "character"))
-    # check if input mappings are from pannzer2
+    # check if input mappings are from PANNZER2
     if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
-      # re-format mappings from pannzer2
+      # re-format mappings from PANNZER2
       GOmaps_fmt <- split(GOmaps_input$goid,GOmaps_input$qpid)
       # create data frame with formtted mappings
       GOmaps_out <- as.data.frame(unlist(lapply(names(GOmaps_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_fmt[[x]], sep="")))})))
       rownames(GOmaps_out) <- names(GOmaps_fmt)
       colnames(GOmaps_out) <- NULL
       # TO-DO: double check location for storing this necessary output file
-      # output re-formatted mappings from pannzer2
-      write.table(GOmaps_out, file = "pannzer2_GO.fmt.txt", sep = "\t", quote = FALSE)
+      # output re-formatted mappings from PANNZER2
+      write.table(GOmaps_out, file = "PANNZER2_GO.fmt.txt", sep = "\t", quote = FALSE)
       # read the mappings file
-      GOmaps <- readMappings(file = "pannzer2_GO.fmt.txt")
+      GOmaps <- readMappings(file = "PANNZER2_GO.fmt.txt")
       # clean up
-      file.remove("pannzer2_GO.fmt.txt")
+      file.remove("PANNZER2_GO.fmt.txt")
     }else{
       # read the mappings file
       GOmaps <- readMappings(file = input$mappings$datapath)
@@ -1222,7 +1224,7 @@ server <- function(input, output, session) {
     # retrieve file name
     filename = function() {
       # setup output file name
-      "pannzer2_GO.fmt.txt"
+      "PANNZER2_GO.fmt.txt"
     },
     # read in data
     content = function(file) {

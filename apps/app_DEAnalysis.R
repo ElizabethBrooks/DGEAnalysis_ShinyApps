@@ -34,6 +34,8 @@ plotColors <- carto_pal(12, "Safe")
 defaultLFC <- 1.2
 defaultFDR <- 0.05
 
+# TO-DO: output example tables as csv
+
 #### UI ####
 
 # Define UI 
@@ -1708,7 +1710,7 @@ server <- function(input, output, session) {
     # save image
     exportFile <- "heatmapPlotGLM.png"
     # create the plot
-    pheatmapPlot <- createPairwisePheatmapDGE()
+    pheatmapPlot <- createGLMPheatmapDGE()
     # save the plot
     ggsave(exportFile, plot = pheatmapPlot, bg = "white", device = "png")
     # Return a list

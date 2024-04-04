@@ -68,6 +68,8 @@ The above code can also be found at the top of the R script for the WGCNA app, w
 
 Before running the WGCNA network analysis app, make sure to have ready the two .csv files with the <b>normalized gene counts</b> and <b>experimental design</b>. Example data for the WGCNA app can be found in the <i>data/networkAnalysis</i> directory of the GitHub repository.
 
+### Normalized Gene Counts Table
+
 The normalized gene counts can be produced using the edgeR app. The following is a small example normalized gene counts table:
 
 ```
@@ -81,6 +83,8 @@ gene-5,35.01,47.52,59.19,132.54,26.68,0.90
 
 > [!CAUTION]
 > Keep in mind that <i>tables of gene counts with missing data may produce an error</i>. Recall the assumption of correlation networks that calculating correlations on the data should make sense.
+
+### Experimental Design Table
 
 The experimental design file must also be in the format required by WGCNA, for example: 
 
@@ -116,12 +120,13 @@ Start in the left-hand sidebar by:
 2. clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked
 3. clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis
 
-> [!CAUTION]
+> [!WARNING]
 > Tables of gene counts with missing data may produce an error.
 
-> [!TIP]
-> In the input experimental design table the first column with sample names must contain characters and the remaining columns of factors are expected to contain whole numbers.
-> Also, the input gene counts should be TMM normalized gene counts (e.g., using edgeR).
+#### Helpful Tips
+The following are some helpful tips for uploading appropriatly formatted data for network analysis.
+* In the input experimental design table the first column with sample names must contain characters and the remaining columns of factors are expected to contain whole numbers.
+* The input gene counts should be TMM normalized gene counts (e.g., using edgeR).
 
 ### Part Two: Data Cleaning
 
@@ -202,7 +207,6 @@ The final clustering dendrogram of genes shows dissimilarity based on topologica
 #### Network Analysis Results
 
 There are two tables of data that should be downloaded before proceeding with additional downstream analyses, which are the:
-
 * genes and their associated module colors and numbers
 * calculated ME expression values for each module
 
@@ -212,7 +216,7 @@ The <b>calculated ME expression values for each module</b> can be visualized (e.
 
 ## Example Script
 
-> [!NOTE]
-> An example R script named <b>script_networkAnalysis.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
+An example R script named <b>script_networkAnalysis.R</b> with code for performing the same analysis as in the WGCNA R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
 
-The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
+> [!IMPORTANT]
+> The script is hard coded to work for an example data set and will need to be customized for use with other data sets.

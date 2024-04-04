@@ -27,18 +27,32 @@ These are R shiny applications provide a framework for analyzing biological data
 	* Venn diagrams with ggVennDiagram
 	* Extraction of subsets with gplots
 
-![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
-
 ## Analysis Framework 
 
-The analysis framework begins with the assessment and processing of count data, which can be produced using multiple bioinformatics software tools.
+The following diagram shows the analysis framework for the applications, in addition to potential prep-processing steps. 
 
 ![Analysis Framework](images/RNASeqWorkflow_1Sep2023.jpg)
 
+Multiple bioinformatics software tools are commonly used to pre-process RNA-seq data. The software used in the development of this analysis framework is shown.
+
+The analysis workflow for the applications begins with the assessment and processing of count data using edgeR, which can then be followed by DE analysis.
+
+The normalized data output by edgeR can also be input to WGCNA to begin the network analysis process.
+
+Results from the DE or network analyses can be used to perform downstream analyses, such as functional analysis or set operations.
+
+## Analysis Results
+
+Each of the applications produces multiple resulting plots and tables, which are shown in the diagram below.
+
+![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
+
 ## Tutorials
 
-> [!TIP]
-> The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository or at the following pages of my website.
+> [!IMPORTANT]
+> The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository.
+
+Additional tutorials are available on the following pages of my website, go into further detail about the different analyses and other helpful information.
 
 Helpful information for downloading the applications in this repository can be found in the tutorial [GitHub Version Control Quick Start Guide](https://morphoscape.wordpress.com/2024/02/28/github-version-control-quick-start-guide/) 
 
@@ -52,10 +66,11 @@ Example gene counts and experimental design tables are also provided in the [dat
 
 A sample RNA-seq data set may also be obtained from [NCBI](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA504739/), for example.
 
-## Installation
+## Installation & Running
 
-> [!TIP]
-> Each of the R shiny applications can be run locally on your computer using R and Posit. Continue reading for helpful information on installing and running the apps.
+Each of the R shiny applications can be run locally on your computer using R and Posit. Continue reading for helpful information on installing and running the apps.
+
+### Installation
 
 <b>First,</b> download this GitHub repository using the git clone command in the terminal as follows.
 
@@ -120,7 +135,7 @@ if(length(newPackages)){
 }
 ```
 
-## Running
+### Running
 
 > [!TIP]
 > To run the selected app, open the R script for the app in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).

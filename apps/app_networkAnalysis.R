@@ -32,6 +32,8 @@ options(stringsAsFactors = FALSE)
 # See note above.
 #enableWGCNAThreads()
 
+# TO-DO: output example tables as csv
+
 #### UI ####
 
 # TO-DO: hide plots for invalid inputs

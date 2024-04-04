@@ -50,7 +50,12 @@ After the app is launched you will see the following pages:
 
 ### Part One: Getting Started
 
+Start in the left-hand sidebar by:
+1. EXAMPLE
 
+#### Helpful Tips
+The following are some helpful tips for uploading appropriatly formatted data for EXAMPLE analysis.
+* EXAMPLE
 
 ### Part Two: Data Normalization
 
@@ -62,11 +67,14 @@ After the app is launched you will see the following pages:
 
 ### Part Four: Analysis & Results
 
+There are EXAMPLE tables of data that should be downloaded before proceeding with additional downstream analyses, which are the:
+* EXAMPLE
 
+The table of <b>EXAMPLE</b> can be input into the EXAMPLE app to EXAMPLE.
 
 ## Example Script
 
-> [!NOTE]
-> An example R script named <b>script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
+An example R script named <b>script_EXAMPLE.R</b> with code for performing the same analysis as in the edgeR R Shiny app can be found in the <i>scripts</i> directory of the GitHub repository. 
 
-The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
+> [!IMPORTANT]
+> The script is hard coded to work for an example data set and will need to be customized for use with other data sets.
