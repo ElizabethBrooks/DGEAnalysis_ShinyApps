@@ -42,6 +42,12 @@ Before running the EXAMPLE app, make sure to have ready the two .csv files with 
 
 To run the EXAMPLE app, open the R <b>script app_EXAMPLE.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
 
+After the app is launched you will see the following pages:
+1. <i>Getting Started</i> page with information for uploading data to start the analysis
+2. <i>Processing</i> page that indicates the analysis has begun running
+3. a page with separate tabs for each step in the analysis workflow, including:
+* EXAMPLE
+
 ### Part One: Getting Started
 
 

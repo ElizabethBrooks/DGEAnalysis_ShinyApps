@@ -99,6 +99,16 @@ SampleSix,2
 > [!TIP]
 > To run the WGCNA app, open the R <b>script app_networkAnalysis.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
 
+After the app is launched you will see the following pages:
+1. <i>Getting Started</i> page with information for uploading data to start the analysis
+2. <i>Processing</i> page that indicates the analysis has begun running
+3. a page with separate tabs for each step in the analysis workflow, including:
+* Tips
+* Data Cleaning
+* Network Construction
+* Results
+* Information
+
 ### Part One: Getting Started
 
 Start in the left-hand sidebar by:
@@ -106,7 +116,16 @@ Start in the left-hand sidebar by:
 2. clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked
 3. clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis
 
-### Part Two: Data Input and Cleaning
+> [!CAUTION]
+> Tables of gene counts with missing data may produce an error.
+
+> [!TIP]
+> In the input experimental design table the first column with sample names must contain characters and the remaining columns of factors are expected to contain whole numbers.
+> Also, the input gene counts should be TMM normalized gene counts (e.g., using edgeR).
+
+### Part Two: Data Cleaning
+
+#### Data Input and Cleaning
 
 After uploading the normalized gene counts and experimental design, an appropriate minimum branch cluster and branch cut height needs to be selected. We can use the dendrogram of sample clustering based on Euclidean distance to view outliers.
 
@@ -115,30 +134,76 @@ After uploading the normalized gene counts and experimental design, an appropria
 > [!CAUTION]
 > Keep in mind that <i>errors can result from a high minimum branch cluster size or low branch cut height</i>, since this can result in the removal of a significant amount of data.
 
-### Part Three: Network Construction and Module Detection
+##### Sample Clustering to Detect Outliers
+
+The output dendrogram clusters samples based on their Euclidean distance, which facilitates the detection of outliers.
+
+#### Filtered Data
+
+##### Sample Dendrogram and Trait Heatmap
+
+Factors associated with samples are displayed below each sample in the cluster plot. The factors are shown as colors that range from white to red, where white indicates low values and red high. Missing entries are shown as grey.
+
+#### Cleaned Data
+
+Genes or samples with too many missing values have been removed from the data and lists of these genes or samples may be downloaded from the app.
+
+### Part Three: Network Construction
 
 Co-expression networks need to be manually constructed by specifying a minimum module size and soft thresholding power. 
 
+#### Network Construction and Module Detection
+
 <b>First,</b> select an upper value for the range of candidate soft thresholding powers, which will adjust the range of values displayed in the scale independence and mean connectivity plots.
+
+##### Scale Independence and Mean Connectivity
+
+The scale independence and mean connectivity plots show the analysis of network topology for the input range of soft thresholding powers. The left panel shows the scale-free fit index (y-axis) as a function of the soft-thresholding power (x-axis). The right panel displays the mean connectivity (degree, y-axis) as a function of the soft-thresholding power (x-axis).
+
+#### Module Construction
 
 <b>Next,</b> choose a soft thresholding power to which co-expression similarity is raised to calculate adjacency. Also, choose a minimum module size for the gene clusters.
 
-The minimum module size and soft thresholding power should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds.
+> [!TIP]
+> The minimum module size and soft thresholding power should be selected where the scale free topology model fit is above 0.8 and mean connectivity under the hundreds.
 
 > [!CAUTION]
 > Keep in mind that <i>errors can result from a combination of high soft thresholding power or minimum module size values</i>, as this will create a small number of very large modules that may not be strongly correlated.
 
-<b>Lastly,</b> select a cut height to merge close modules. It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation. The dendrogram that displays the clustering of module eigengenes (ME) shows the selected cut height.
+##### Module Number Labels, Color Labels, and Sizes
 
-The closeness of modules is measured by the correlation of the MEs.  Eigengenes can be thought of as a weighted average expression profile. Modules are clustered by their calculated eigengene correlations to determine the co-expression similarity of modules.
+Output are tables with the module number labels, color labels, and sizes.
+
+> [!NOTE]
+> Note that the 0 number label is reserved for unassigned genes.
+> Also, note that the grey color label is reserved for unassigned genes.
+
+#### Network Construction
+
+<b>Now,</b> select a cut height to merge close modules. It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation. The dendrogram that displays the clustering of module eigengenes (ME) shows the selected cut height.
+
+> [!TIP]
+> It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation.
+
+The closeness of modules is measured by the correlation of the MEs. Eigengenes can be thought of as a weighted average expression profile. Modules are clustered by their calculated eigengene correlations to determine the co-expression similarity of modules.
+
+##### Clustering of Module Eigengenes
+
+Output is a dendrogram that displays the clustering of module eigengenes (ME), which have been labeled with their associated module color.
+
+#### Network Data
+
+##### Cluster Dendrogram
 
 The final clustering dendrogram of genes shows dissimilarity based on topological overlap, together with assigned merged module colors and the original module colors.
 
-### Part Four: Network Analysis Results
+### Part Four: Results
+
+#### Network Analysis Results
 
 There are two tables of data that should be downloaded before proceeding with additional downstream analyses, which are the:
 
-* genes and their associated module colors and numbers``
+* genes and their associated module colors and numbers
 * calculated ME expression values for each module
 
 The table of <b>genes and their associated module colors and numbers</b> can be input into the topGO app the determine the potential function of the sets of genes placed in different network modules.

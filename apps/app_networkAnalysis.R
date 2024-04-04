@@ -353,7 +353,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              "Genes or samples with too many missing values have been removed from the data and may be downloaded below."
+              "Genes or samples with too many missing values have been removed from the data and lists of these genes or samples may be downloaded below."
             ),
             tags$br(),
             tags$p(

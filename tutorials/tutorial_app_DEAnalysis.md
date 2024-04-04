@@ -88,15 +88,26 @@ SampleSix,treat
 
 To run the edgeR app, open the R <b>script app_DEAnalysis.R</b> in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
 
+After the app is launched you will see the following pages:
+1. <i>Getting Started</i> page with information for uploading data to start the analysis
+2. <i>Processing</i> page that indicates the analysis has begun running
+3. a page with separate tabs for each step in the analysis workflow, including:
+* Tips 
+* Data Normalization
+* Data Exploration
+* Analysis & Results
+* Information
+
 ### Part One: Getting Started
 
 Start in the left-hand sidebar by:
-
 1. browsing for a .csv file with the gene counts
 2. browsing for a .csv file with the experimental design
 3. clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis
 
 ### Part Two: Data Normalization
+
+#### Data Normalization
 
 After uploading the gene counts and experimental design, the sample libraries are normalized using Trimmed Mean of M-values (TMM) normalization. Normalized values are calcuated in counts per million (CPM) using the normalized library sizes. Note, however, that TMM normalization factors do not take into account library sizes.
 
@@ -106,6 +117,8 @@ After uploading the gene counts and experimental design, the sample libraries ar
 Here filtering is also performed to remove genes that were identified as not sufficiently expressed under the experimental conditions. The negative binomial distribution is used to identify genes with sufficiently large counts to be considered a real signal.
 
 ### Part Three: Data Exploration
+
+#### Data Exploration
 
 #### PCA
 
@@ -135,11 +148,11 @@ The negative binomial distribution models biological noise rather than sequencin
 
 ### Part Four: Analysis & Results
 
-#### pairwise
+#### Pairwise Comparison
 
 Exact tests are performed to identify differences in the means between two groups of negative-binomially distributed counts. A comparison or contrast is a linear combination of means for groups of samples.
 
-#### GLM
+#### GLM Comparison
 
 The GLM is used to perform an ANOVA-like analysis to identify any significant main effect associated with an explanatory variable. An explanatory variable may be a categorical factor with two or more levels, such as treat and cntrl.
 

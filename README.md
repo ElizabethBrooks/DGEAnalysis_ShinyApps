@@ -67,7 +67,7 @@ git clone https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps.git
 
 <b>Second</b>, if running the app locally, you will need to install or update [R and Posit](https://posit.co/download/rstudio-desktop/).
 
-<b>Third</b>, open Posit (formerly RStudio) and before clicking the "Run App" button, make sure to install all of the necessary R packages for each of the applications.
+<b>Third</b>, open Posit (formerly RStudio) and before clicking the <i>Run App</i> button, make sure to install all of the necessary R packages for each of the applications.
 
 ### DE Analysis with edgeR
 ```
@@ -119,6 +119,16 @@ if(length(newPackages)){
   install.packages(newPackages)
 }
 ```
+
+## Running
+
+> [!TIP]
+> To run the selected app, open the R script for the app in Posit and press the <i>Run App</i> button in the upper right corner of the [source pane](https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html).
+
+After the app is launched you will see the following pages:
+1. <i>Getting Started</i> page with information for uploading data to start the analysis
+2. <i>Processing</i> page that indicates the analysis has begun running
+3. a page with separate tabs for each step in the analysis workflow
 
 ## Methods
 

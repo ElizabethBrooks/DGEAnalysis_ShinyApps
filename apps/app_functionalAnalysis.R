@@ -206,20 +206,34 @@ ui <- fluidPage(
           HTML("<ul><li><b>fifth,</b> right clicking and selecting <i>Save As...</i> to download the <i>GO.out.txt</i> annotations table</li></ul>"),
         ),
         tags$p(
-          HTML("<b>Tip 3:</b> The input gene score table should <i>not</i> be filtered in advance."),
+          HTML("<b>Tip 3:</b> Valid statistic for gene scoring include <i>FDR</i> from DE analysis or module <i>number</i> from network analysis, and must be the same name as a column in the input gene score table.")
+        ),
+        tags$p(
+          HTML("<b>Tip 4:</b> Valid expressions for gene scoring include:")
+        ),
+        tags$p(
+          align = "center",
+          HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
+        ),
+        tags$p(
+          align = "center",
+          HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
+        ),
+        tags$p(
+          HTML("<b>Tip 5:</b> The input gene score table should <i>not</i> be filtered in advance."),
           "The functional analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA."
         ),
         tags$p(
-          HTML("<b>Tip 4:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
+          HTML("<b>Tip 6:</b> The input gene score statistic <i>must match</i> the name of a column in the input gene score table.")
         ),
         tags$p(
-          HTML("<b>Tip 5:</b> The first column of the gene score table is expected to contain gene IDs.")
+          HTML("<b>Tip 7:</b> The first column of the gene score table is expected to contain gene IDs.")
         ),
         tags$p(
-          HTML("<b>Tip 6:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
+          HTML("<b>Tip 8:</b> The gene score tables are required to contain two columns with gene IDs and gene scores at <i>minimum</i>.")
         ),
         #tags$p(
-        #HTML("<b>Tip 7:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
+        #HTML("<b>Tip 9:</b> Make sure to set the FDR cut off in your DGE analysis <i>equal to 1</i> before downloading the results.")
         #),
         tags$hr(),
         tags$p(
@@ -306,7 +320,7 @@ ui <- fluidPage(
               HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input data tables.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Valid statistic for gene scoring include <i>FDR</i> from DGE or module <i>number</i> from WGCNA, and must be the same name as a column in the input gene score table.")
+              HTML("<b>Tip 2:</b> Valid statistic for gene scoring include <i>FDR</i> from DE analysis or module <i>number</i> from network analysis, and must be the same name as a column in the input gene score table.")
             ),
             tags$p(
               HTML("<b>Tip 3:</b> Valid expressions for gene scoring include:")
@@ -575,7 +589,7 @@ ui <- fluidPage(
             tags$br(),
             tags$p(
               align="center",
-              HTML("<b>Enrichment Results</b>")
+              HTML("<b>Functional Analysis Results</b>")
             ),
             tags$p(
               "Results from the GO term enrichment analysis may be downloaded below."
@@ -638,7 +652,7 @@ ui <- fluidPage(
             downloadButton(outputId = "mappingsDownload", label = "Download Table"),
             tags$br(),
             tags$p(
-              "The table of gene-to-GO term annotation mappings for each gene."
+              "The table of gene-to-GO term annotation mappings for each gene, which has been formatted for use with topGO."
             )
           ),
           
@@ -667,7 +681,7 @@ ui <- fluidPage(
               "."
             ),
             tags$p(
-              "DGE gene scores (e.g., FDR) may be created from RNA-seq data as described in ", 
+              "DE analysis gene score tables may be created from RNA-seq data as described in ", 
               tags$a("Bioinformatics Analysis of Omics Data with the Shell & R", href = "https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/"), 
               "."
             ),
@@ -913,7 +927,7 @@ server <- function(input, output, session) {
   
   # TO-DO: double check the selection of interesting genes
   # The user needs to provide the gene universe, GO annotations and either a
-  # criteria for selecting interesting genes (e.g. dierentially expressed genes) from the gene universe or a score
+  # criteria for selecting interesting genes (e.g. dierentially expressed genes) from the gene universe or a score
   # associated with each gene.
   # function to perform BP, MF, or CC GO enrichment 
   performGO <- function(ontologyID){
