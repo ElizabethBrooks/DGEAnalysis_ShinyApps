@@ -152,11 +152,11 @@ The following are some helpful tips for uploading appropriatly formatted data fo
 * the first column must be tab or space separated from the second column
 * the first column of gene IDs must match the gene IDs contained in the gene score table
 2. It is possible to create a gene-to-GO term annotations table with [PANNZER2](http://ekhidna2.biocenter.helsinki.fi/sanspanz/) by:
-* first, navigating to the <i>Annotate</i> tab
-* second, uploading a list of protein sequences where the sequence names <i>must match</i> the gene names in the input gene score table
-* third, selecting <i>Batch queue</i> and entering your email
-* fourth, selecting the <i>GO prediction details</i> link after recieving the pannzer2 results
-* fifth, right clicking and selecting <i>Save As...</i> to download the GO.out.txt annotations table
+* <b>first,</b> navigating to the <i>Annotate</i> tab
+* <b>second,</b> uploading a list of protein sequences where the sequence names <i>must match</i> the gene names in the input gene score table
+* <b>third,</b> selecting <i>Batch queue</i> and entering your email
+* <b>fourth,</b> selecting the <i>GO prediction details</i> link after recieving the pannzer2 results
+* <b>fifth,</b> right clicking and selecting <i>Save As...</i> to download the GO.out.txt annotations table
 3. The input gene score table should <i>not</i> be filtered in advance. The functional analysis requires the complete gene universe, which includes all genes detected in the experiment regardless of signifigance in DGE or WGCNA.
 4. The input gene score statistic <i>must match</i> the name of a column in the input gene score table.
 5. The first column of the gene score table is expected to contain gene IDs.
@@ -172,12 +172,12 @@ Begin the functional enrichment or over-representation analysis by selecting a t
 > Further details about the available types of enrichment tests can be found in the [topGO documentation](https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf) (e.g., section 6).
 > Also, refer to the topGO manual for more information regarding the available algorithms and test statistics.
 
-Available algorithms:
+##### Available Algorithms
 1. Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms
 2. Classic algorithm performs functional analysis by testing the over-representation of GO terms within the group of diferentially expressed genes
 3. Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method
 
-Available test statistics:
+##### Available Test Statistics
 1. Fisher's exact test is based on gene counts and can be used to perform over representation analysis of GO terms
 2. Kolmogorov-Smirnov (KS) like test computes enrichment or rank based on gene scores and can be used to perform gene set enrichment analysis (GSEA)
 
@@ -207,7 +207,7 @@ The dot plot of most significant GO terms requires the selection of a p-value cu
 > [!NOTE]
 > Note that the computed p-values are unadjusted for multiple testing.
 
-The dot plot shows the <i>up to the top 5</i> most enriched or overrepresented GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.
+The dot plot shows <i>up to the top 5</i> most enriched or overrepresented GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.
 
 #### Subgraphs of Most Significant GO Terms
 

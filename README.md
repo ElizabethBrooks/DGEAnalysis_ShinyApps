@@ -53,12 +53,9 @@ Each of the applications produces multiple resulting plots and tables, which are
 > The tutorials for using the applications or creating scripts for the different analyses can be found in the [tutorials](https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps/tree/main/tutorials) folder of this repository.
 
 Additional tutorials are available on the following pages of my website, go into further detail about the different analyses and other helpful information.
-
-Helpful information for downloading the applications in this repository can be found in the tutorial [GitHub Version Control Quick Start Guide](https://morphoscape.wordpress.com/2024/02/28/github-version-control-quick-start-guide/) 
-
-A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
-
-Gene tables were may be created from RNA-seq data as described in [Bioinformatics Analysis of Omics Data with the Shell & R](https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/).
+* Helpful information for downloading the applications in this repository can be found in the tutorial [GitHub Version Control Quick Start Guide](https://morphoscape.wordpress.com/2024/02/28/github-version-control-quick-start-guide/).
+* A tutorial of the biostatistical analysis performed in this application is provided in [Downstream Bioinformatics Analysis of Omics Data with edgeR](https://morphoscape.wordpress.com/2022/08/09/downstream-bioinformatics-analysis-of-omics-data-with-edger/).
+* Gene tables were may be created from RNA-seq data as described in [Bioinformatics Analysis of Omics Data with the Shell & R](https://morphoscape.wordpress.com/2022/07/28/bioinformatics-analysis-of-omics-data-with-the-shell-r/).
 
 ### Example Data Sets
 
@@ -74,9 +71,9 @@ Each of the R shiny applications can be run locally on your computer using R and
 
 <b>First,</b> download this GitHub repository using the git clone command in the terminal as follows.
 
-The latest version of this application may be downloaded from this repository by clicking the green "< > Code" button near the top of the page, and then clicking "Download ZIP".
+The latest version of this application may be downloaded from this repository by clicking the green <i>< > Code</i> button near the top of the page, and then clicking <i>Download ZIP</i>.
 
-To download the code onto a local computer or server space, click the green "< > Code" button and copy the link. Then, in the terminal:
+To download the code onto a local computer or server space, click the green <i>< > Code</i> button and copy the link. Then, in the terminal:
 
 git clone https://github.com/ElizabethBrooks/DGEAnalysis_ShinyApps.git
 

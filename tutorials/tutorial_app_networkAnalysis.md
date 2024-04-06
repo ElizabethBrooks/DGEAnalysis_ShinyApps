@@ -185,7 +185,7 @@ Output are tables with the module number labels, color labels, and sizes.
 
 #### Network Construction
 
-<b>Now,</b> select a cut height to merge close modules. It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation. The dendrogram that displays the clustering of module eigengenes (ME) shows the selected cut height.
+<b>Now,</b> select a cut height to merge close modules. The dendrogram that displays the clustering of module eigengenes (ME) shows the selected cut height.
 
 > [!TIP]
 > It is recommended to select a cut height of 0.25, which corresponds to a 0.75 correlation.
