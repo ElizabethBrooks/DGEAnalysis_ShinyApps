@@ -94,17 +94,18 @@ ui <- fluidPage(
         accept = "text"
       ),
       # show panel depending on input files check
-      conditionalPanel(
-        condition = "output.dataUploaded && !input.runUpload",
-        tags$hr(),
-        tags$p(
-          "Click to Upload Data:"
-        ),  
-        actionButton("runUpload", "Upload")
-      ),
+      #conditionalPanel(
+        #condition = "output.dataUploaded && !input.runUpload",
+        #tags$hr(),
+        #tags$p(
+        #  "Click to Upload Data:"
+        #),  
+        #actionButton("runUpload", "Upload")
+      #),
       # show panel depending on input files check
       conditionalPanel(
-        condition = "output.dataUploaded && input.runUpload",
+        #condition = "output.dataUploaded && input.runUpload",
+        condition = "output.dataUploaded",
         tags$hr(),
         tags$p(
           "Click to Run Analysis:"
@@ -158,11 +159,11 @@ ui <- fluidPage(
         tags$p(
           HTML("<ul><li>PANNZER2 resulting <i>GO prediction details</i></li></ul>")
         ),
+        #tags$p(
+        #  HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
+        #),
         tags$p(
-          HTML("<b>5.</b> clicking the <i>Upload</i> button to check that the inputs are valid, which appears after the format of the inputs are checked")
-        ),
-        tags$p(
-          HTML("<b>6.</b> clicking the <i>Run Analysis</i> button, which appears after the input files are verified as valid for analysis")
+          HTML("<b>5.</b> clicking the <i>Run Analysis</i> button, which appears after the format of the input files are checked and verified as valid for analysis")
         ),
         tags$br(),
         tags$p(
@@ -825,19 +826,25 @@ server <- function(input, output, session) {
     # read in the file
     GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "", row.names=NULL, colClasses = c(goid = "character"))
     # check what format mappings file was input
-    if(ncol(GOmaps_input) == 2){ # two column csv
-      # re-format mappings from two column csv
-      GOmaps_csv_format <- aggregate(GOmaps_input[2], GOmaps_input[1], FUN = toString)
-      GOmaps_csv_out <- GOmaps_csv_format
-      GOmaps_csv_out$Terms <- gsub(" ", "", GOmaps_csv_out$Terms)
-      # output re-formatted mappings from two column csv
-      write.table(GOmaps_csv_out, file = "mappings_GO.fmt.txt", sep = "\t", quote = FALSE, row.names=FALSE)
-      # read the mappings file
-      GOmaps <- readMappings(file = "mappings_GO.fmt.txt")
-      # clean up
-      file.remove("mappings_GO.fmt.txt")
-    }else if(ncol(GOmaps_input) == 8){
-      # check if input mappings are from PANNZER2
+    if(ncol(GOmaps_input) == 2){ # two columns
+      # check if mappings are in topGO format
+      if( "\t" %in% strsplit(readLines(input$mappings$datapath, n=1)[1], split="")[[1]] ) { # topGO formatted
+        # read the mappings file
+        GOmaps <- readMappings(file = input$mappings$datapath)
+      }else{ # two column csv
+        # re-format mappings from two column csv
+        GOmaps_csv_format <- aggregate(GOmaps_input[2], GOmaps_input[1], FUN = toString)
+        GOmaps_csv_out <- GOmaps_csv_format
+        GOmaps_csv_out$Terms <- gsub(" ", "", GOmaps_input[2])
+        # output re-formatted mappings from two column csv
+        write.table(GOmaps_csv_out, file = "mappings_GO.fmt.txt", sep = "\t", quote = FALSE, row.names=FALSE)
+        # read the mappings file
+        GOmaps <- readMappings(file = "mappings_GO.fmt.txt")
+        # clean up
+        file.remove("mappings_GO.fmt.txt") 
+      }
+    }else if(ncol(GOmaps_input) == 8){ # 8 columns
+      # double check if input mappings are from PANNZER2
       if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
         # re-format mappings from PANNZER2
         GOmaps_fmt <- split(GOmaps_input$goid,GOmaps_input$qpid)
@@ -853,9 +860,6 @@ server <- function(input, output, session) {
         # clean up
         file.remove("PANNZER2_GO.fmt.txt")
       }
-    }else{
-      # read the mappings file
-      GOmaps <- readMappings(file = input$mappings$datapath)
     }
     # return data
     GOmaps
@@ -936,14 +940,16 @@ server <- function(input, output, session) {
     if(is.null(createUniverse())){
       return(NULL)
     }
-    # retrieve gene universe
-    list_genes_filtered <- createUniverse()
-    # retrieve go mappings
-    GO_maps <- inputMappings()
-    # create topGOdata objects for enrichment analysis (1 for each ontology)
-    GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
-                   geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
-                   gene2GO = GO_maps)
+    #isolate({
+      # retrieve gene universe
+      list_genes_filtered <- createUniverse()
+      # retrieve go mappings
+      GO_maps <- inputMappings()
+      # create topGOdata objects for enrichment analysis (1 for each ontology)
+      GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
+                     geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
+                     gene2GO = GO_maps)
+    #})
   }
   
   # TO-DO: this causes additional function calls
