@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # creator: Elizabeth Brooks
-# updated: 2 April 2024
+# updated: 8 April 2024
 
 # install any missing packages
 packageList <- c("BiocManager", "shiny", "shinythemes", "ggplot2", "rcartocolor", "tidyr")
@@ -32,43 +32,57 @@ options(scipen = 999)
 options(stringsAsFactors = FALSE)
 
 # set the statistic for gene scoring
-#statisticInput <- "FDR"
+statisticInput <- "FDR"
 #statisticInput <- "number"
-statisticInput <- "color"
+#statisticInput <- "color"
 
 # set the expression for gene scoring
-#expressionInput <- "< 0.05" # example expression for edgeR FDR statistic
+expressionInput <- "< 0.05" # example expression for edgeR FDR statistic
 #expressionInput <- "== 1" # example expression for WGCNA number statistic
-expressionInput <- "== purple" # example expression for WGCNA color statistic
+#expressionInput <- "== purple" # example expression for WGCNA color statistic
 
 # retrieve input edgeR or WGCNA results tables
-#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_topDEGs.csv", row.names=1)
-#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_topDEGs.csv", row.names=1)
-#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_topDEGs.csv", row.names=1)
-DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_geneModules.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example5_mycobacterium_topDEGs.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example6_daphnia_topDEGs.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example3_daphnia_topDEGs.csv", row.names=1)
+#DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example4_daphnia_geneModules.csv", row.names=1)
+DGE_results_table <- read.csv(file = "/Users/bamflappy/DGEAnalysis_ShinyApps/data/tmp/WildType2A_Scarlet2A_pairwiseDEGs.csv", row.names=1)
 
 # retrieve mappings created by pannzer2
-#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example5_mycobacterium_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
-#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
-GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example5_mycobacterium_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example6_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
+#GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example4_daphnia_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
 
 # re-format mappings from pannzer2
-GOmaps_pannzer_fmt <- split(GOmaps_pannzer$goid,GOmaps_pannzer$qpid)
+#GOmaps_pannzer_fmt <- split(GOmaps_pannzer$goid,GOmaps_pannzer$qpid)
 
 # create data frame with formtted mappings
-GOmaps_pannzer_out <- as.data.frame(unlist(lapply(names(GOmaps_pannzer_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_pannzer_fmt[[x]], sep="")))})))
-rownames(GOmaps_pannzer_out) <- names(GOmaps_pannzer_fmt)
-colnames(GOmaps_pannzer_out) <- NULL
+#GOmaps_pannzer_out <- as.data.frame(unlist(lapply(names(GOmaps_pannzer_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_pannzer_fmt[[x]], sep="")))})))
+#rownames(GOmaps_pannzer_out) <- names(GOmaps_pannzer_fmt)
+#colnames(GOmaps_pannzer_out) <- NULL
 
 # output re-formatted mappings from pannzer2
-#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
-#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
-write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example4_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example6_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+#write.table(GOmaps_pannzer_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example3_daphnia_GO.fmt.txt", sep = "\t", quote = FALSE)
+
+# retrieve gene to GO map in two column csv format
+#GOmaps_csv <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.csv")
+GOmaps_csv <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.csv", sep = "", row.names=NULL, colClasses = c(goid = "character"))
+
+# re-format mappings from two column csv
+GOmaps_csv_format <- aggregate(GOmaps_csv[2], GOmaps_csv[1], FUN = toString)
+GOmaps_csv_out <- GOmaps_csv_format
+GOmaps_csv_out$Terms <- gsub(" ", "", GOmaps_csv_out$Terms)
+
+# output re-formatted mappings from two column csv
+write.table(GOmaps_csv_out, file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.fmt.txt", sep = "\t", quote = FALSE, row.names=FALSE)
 
 # retrieve gene to GO map
-#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example4_daphnia_GO.fmt.txt")
-#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example6_daphnia_GO.fmt.txt")
-GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/topGO/example3_daphnia_GO.fmt.txt")
+#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example4_daphnia_GO.fmt.txt")
+#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example6_daphnia_GO.fmt.txt")
+#GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example3_daphnia_GO.fmt.txt")
+GOmaps <- readMappings(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.fmt.txt")
 
 
 ## GO enrichment

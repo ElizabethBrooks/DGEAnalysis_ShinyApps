@@ -1,5 +1,5 @@
 # creator: Elizabeth Brooks
-# updated: 2 April 2024
+# updated: 8 April 2024
 
 #### Setup ####
 
@@ -34,6 +34,7 @@ plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[5], plotColors[6])
 
 # TO-DO: output example tables as csv
+# TO-DO: check mappings table output (error for two rows with duplicate names)
 
 #### UI ####
 
@@ -283,6 +284,11 @@ ui <- fluidPage(
         tags$p(
           HTML("<b>Example</b> <i>topGO</i> gene-to-GO term mappings for four genes:"),
           tableOutput(outputId = "exampleTopGO") 
+        ),
+        tags$br(),
+        tags$p(
+          HTML("<b>Example</b> <i>two column CSV</i> with gene-to-GO term mappings for four genes:"),
+          tableOutput(outputId = "exampleTwoCol") 
         ),
         tags$br(),
         tags$p(
@@ -751,7 +757,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # render first example topGO mappings table
+  # render example topGO mappings table
   output$exampleTopGO <- renderTable({
     # create example mappings table
     exMappingsTable <- data.frame(
@@ -760,7 +766,16 @@ server <- function(input, output, session) {
     )
   })
   
-  # render first example PANNZER2 mappings table
+  # render example two column csv mappings table
+  output$exampleTwoCol <- renderTable({
+    # create example mappings table
+    exMappingsTable <- data.frame(
+      Gene = c("geneA", "geneA", "geneB", "geneB", "geneB", "geneB", "geneC", "geneD", "geneD", "geneD", "geneD"),
+      Terms = c("GO:0005730" ,"GO:0030490", "GO:0006890", "GO:0030173", "GO:0005783", "GO:0006621", "GO:0006355", "GO:0005739", "GO:0008203", "GO:0006744", "GO:0015039")
+    )
+  })
+  
+  # render example PANNZER2 mappings table
   output$examplePannzer <- renderTable({
     # create example mappings table
     exMappingsTable <- data.frame(
@@ -809,21 +824,35 @@ server <- function(input, output, session) {
     }
     # read in the file
     GOmaps_input <- read.delim(file = input$mappings$datapath, sep = "", row.names=NULL, colClasses = c(goid = "character"))
-    # check if input mappings are from PANNZER2
-    if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
-      # re-format mappings from PANNZER2
-      GOmaps_fmt <- split(GOmaps_input$goid,GOmaps_input$qpid)
-      # create data frame with formtted mappings
-      GOmaps_out <- as.data.frame(unlist(lapply(names(GOmaps_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_fmt[[x]], sep="")))})))
-      rownames(GOmaps_out) <- names(GOmaps_fmt)
-      colnames(GOmaps_out) <- NULL
-      # TO-DO: double check location for storing this necessary output file
-      # output re-formatted mappings from PANNZER2
-      write.table(GOmaps_out, file = "PANNZER2_GO.fmt.txt", sep = "\t", quote = FALSE)
+    # check what format mappings file was input
+    if(ncol(GOmaps_input) == 2){ # two column csv
+      # re-format mappings from two column csv
+      GOmaps_csv_format <- aggregate(GOmaps_input[2], GOmaps_input[1], FUN = toString)
+      GOmaps_csv_out <- GOmaps_csv_format
+      GOmaps_csv_out$Terms <- gsub(" ", "", GOmaps_csv_out$Terms)
+      # output re-formatted mappings from two column csv
+      write.table(GOmaps_csv_out, file = "mappings_GO.fmt.txt", sep = "\t", quote = FALSE, row.names=FALSE)
       # read the mappings file
-      GOmaps <- readMappings(file = "PANNZER2_GO.fmt.txt")
+      GOmaps <- readMappings(file = "mappings_GO.fmt.txt")
       # clean up
-      file.remove("PANNZER2_GO.fmt.txt")
+      file.remove("mappings_GO.fmt.txt")
+    }else if(ncol(GOmaps_input) == 8){
+      # check if input mappings are from PANNZER2
+      if("qpid" %in% colnames(GOmaps_input) && "goid" %in% colnames(GOmaps_input)){
+        # re-format mappings from PANNZER2
+        GOmaps_fmt <- split(GOmaps_input$goid,GOmaps_input$qpid)
+        # create data frame with formtted mappings
+        GOmaps_out <- as.data.frame(unlist(lapply(names(GOmaps_fmt), function(x){gsub(" ", "", toString(paste("GO:", GOmaps_fmt[[x]], sep="")))})))
+        rownames(GOmaps_out) <- names(GOmaps_fmt)
+        colnames(GOmaps_out) <- NULL
+        # TO-DO: double check location for storing this necessary output file
+        # output re-formatted mappings from PANNZER2
+        write.table(GOmaps_out, file = "PANNZER2_GO.fmt.txt", sep = "\t", quote = FALSE)
+        # read the mappings file
+        GOmaps <- readMappings(file = "PANNZER2_GO.fmt.txt")
+        # clean up
+        file.remove("PANNZER2_GO.fmt.txt")
+      }
     }else{
       # read the mappings file
       GOmaps <- readMappings(file = input$mappings$datapath)

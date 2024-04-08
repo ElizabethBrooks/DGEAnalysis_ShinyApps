@@ -35,6 +35,7 @@ defaultLFC <- 1.2
 defaultFDR <- 0.05
 
 # TO-DO: output example tables as csv
+# TO-DO : separate analysis and results into different tabs
 
 #### UI ####
 
