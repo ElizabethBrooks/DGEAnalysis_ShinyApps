@@ -46,7 +46,7 @@ expressionInput <- "< 0.05" # example expression for edgeR FDR statistic
 #DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example6_daphnia_topDEGs.csv", row.names=1)
 #DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example3_daphnia_topDEGs.csv", row.names=1)
 #DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example4_daphnia_geneModules.csv", row.names=1)
-DGE_results_table <- read.csv(file = "/Users/bamflappy/DGEAnalysis_ShinyApps/data/tmp/WildType2A_Scarlet2A_pairwiseDEGs.csv", row.names=1)
+DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/WildType2A_Scarlet2A_pairwiseDEGs.csv", row.names=1)
 
 # retrieve mappings created by pannzer2
 #GOmaps_pannzer <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/functionalAnalysis/example5_mycobacterium_GO.out.txt", sep = "", row.names=NULL, colClasses = c(qpid = "character", goid = "character"))
@@ -116,6 +116,14 @@ BP_GO_data <- new('topGOdata', ontology = 'BP', allGenes = list_genes_filtered,
 #                  geneSel = get_interesting_DE_genes, nodeSize = 10, annot = annFUN.gene2GO, 
 #                  gene2GO = GOmaps)
 
+# save the topGOdata as an R data object
+outFile <- paste("test", "topGOdata.rds", sep="_")
+saveRDS(BP_GO_data, outFile)
+
+# retrieve topGOdata objects for enrichment analysis (1 for each ontology)
+inFile <- paste("test", "topGOdata.rds", sep="_")
+BP_GO_data_test <- readRDS(inFile)
+
 #Summary functions
 #numGenes(BP_GO_data)
 #length(sigGenes(BP_GO_data))
@@ -125,10 +133,18 @@ BP_GO_data <- new('topGOdata', ontology = 'BP', allGenes = list_genes_filtered,
 #length(sigGenes(CC_GO_data))
 
 # performGO enrichment using the topGOdata objects
-BP_GO_results <- runTest(BP_GO_data, statistic = 'ks')
+BP_GO_results <- runTest(BP_GO_data_test, statistic = 'ks')
 #BP_GO_results <- runTest(BP_GO_data, statistic = 'fisher')
 #MF_GO_results <- runTest(MF_GO_data, statistic = 'Fisher')
 #CC_GO_results <- runTest(CC_GO_data, statistic = 'Fisher')
+
+# save the topGOdata as an R data object
+outFile <- paste("test", "topGOdata_results.rds", sep="_")
+saveRDS(BP_GO_results, outFile)
+
+# retrieve topGOdata objects for enrichment analysis (1 for each ontology)
+inFile <- paste("test", "topGOdata_results.rds", sep="_")
+BP_GO_results_test <- readRDS(inFile)
 
 # check the names of GO terms
 #head(names(BP_GO_results@score))
@@ -136,7 +152,7 @@ BP_GO_results <- runTest(BP_GO_data, statistic = 'ks')
 
 # store p-values as named list... ('score(x)' or 'x@score' returns named list of p-val's 
 # where names are the GO terms)
-pval_BP_GO <- score(BP_GO_results)
+pval_BP_GO <- score(BP_GO_results_test)
 #pval_MF_GO <- score(MF_GO_results)
 #pval_CC_GO <- score(CC_GO_results)
 
@@ -150,11 +166,11 @@ hist(pval_BP_GO, 35, xlab = "p-values", main = "Range of BP GO term p-values")
 #dev.off()
 
 # get statistics on GO terms
-list_BP_GO_terms <- usedGO(BP_GO_data)
+list_BP_GO_terms <- usedGO(BP_GO_data_test)
 #list_MF_GO_terms <- usedGO(MF_GO_data)
 #list_CC_GO_terms <- usedGO(CC_GO_data)
 
-BP_GO_results_table <- GenTable(BP_GO_data, weightFisher = BP_GO_results, orderBy = 'weightFisher', 
+BP_GO_results_table <- GenTable(BP_GO_data_test, weightFisher = BP_GO_results_test, orderBy = 'weightFisher', 
                                 topNodes = length(list_BP_GO_terms))
 #MF_GO_results_table <- GenTable(MF_GO_data, weightFisher = MF_GO_results, orderBy = 'weightFisher', 
 #                                topNodes = length(list_MF_GO_terms))

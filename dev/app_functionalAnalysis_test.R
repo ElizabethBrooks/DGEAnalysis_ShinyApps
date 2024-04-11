@@ -58,44 +58,40 @@ ui <- fluidPage(
       
       # TO-DO: fix scoreStat to allow or prohibit "color"
       # also, limit the input stat options
-      # show panel depending on run analysis check
-      conditionalPanel(
-        condition = "!input.runAnalysis",
-        # request inputs
-        tags$p(
-          "Enter Statistic for Gene Scoring:"
-        ),
-        textInput(
-          inputId = "scoreStat",
-          label = NULL,
-          value = "FDR"
-        ),
-        tags$p(
-          "Enter Expression for Gene Scoring:"
-        ),
-        textInput(
-          inputId = "universeCut",
-          label = NULL,
-          value = "< 0.05"
-        ),
-        tags$p(
-          "Upload Gene Score Table (*.csv):"
-        ),
-        fileInput(
-          "analysisTable", 
-          label = NULL,
-          multiple = FALSE,
-          accept = ".csv"
-        ),
-        tags$p(
-          "Upload Mappings Table (*.txt):"
-        ),
-        fileInput(
-          "mappings", 
-          label = NULL,
-          multiple = FALSE,
-          accept = "text"
-        )
+      # request inputs
+      tags$p(
+        "Enter Statistic for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "scoreStat",
+        label = NULL,
+        value = "FDR"
+      ),
+      tags$p(
+        "Enter Expression for Gene Scoring:"
+      ),
+      textInput(
+        inputId = "universeCut",
+        label = NULL,
+        value = "< 0.05"
+      ),
+      tags$p(
+        "Upload Gene Score Table (*.csv):"
+      ),
+      fileInput(
+        "analysisTable", 
+        label = NULL,
+        multiple = FALSE,
+        accept = ".csv"
+      ),
+      tags$p(
+        "Upload Mappings Table (*.txt):"
+      ),
+      fileInput(
+        "mappings", 
+        label = NULL,
+        multiple = FALSE,
+        accept = "text"
       ),
       # show panel depending on input files check
       #conditionalPanel(
@@ -109,42 +105,12 @@ ui <- fluidPage(
       # show panel depending on input files check
       conditionalPanel(
         #condition = "output.dataUploaded && input.runUpload",
-        condition = "output.dataUploaded && !input.runAnalysis",
+        condition = "output.dataUploaded",
         tags$hr(),
         tags$p(
           "Click to Run Analysis:"
         ),  
         actionButton("runAnalysis", "Run Analysis")
-      ),
-      # show panel depending on run analysis check
-      conditionalPanel(
-        condition = "input.runAnalysis",
-        #tags$hr(),
-        tags$p(
-          "Select GO Term Category:"
-        ),
-        radioButtons(
-          inputId = "ontologyID",
-          label = NULL,
-          choices = c("Biological Process" = "BP",
-                      "Molecular Function" = "MF",
-                      "Cellular Component" = "CC"),
-          selected = "BP"
-        ),
-        tags$br(),
-        tags$p(
-          "Select P-Value Cut Off:"
-        ),
-        sliderInput(
-          "pValCut",
-          label = NULL,
-          min = 0, 
-          max = 0.1, 
-          value=0.05 
-        ),
-        tags$p(
-          "Note that the computed p-values are unadjusted for multiple testing."
-        )
       )
     ),
     
@@ -467,25 +433,25 @@ ui <- fluidPage(
               HTML("<b>Range of GO Term P-Values</b>")
             ),
             tags$br(),
-            #fluidRow(
-              #column(
-                #width = 4,
-                plotOutput(outputId = "PHist"),
-                downloadButton(outputId = "downloadPHist", label = "Download Plot"),
-              #),
-              #column(
-                #width = 4,
-                #plotOutput(outputId = "MFHist"),
-                #downloadButton(outputId = "downloadMFHist", label = "Download Plot")
-              #),
-              #column(
-                #width = 4,
-                #plotOutput(outputId = "CCHist"),
-                #downloadButton(outputId = "downloadCCHist", label = "Download Plot")
-              #)
-            #),
+            fluidRow(
+              column(
+                width = 4,
+                plotOutput(outputId = "BPHist"),
+                downloadButton(outputId = "downloadBPHist", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                plotOutput(outputId = "MFHist"),
+                downloadButton(outputId = "downloadMFHist", label = "Download Plot")
+              ),
+              column(
+                width = 4,
+                plotOutput(outputId = "CCHist"),
+                downloadButton(outputId = "downloadCCHist", label = "Download Plot")
+              )
+            ),
             tags$p(
-              "The above histogram shows the range and frequency of p-values from the enrichment tests for the selected GO level (BP, MF, or CC)."
+              "The above histograms show the range and frequency of p-values from the enrichment tests for each GO level (BP, MF, or CC)."
             ),
             tags$hr(),
             tags$p(
@@ -493,13 +459,32 @@ ui <- fluidPage(
               HTML("<b>Density Plots of GO Terms</b>")
             ),
             tags$br(),
-            tags$p(
-              "Enter GO Term ID:"
-            ),
-            textInput(
-              inputId = "ontologyTerm",
-              label = NULL,
-              value = "GO:0008150"
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "ontologyCategory",
+                  label = NULL,
+                  choices = c("Biological Process" = "BP",
+                              "Molecular Function" = "MF",
+                              "Cellular Component" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Enter GO Term ID:"
+                ),
+                textInput(
+                  inputId = "ontologyTerm",
+                  label = NULL,
+                  value = "GO:0008150"
+                )
+              )
             ),
             conditionalPanel(
               condition = "output.densityResultsCompleted",
@@ -527,22 +512,67 @@ ui <- fluidPage(
               HTML("<b>Tip 2:</b> Make sure that the GO category is valid for the input GO term ID.")
             ),
             tags$hr(),
+            tags$p(
+              align = "center",
+              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
+            ),
+            tags$br(),
+            tags$p(
+              "Select P-Value Cut Off:"
+            ),
+            sliderInput(
+              "fisherCut",
+              label = NULL,
+              min = 0, 
+              max = 0.1, 
+              value=0.05 
+            ),
+            tags$p(
+              "Note that the computed p-values are unadjusted for multiple testing."
+            ),
+            tags$br(),
+            plotOutput(outputId = "dotPlot"),
+            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
+            # TO-DO: make sure to note enriched or overrepresented for outputs
+            tags$p(
+              HTML("The above dot plot shows <i>up to the top 5</i> most enriched or overrepresented GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.")
+            ),
+            tags$hr(),
             # TO-DO: fix downloading of subgraphs
             tags$p(
               align = "center",
               HTML("<b>Subgraphs of Most Significant GO Terms</b>")
             ),
             tags$br(),
-            tags$p(
-              "Select the Number of Nodes:"
-            ),
-            sliderInput(
-              inputId = "sigNodes",
-              label = NULL,
-              min = 1,
-              max = 10,
-              value = 5,
-              step = 1
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "subCategory",
+                  label = NULL,
+                  choices = c("BP" = "BP",
+                              "MF" = "MF",
+                              "CC" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Select the Number of Nodes:"
+                ),
+                sliderInput(
+                  inputId = "sigNodes",
+                  label = NULL,
+                  min = 1,
+                  max = 10,
+                  value = 5,
+                  step = 1
+                )
+              )
             ),
             tags$br(),
             tags$p(
@@ -574,6 +604,39 @@ ui <- fluidPage(
               "Results from the GO term enrichment analysis may be downloaded below."
             ),
             tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "resultsCategory",
+                  label = NULL,
+                  choices = c("BP" = "BP",
+                              "MF" = "MF",
+                              "CC" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Select P-Value Cut Off:"
+                ),
+                sliderInput(
+                  "sigCut",
+                  label = NULL,
+                  min = 0, 
+                  max = 0.1, 
+                  value=0.05 
+                ),
+                tags$p(
+                  "Note that the computed p-values are unadjusted for multiple testing."
+                )
+              )
+            ),
+            tags$br(),
             tags$p(
               HTML("<b>Table of Enriched GO Terms</b>")
             ),
@@ -599,18 +662,6 @@ ui <- fluidPage(
             tags$br(),
             tags$p(
               "The table of gene-to-GO term annotation mappings for each gene, which has been formatted for use with topGO."
-            ),
-            tags$hr(),
-            tags$p(
-              align = "center",
-              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
-            ),
-            tags$br(),
-            plotOutput(outputId = "dotPlot"),
-            downloadButton(outputId = "downloadDotPlot", label = "Download Plot"),
-            # TO-DO: make sure to note enriched or overrepresented for outputs
-            tags$p(
-              HTML("The above dot plot shows <i>up to the top 5</i> most enriched or overrepresented GO terms for each level (BP, MF, CC). The size of the dots indicate the number of significant genes annotated to the GO term. The dots are colored by the enrichment test p-values.")
             )
           ),
           
@@ -821,19 +872,17 @@ server <- function(input, output, session) {
     # check the input tables are not null
     if(is.null(inputAnalysisTable())){
       return(FALSE)
-    }
-    if(is.null(inputMappings())){
+    }else if(is.null(inputMappings())){
       return(FALSE)
     }
     return(TRUE)
   }
   outputOptions(output, 'dataUploaded', suspendWhenHidden=FALSE)
   
-  # TO-DO: add update button
   # update input ontology term
   observeEvent(input$runAnalysis, {
     # retrieve top BP term
-    tmpTerm <- getSigTerm()
+    tmpTerm <- getSigTerm("BP")
     # update input
     updateTextInput(
       session,
@@ -844,12 +893,11 @@ server <- function(input, output, session) {
   
   
   ## 
-  # GO Enrichment
+  # GO Enrichment Inputs
   ##
   
   # function to create gene universe
   createUniverse <- eventReactive(input$runAnalysis, {
-  #createUniverse <- reactive({
     # require input
     req(input$scoreStat)
     # check for valid inputs
@@ -873,15 +921,6 @@ server <- function(input, output, session) {
     list_genes_filtered
   })
   
-  # check if results are complete
-  output$resultsCompleted <- function(){
-    if(is.null(createUniverse())){
-      return(FALSE)
-    }
-    return(TRUE)
-  }
-  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
-  
   # TO-DO: fix evaluation of strings (e.g., == brown)
   # TO-DO: test the validity of the input expression for error handling
   # function to retrieve interesting genes
@@ -899,95 +938,185 @@ server <- function(input, output, session) {
     }
   }
   
+  # TO-DO : remove data files after app is closed
   # function to create and save BP, MF, or CC topGOdata objects
-  createOntology <- eventReactive(input$runAnalysis, {
+  saveOntology <- function(ontologyID){
     # retrieve gene universe
     list_genes_filtered <- createUniverse()
     # retrieve go mappings
     GO_maps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
-    GO_data <- new('topGOdata', ontology = input$ontologyID, allGenes = list_genes_filtered, 
+    GO_data <- new('topGOdata', ontology = ontologyID, allGenes = list_genes_filtered, 
                    geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
                    gene2GO = GO_maps)
-  })
+    # save the topGOdata as a R data object
+    outFile <- paste(ontologyID, "topGOdata.rds", sep="_")
+    saveRDS(GO_data, outFile)
+  }
   
+  # TO-DO : fix hard coded file path
+  # function to retrieve BP, MF, or CC topGOdata objects
+  createOntology <- function(ontologyID){
+    # retrieve topGOdata objects for enrichment analysis (1 for each ontology)
+    inFile <- paste(ontologyID, "topGOdata.rds", sep="_")
+    #inFile <- paste("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/apps", inFile, sep="/")
+    GO_data <- readRDS(inFile)
+  }
+  
+  # TO-DO : remove data files after app is closed
   # TO-DO: double check the selection of interesting genes
   # The user needs to provide the gene universe, GO annotations and either a
   # criteria for selecting interesting genes (e.g. dierentially expressed genes) from the gene universe or a score
   # associated with each gene.
   # function to perform and save BP, MF, or CC GO enrichment 
-  performGO <- eventReactive(input$runAnalysis, {
+  #saveGO <- function(ontologyID){
+  performGO <- function(ontologyID){
     # require inputs
     req(input$testAlg, input$testStat)
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- createOntology(ontologyID)
     # perform GO enrichment using the topGOdata objects
     GOResults <- runTest(GO_data, algorithm = input$testAlg, statistic = input$testStat)
+    # save the results as a R data object
+    #outFile <- paste(ontologyID, "topGOdata_results.rds", sep="_")
+    #saveRDS(GO_data, outFile)
+  }
+  
+  # update input ontology topGOdata objects
+  observeEvent(input$runAnalysis, {
+    # save R data objects with topGOdata for each ontology
+    saveOntology("BP")
+    saveOntology("MF")
+    saveOntology("CC")
+    # save R data objects with enrichment results for each ontology
+    #saveGO("BP")
+    #saveGO("MF")
+    #saveGO("CC")
   })
   
+  ## 
+  # GO Enrichment
+  ##
+  
+  # TO-DO : fix hard coded file path
+  # function to retrieve BP, MF, or CC GO enrichment 
+  #performGO <- function(ontologyID){
+    # retrieve topGOdata objects for enrichment analysis (1 for each ontology)
+    #inFile <- paste(ontologyID, "topGOdata_results.rds", sep="_")
+    #inFile <- paste("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/apps", inFile, sep="/")
+    #GO_data <- readRDS(inFile)
+  #}
+  
+  # check if results are complete
+  output$resultsCompleted <- function(){
+    if(is.null(performGO("BP"))){
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  outputOptions(output, 'resultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  
   # function to create BP, MF, or CC p-value histogram
-  createPHist <- function(){
+  createPHist <- function(ontologyID){
     # retrieve results
-    GOResults <- performGO()
+    GOResults <- performGO(ontologyID)
     # store p-values as named list...
     pvalGO <- score(GOResults)
     # create title
-    titleName <- paste("Range of", input$ontologyID, "P-Values", sep=" ")
+    titleName <- paste("Range of", ontologyID, "P-Values", sep=" ")
     # plot histogram to see range of p-values
     hist(pvalGO, 35, xlab = "p-values", main = titleName)
   }
   
   # render BP p-value histogram
-  output$PHist <- renderPlot({
+  output$BPHist <- renderPlot({
     # create the plot
-    createPHist()
+    createPHist("BP")
   })
   
   # download handler for the BP histogram
-  output$downloadPHist <- downloadHandler(
+  output$downloadBPHist <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "pValueRanges.png", sep = "_")
+      "pValueRanges_BP.png"
     },
     content = function(file) {
       # save the plot
       png(file, width = 12, height = 9, units="in", res=150)
-      createPHist()
+      createPHist("BP")
+      dev.off()
+    }
+  )
+  
+  # render MF p-value histogram
+  output$MFHist <- renderPlot({
+    # create the plot
+    createPHist("MF")
+  })
+  
+  # download handler for the MF histogram
+  output$downloadMFHist <- downloadHandler(
+    filename = function() {
+      "pValueRanges_MF.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createPHist("MF")
+      dev.off()
+    }
+  )
+  
+  # render CC p-value histogram
+  output$CCHist <- renderPlot({
+    # create the plot
+    createPHist("CC")
+  })
+  
+  # download handler for the CC histogram
+  output$downloadCCHist <- downloadHandler(
+    filename = function() {
+      "pValueRanges_CC.png"
+    },
+    content = function(file) {
+      # save the plot
+      png(file, width = 12, height = 9, units="in", res=150)
+      createPHist("CC")
       dev.off()
     }
   )
   
   # function to plot BP, MF, or CC subgraphs
-  createSubgraphs <- function(ontologyNodes){
+  createSubgraphs <- function(ontologyID, ontologyNodes){
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- createOntology(ontologyID)
     # retrieve results
-    GOResults <- performGO()
+    GOResults <- performGO(ontologyID)
     # plot subgraphs induced by the most significant GO terms
     printGraph(GO_data, GOResults, firstSigNodes = ontologyNodes, 
-               fn.prefix = paste(input$ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
+               fn.prefix = paste(ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
   }
   
   # TO-DO: fix, currently saves to working directory
   # download button for PDFs of subgraphs
   output$downloadSubgraphs <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "sigGO_subgraphs.pdf", sep = "_")
+      "sigGO_subgraphs_BP_weight01_5_all.pdf"
     },
     content = function(file) {
       # require inputs
-      req(input$ontologyID, input$sigNodes)
+      req(input$subCategory, input$sigNodes)
       # create subgraph PDFs
-      createSubgraphs(input$ontologyID, input$sigNodes)
+      createSubgraphs(input$subCategory, input$sigNodes)
     }
   )
   
   # TO-DO: fix extra column in output table
   # function to get statistics on BP, MF, or CC GO terms
-  getResults <- function(){
+  getResults <- function(ontologyID){
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- createOntology(ontologyID)
     # retrieve results
-    GO_Results <- performGO()
+    GO_Results <- performGO(ontologyID)
     # retrieve statistics
     list_GO_terms <- usedGO(GO_data)
     # retrieve results table
@@ -996,38 +1125,36 @@ server <- function(input, output, session) {
   }
   
   # function to get significant BP, MF, or CC GO terms
-  getSigResults <- function(){
-    # require input
-    req(input$pValCut)
+  getSigResults <- function(ontologyID, sigCutOff){
     # retrieve stats
-    GO_Results_table <- getResults()
+    GO_Results_table <- getResults(ontologyID)
     # create table of significant GO terms
-    sigGO_Results_table <- GO_Results_table[GO_Results_table$weightFisher <= input$pValCut, ]
+    sigGO_Results_table <- GO_Results_table[GO_Results_table$weightFisher <= sigCutOff, ]
   }
   
   # function to get results for selected the top BP, MF, or CC GO terms
-  getSigTerm <- function(){
+  getSigTerm <- function(ontologyID){
     # retrieve stats
-    GO_results_table <- getResults()
+    GO_results_table <- getResults(ontologyID)
     # retrieve results for selected GO term
     topSigID <- GO_results_table[1, 'GO.ID']
   }
   
   # function to get results for selected BP, MF, or CC GO terms
-  getTerm <- function(){
+  getTerm <- function(ontologyID, termID){
     # retrieve stats
-    GO_results_table <- getResults()
+    GO_results_table <- getResults(ontologyID)
     # retrieve results for selected GO term
-    topSigID <- GO_results_table[GO_results_table$GO.ID == input$ontologyTerm,1]
+    topSigID <- GO_results_table[GO_results_table$GO.ID == termID,1]
   }
   
   # function to create BP, MF, or CC density plots
   # default is most sig GO term
-  createDensity <- function(){
+  createDensity <- function(ontologyID, termID){
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- createOntology(ontologyID)
     # retrieve term results
-    termResults <- getTerm()
+    termResults <- getTerm(ontologyID, termID)
     # create density plot
     showGroupDensity(GO_data, whichGO = termResults, ranks = TRUE)
   }
@@ -1035,7 +1162,7 @@ server <- function(input, output, session) {
   # TO-DO: this causes additional function calls
   # check if results have completed
   output$densityResultsCompleted <- function(){
-    if(is.null(createDensity())){
+    if(is.null(createDensity(input$ontologyCategory, input$ontologyTerm))){
       return(FALSE)
     }
     return(TRUE)
@@ -1045,23 +1172,23 @@ server <- function(input, output, session) {
   # render density plot
   output$densityPlot <- renderPlot({
     # require inputs
-    req(input$ontologyID)
+    req(input$ontologyCategory, input$ontologyTerm)
     # create plot
-    createDensity()
+    createDensity(input$ontologyCategory, input$ontologyTerm)
   })
   
   # TO-DO: fix
   # download handler for the density plot
   output$downloadDensity <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "density.png", sep = "_")
+      paste(input$ontologyCategory, input$ontologyTerm, "density.png", sep = "_")
     },
     content = function(file) {
       # require inputs
-      req(input$ontologyID)
+      req(input$ontologyCategory, input$ontologyTerm)
       # save the plot
       png(file, width = 12, height = 9, units="in", res=150)
-      createDensity()
+      createDensity(input$ontologyCategory, input$ontologyTerm)
       dev.off()
     }
   )
@@ -1070,11 +1197,11 @@ server <- function(input, output, session) {
   # default it top 5 most significant GO terms
   dotPlotSigData <- function(){
     # require inputs
-    req(input$pValCut)
+    req(input$fisherCut)
     # retrieve ontology result tables
-    BPTable <- getSigResults()
-    MFTable <- getSigResults()
-    CCTable <- getSigResults()
+    BPTable <- getSigResults("BP", input$fisherCut)
+    MFTable <- getSigResults("MF", input$fisherCut)
+    CCTable <- getSigResults("CC", input$fisherCut)
     # subset the tables
     BPTable <- BPTable[1:5, ]
     MFTable <- MFTable[1:5, ]
@@ -1154,12 +1281,14 @@ server <- function(input, output, session) {
     # retrieve file name
     filename = function() {
       # setup output file name
-      paste(input$resultsCategory, input$pValCut, "sigGO_terms.csv", sep = "_")
+      paste(input$resultsCategory, input$sigCut, "sigGO_terms.csv", sep = "_")
     },
     # read in data
     content = function(file) {
+      # require input
+      req(input$resultsCategory, input$sigCut)
       # retrieve significant results
-      sigGO_results_table <- getSigResults()
+      sigGO_results_table <- getSigResults(input$resultsCategory, input$sigCut)
       # write table of significant GO terms to a CSV file
       write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
     }
