@@ -34,8 +34,10 @@ plotColors <- carto_pal(12, "Safe")
 defaultLFC <- 1.2
 defaultFDR <- 0.05
 
+# TO-DO: store data and results in reactiveVal and reactiveValues
+# TO-DO: add bar plots of gene counts and LFC
 # TO-DO: output example tables as csv
-# TO-DO : separate analysis and results into different tabs
+# TO-DO: consider separating analysis and results into different tabs
 
 #### UI ####
 
@@ -160,7 +162,7 @@ ui <- fluidPage(
         ),
         tags$br(),
         tags$p(
-          "Note that the DGE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
+          "Note that the DE analysis results and plots may take several moments to process depending on the size of the input gene counts table."
         ),
         tags$hr(),
         tags$p(
@@ -264,7 +266,7 @@ ui <- fluidPage(
           align="center"
         ),
         tags$br(),
-        "The DGE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
+        "The DE analysis results and plots may take several moments to process depending on the size of the input gene counts or experimental design tables."
       ),
       
       # results text and plots
@@ -466,19 +468,19 @@ ui <- fluidPage(
                   column(
                     width = 6,
                     tags$p(
-                      HTML("<b>DGE Analysis Results Table:</b>")
+                      HTML("<b>DE Analysis Results Table:</b>")
                     ),
                     downloadButton(outputId = "pairwiseResults", label = "Download Table"),
                     tags$p(
-                      "A table of pairwise DGE analysis results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
+                      "A table of pairwise DE analysis results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
                     ),
                     tags$br(),
                     tags$p(
-                      HTML("<b>DGE Analysis Significant Results Table:</b>")
+                      HTML("<b>DE Analysis Significant Results Table:</b>")
                     ),
                     downloadButton(outputId = "pairwiseSigResults", label = "Download Table"),
                     tags$p(
-                      "A table of pairwise DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
+                      "A table of pairwise DE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
                       "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   ),
@@ -623,19 +625,19 @@ ui <- fluidPage(
                   column(
                     width = 6,
                     tags$p(
-                      HTML("<b>DGE Analysis Results Table:</b>")
+                      HTML("<b>DE Analysis Results Table:</b>")
                     ),
                     downloadButton(outputId = "glmResults", label = "Download Table"),
                     tags$p(
-                      "A table of GLM DGE analysis results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
+                      "A table of GLM DE analysis results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button."
                     ),
                     tags$br(),
                     tags$p(
-                      HTML("<b>DGE Analysis Significant Results Table:</b>")
+                      HTML("<b>DE Analysis Significant Results Table:</b>")
                     ),
                     downloadButton(outputId = "glmSigResults", label = "Download Table"),
                     tags$p(
-                      "A table of GLM DGE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
+                      "A table of GLM DE analysis significant results sorted by increasing FDR adjusted p-values may be downloaded by clicking the above button.",
                       "Signifigance was determined by the input LFC and FDR cut offs."
                     )
                   ),
@@ -707,7 +709,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              "This application for DGE analysis was created by ",
+              "This application for DE analysis was created by ",
               tags$a("Elizabeth Brooks",href = "https://www.linkedin.com/in/elizabethmbrooks/"),
               "."
             ),
@@ -1461,7 +1463,7 @@ server <- function(input, output, session) {
   output$pairwiseResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseDEGs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseDE_genes.csv", sep = "_")
     },
     content = function(file) {
       # perform exact test
@@ -1481,7 +1483,7 @@ server <- function(input, output, session) {
   output$pairwiseSigResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseSigDEGs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseSigDE_genes.csv", sep = "_")
     },
     content = function(file) {
       # perform exact test
@@ -1539,7 +1541,7 @@ server <- function(input, output, session) {
   output$pairwiseResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseDEGs_geneIDs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseDE_geneIDs.csv", sep = "_")
     },
     content = function(file) {
       # add commas
@@ -1553,7 +1555,7 @@ server <- function(input, output, session) {
   output$pairwiseSigResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$levelTwo, input$levelOne, "pairwiseSigDEGs_geneIDs.csv", sep = "_")
+      paste(input$levelTwo, input$levelOne, "pairwiseSigDE_geneIDs.csv", sep = "_")
     },
     content = function(file) {
       # add commas
@@ -1828,7 +1830,7 @@ server <- function(input, output, session) {
   output$glmResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$compareExpression, "glmDEGs.csv", sep = "_")
+      paste(input$compareExpression, "glmDE_genes.csv", sep = "_")
     },
     content = function(file) {
       # perform glm test
@@ -1846,7 +1848,7 @@ server <- function(input, output, session) {
   output$glmSigResults <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$compareExpression, "glmSigDEGs.csv", sep = "_")
+      paste(input$compareExpression, "glmSigDE_genes.csv", sep = "_")
     },
     content = function(file) {
       # perform glm test
@@ -1914,7 +1916,7 @@ server <- function(input, output, session) {
   output$glmSigResultsIDs <- downloadHandler(
     filename = function() {
       # setup output file name
-      paste(input$compareExpression, "glmSigDEGs_geneIDs.csv", sep = "_")
+      paste(input$compareExpression, "glmSigDE_geneIDs.csv", sep = "_")
     },
     content = function(file) {
       # retrieve gene IDS

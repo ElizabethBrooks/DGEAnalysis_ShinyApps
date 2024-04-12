@@ -23,6 +23,8 @@ suppressPackageStartupMessages({
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")
 
+# TO-DO: store data and results in reactiveVal and reactiveValues
+
 #### UI ####
 
 # Define UI 

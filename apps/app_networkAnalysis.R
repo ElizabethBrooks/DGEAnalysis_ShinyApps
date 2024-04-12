@@ -32,14 +32,13 @@ options(stringsAsFactors = FALSE)
 # See note above.
 #enableWGCNAThreads()
 
+# TO-DO: store data and results in reactiveVal and reactiveValues
 # TO-DO: output example tables as csv
+# TO-DO: hide plots for invalid inputs
+# TO-DO: fix Windows OS images not showing
+# https://stackoverflow.com/questions/38011285/image-not-showing-in-shiny-app-r
 
 #### UI ####
-
-# TO-DO: hide plots for invalid inputs
-
-# To-DO: fix Windows OS images not showing
-# https://stackoverflow.com/questions/38011285/image-not-showing-in-shiny-app-r
 
 # Define UI 
 ui <- fluidPage(

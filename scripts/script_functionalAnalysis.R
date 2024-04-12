@@ -68,7 +68,7 @@ DGE_results_table <- read.csv(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyAp
 
 # retrieve gene to GO map in two column csv format
 #GOmaps_csv <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.csv")
-GOmaps_csv <- read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.csv", sep = "", row.names=NULL, colClasses = c(goid = "character"))
+GOmaps_csv <- suppressWarnings(read.delim(file = "/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/All.annot.csv", sep = "", row.names=NULL, colClasses = c(goid = "character")))
 
 # re-format mappings from two column csv
 GOmaps_csv_format <- aggregate(GOmaps_csv[2], GOmaps_csv[1], FUN = toString)
@@ -117,12 +117,50 @@ BP_GO_data <- new('topGOdata', ontology = 'BP', allGenes = list_genes_filtered,
 #                  gene2GO = GOmaps)
 
 # save the topGOdata as an R data object
-outFile <- paste("test", "topGOdata.rds", sep="_")
-saveRDS(BP_GO_data, outFile)
+#outFile <- paste("test", "topGOdata.rds", sep="_")
+#saveRDS(BP_GO_data, outFile)
 
 # retrieve topGOdata objects for enrichment analysis (1 for each ontology)
-inFile <- paste("test", "topGOdata.rds", sep="_")
-BP_GO_data_test <- readRDS(inFile)
+#inFile <- paste("test", "topGOdata.rds", sep="_")
+#BP_GO_data_test <- readRDS(inFile)
+
+# retrieve geneIDs associated with all GO terms
+# https://support.bioconductor.org/p/29775/
+allGO_BP = genesInTerm(BP_GO_data)
+
+# write out all GO term gene IDs
+sink("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp/all_GO_gene_IDs.txt")
+allGO_BP
+sink()
+
+# retrieve selected GO term gene IDs
+selectedTermOne <- "GO:0031397"
+selectGO_one <- allGO_BP[selectedTermOne]
+
+# write out selected GO term gene IDs
+outTermOne <- gsub(":", "_", selectedTermOne)
+outFile <- paste(outTerm, "gene_IDs.csv", sep = "_")
+outFile <- paste("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp", outFile, sep = "/")
+write.table(unlist(selectGO_one), file = outFile, sep = ",", quote = FALSE, row.names=FALSE, col.names = FALSE)
+
+# retrieve selected GO term gene IDs
+selectedTermTwo <- "GO:0000041"
+selectGO_two <- allGO_BP[selectedTermTwo]
+
+# euler diagram with significant stress GO terms
+glm_list_venn_GO <-list(First = unlist(selectGO_one),
+                        Second = unlist(selectGO_two))
+euler_plot_GO <- euler(glm_list_venn_GO)#, shape = "ellipse")
+plot(euler_plot_GO, quantities = list(type = c("counts")))#, fills = plotColors[1:6])
+
+# save the plot
+outTermTwo <- gsub(":", "_", selectedTermTwo)
+exportFile <- paste(outTermOne, outTermTwo, sep = "_")
+exportFile <- paste(exportFile, "eulerPlot.png", sep = "_")
+exportFile <- paste("/Users/bamflappy/Repos/DGEAnalysis_ShinyApps/data/tmp", exportFile, sep = "/")
+png(exportFile)
+plot(euler_plot_GO, quantities = list(type = c("counts")))#, fills = plotColors[1:6])
+dev.off()
 
 #Summary functions
 #numGenes(BP_GO_data)
@@ -133,18 +171,18 @@ BP_GO_data_test <- readRDS(inFile)
 #length(sigGenes(CC_GO_data))
 
 # perform GO enrichment using the topGOdata objects
-BP_GO_results <- runTest(BP_GO_data_test, statistic = 'ks')
+BP_GO_results <- runTest(BP_GO_data, statistic = 'ks')
 #BP_GO_results <- runTest(BP_GO_data, statistic = 'fisher')
 #MF_GO_results <- runTest(MF_GO_data, statistic = 'Fisher')
 #CC_GO_results <- runTest(CC_GO_data, statistic = 'Fisher')
 
 # save the topGOdata as an R data object
-outFile <- paste("test", "topGOdata_results.rds", sep="_")
-saveRDS(BP_GO_results, outFile)
+#outFile <- paste("test", "topGOdata_results.rds", sep="_")
+#saveRDS(BP_GO_results, outFile)
 
 # retrieve topGOdata objects for enrichment analysis (1 for each ontology)
-inFile <- paste("test", "topGOdata_results.rds", sep="_")
-BP_GO_results_test <- readRDS(inFile)
+#inFile <- paste("test", "topGOdata_results.rds", sep="_")
+#BP_GO_results_test <- readRDS(inFile)
 
 # check the names of GO terms
 #head(names(BP_GO_results@score))
@@ -152,7 +190,7 @@ BP_GO_results_test <- readRDS(inFile)
 
 # store p-values as named list... ('score(x)' or 'x@score' returns named list of p-val's 
 # where names are the GO terms)
-pval_BP_GO <- score(BP_GO_results_test)
+pval_BP_GO <- score(BP_GO_results)
 #pval_MF_GO <- score(MF_GO_results)
 #pval_CC_GO <- score(CC_GO_results)
 
@@ -166,11 +204,11 @@ hist(pval_BP_GO, 35, xlab = "p-values", main = "Range of BP GO term p-values")
 #dev.off()
 
 # get statistics on GO terms
-list_BP_GO_terms <- usedGO(BP_GO_data_test)
+list_BP_GO_terms <- usedGO(BP_GO_data)
 #list_MF_GO_terms <- usedGO(MF_GO_data)
 #list_CC_GO_terms <- usedGO(CC_GO_data)
 
-BP_GO_results_table <- GenTable(BP_GO_data_test, weightFisher = BP_GO_results_test, orderBy = 'weightFisher', 
+BP_GO_results_table <- GenTable(BP_GO_data, weightFisher = BP_GO_results, orderBy = 'weightFisher', 
                                 topNodes = length(list_BP_GO_terms))
 #MF_GO_results_table <- GenTable(MF_GO_data, weightFisher = MF_GO_results, orderBy = 'weightFisher', 
 #                                topNodes = length(list_MF_GO_terms))
