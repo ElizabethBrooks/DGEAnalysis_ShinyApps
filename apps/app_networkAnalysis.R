@@ -1,5 +1,5 @@
 # creator: Elizabeth Brooks
-# updated: 2 April 2024
+# updated: 12 April 2024
 
 #### Setup ####
 
@@ -149,6 +149,7 @@ ui <- fluidPage(
           align = "center",
           HTML("<b>Helpful Tips</b>")
         ),
+        tags$br(),
         tags$p(
           HTML("<b>Tip 1:</b> In the input experimental design table the first column with sample names must contain <i>characters</i> and the remaining columns of factors are expected to contain whole <i>numbers</i>.")
         ),
@@ -164,23 +165,31 @@ ui <- fluidPage(
           "Example experimental design and gene counts tables are displayed below."
         ),
         tags$br(),
+        tags$p(
+          align="center",
+          HTML("<b>Example Gene Counts Tables</b>")
+        ),
+        HTML("Example gene counts table of six samples and five genes:"),
+        tableOutput(outputId = "exampleCountsOne"),
+        HTML("Example gene counts table of twelve samples and three genes:"),
+        tableOutput(outputId = "exampleCountsTwo"),
+        tags$br(),
+        tags$p(
+          align="center",
+          HTML("<b>Example Experimental Design Tables</b>")
+        ),
         fluidRow(
           column(
             width = 6,
-            HTML("<b>Example</b> experimental design table of six samples and one factor with two levels:"),
+            HTML("Example experimental design table of six samples and one factor with two levels:"),
             tableOutput(outputId = "exampleDesignOne"), 
           ),
           column(
             width = 6,
-            HTML("<b>Example</b> experimental design table of twelve samples and two factors each with two levels:"),
+            HTML("Example experimental design table of twelve samples and two factors each with two levels:"),
             tableOutput(outputId = "exampleDesignTwo") 
-          ),
-        ),
-        tags$br(),
-        HTML("<b>Example</b> gene counts table of six samples and five genes:"),
-        tableOutput(outputId = "exampleCountsOne"),
-        HTML("<b>Example</b> gene counts table of twelve samples and three genes:"),
-        tableOutput(outputId = "exampleCountsTwo")
+          )
+        )
       ),
       
       # warning text
@@ -260,7 +269,7 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input normalized gene counts table.")
+              HTML("<b>Tip 1:</b> The plots and results may take several moments to appear depending on the size of the input normalized gene counts table.")
             ),
             tags$p(
               HTML("<b>Tip 2:</b> Navigate to the <i>Data Cleaning</i> or <i>Network Construction</i> steps by clicking the tabs above.")

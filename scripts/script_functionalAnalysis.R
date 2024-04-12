@@ -132,7 +132,7 @@ BP_GO_data_test <- readRDS(inFile)
 #numGenes(CC_GO_data)
 #length(sigGenes(CC_GO_data))
 
-# performGO enrichment using the topGOdata objects
+# perform GO enrichment using the topGOdata objects
 BP_GO_results <- runTest(BP_GO_data_test, statistic = 'ks')
 #BP_GO_results <- runTest(BP_GO_data, statistic = 'fisher')
 #MF_GO_results <- runTest(MF_GO_data, statistic = 'Fisher')

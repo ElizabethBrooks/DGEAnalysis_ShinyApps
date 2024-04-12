@@ -1,5 +1,5 @@
 # creator: Elizabeth Brooks
-# updated: 8 April 2024
+# updated: 12 April 2024
 
 #### Setup ####
 
@@ -33,6 +33,9 @@ suppressPackageStartupMessages({
 plotColors <- carto_pal(12, "Safe")
 plotColorSubset <- c(plotColors[5], plotColors[6])
 
+# setup defaults
+defaultTerm <- "GO:0008150"
+
 # TO-DO: output example tables as csv
 # TO-DO: check mappings table output (error for two rows with duplicate names)
 
@@ -52,7 +55,7 @@ ui <- fluidPage(
   
   # setup sidebar layout
   sidebarLayout(
-    
+      
     # setup sidebar panel
     sidebarPanel(
       
@@ -98,15 +101,6 @@ ui <- fluidPage(
         )
       ),
       # show panel depending on input files check
-      #conditionalPanel(
-        #condition = "output.dataUploaded && !input.runUpload",
-        #tags$hr(),
-        #tags$p(
-        #  "Click to Upload Data:"
-        #),  
-        #actionButton("runUpload", "Upload")
-      #),
-      # show panel depending on input files check
       conditionalPanel(
         #condition = "output.dataUploaded && input.runUpload",
         condition = "output.dataUploaded && !input.runAnalysis",
@@ -116,35 +110,13 @@ ui <- fluidPage(
         ),  
         actionButton("runAnalysis", "Run Analysis")
       ),
-      # show panel depending on run analysis check
+      # show panel depending on analysis run
       conditionalPanel(
         condition = "input.runAnalysis",
-        #tags$hr(),
         tags$p(
-          "Select GO Term Category:"
-        ),
-        radioButtons(
-          inputId = "ontologyID",
-          label = NULL,
-          choices = c("Biological Process" = "BP",
-                      "Molecular Function" = "MF",
-                      "Cellular Component" = "CC"),
-          selected = "BP"
-        ),
-        tags$br(),
-        tags$p(
-          "Select P-Value Cut Off:"
-        ),
-        sliderInput(
-          "pValCut",
-          label = NULL,
-          min = 0, 
-          max = 0.1, 
-          value=0.05 
-        ),
-        tags$p(
-          "Note that the computed p-values are unadjusted for multiple testing."
-        )
+          "Settings:"
+        ), 
+        tableOutput(outputId = "inputSettings")
       )
     ),
     
@@ -208,6 +180,7 @@ ui <- fluidPage(
           align="center",
           HTML("<b>Helpful Tips</b>")
         ),
+        tags$br(),
         tags$p(
           HTML("<b>Tip 1:</b> The topGO package expects gene-to-GO mappings files to be specifically formatted where:")
         ),
@@ -282,18 +255,23 @@ ui <- fluidPage(
           "Example gene score and gene-to-GO annotation mappings tables are displayed below."
         ),
         tags$br(),
+        tags$p(
+          align="center",
+          HTML("<b>Example Gene Score Tables</b>")
+        ),
+        #tags$br(),
         fluidRow(
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>DGE analysis</i> gene score table for five genes:"),
+              HTML("Example <i>DGE analysis</i> gene score table for five genes:"),
               tableOutput(outputId = "exampleDGEScore")
             )
           ),
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>WGCNA</i> gene score table for five genes:"),
+              HTML("Example <i>WGCNA</i> gene score table for five genes:"),
               tableOutput(outputId = "exampleWGCNAScore")
             )
           )
@@ -303,31 +281,36 @@ ui <- fluidPage(
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>DGE analysis</i> gene score table of three genes with the minimum expected columns:"),
+              HTML("Example <i>DGE analysis</i> gene score table of three genes with the minimum expected columns:"),
               tableOutput(outputId = "exampleDGEScoreSubset") 
             )
           ),
           column(
             width = 6,
             tags$p(
-              HTML("<b>Example</b> <i>WGCNA</i> gene score table of three genes with the minimum expected columns:"),
+              HTML("Example <i>WGCNA</i> gene score table of three genes with the minimum expected columns:"),
               tableOutput(outputId = "exampleWGCNAScoreSubset") 
             )
           )
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Example</b> <i>topGO</i> gene-to-GO term mappings for four genes:"),
+          align="center",
+          HTML("<b>Example Gene-to-GO Term Mapping Tables</b>")
+        ),
+        #tags$br(),
+        tags$p(
+          HTML("Example <i>topGO</i> gene-to-GO term mapping tables for four genes:"),
           tableOutput(outputId = "exampleTopGO") 
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Example</b> <i>two column CSV</i> with gene-to-GO term mappings for four genes:"),
+          HTML("Example <i>two column CSV</i> with gene-to-GO term mapping tables for four genes:"),
           tableOutput(outputId = "exampleTwoCol") 
         ),
         tags$br(),
         tags$p(
-          HTML("<b>Example</b> <i>PANNZER2</i> gene-to-GO annotations for two genes:"),
+          HTML("Example <i>PANNZER2</i> gene-to-GO annotations for two genes:"),
           tableOutput(outputId = "examplePannzer")
         )
       ),
@@ -360,21 +343,23 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Tip 1:</b> The results may take several moments to appear depending on the size of the input data tables.")
+              HTML("<b>Tip 1:</b> The plots and results may take several moments to appear depending on the size of the input data tables.")
             ),
             tags$p(
-              HTML("<b>Tip 2:</b> Valid statistic for gene scoring include <i>FDR</i> from DE analysis or module <i>number</i> from network analysis, and must be the same name as a column in the input gene score table.")
+              HTML("<b>Tip 2:</b> Navigate to the <i>Analysis</i>, <i>Data Exploration</i>, or <i>Results</i> steps by clicking the tabs above.")
             ),
             tags$p(
-              HTML("<b>Tip 3:</b> Valid expressions for gene scoring include:")
+              HTML("<b>Tip 3:</b> Further details about the available types of enrichment tests can be found in the "), 
+              tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
+              " manual (e.g., section 6)."
             ),
             tags$p(
-              align = "center",
-              HTML("<b>< 0.05</b> for specifying significant DEGs using a <i>FDR</i> cut off")
+              HTML("<b>Tip 4:</b> It is possible to use both the fisher's and KS tests since each gene has a score, which represents how it is diferentially expressed.")
             ),
             tags$p(
-              align = "center",
-              HTML("<b>== 1</b> for specifying a specific module <i>number</i> from WGCNA")
+              HTML("<b>Tip 5:</b> Refer to the "),
+              tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
+              " manual for more information regarding the available algorithms and test statistics."
             )
           ),
           
@@ -387,7 +372,7 @@ ui <- fluidPage(
               HTML("<b>Functional Analysis</b>")
             ),
             tags$p(
-              "Begin the functional enrichment or over-representation analysis by selecting a test statistic and algorithm below."
+              "Begin the functional enrichment or over-representation analysis by selecting a test statistic, algorithm, and p-value cut off."
             ),
             tags$br(),
             fluidRow(
@@ -409,13 +394,13 @@ ui <- fluidPage(
                   HTML("<b>Available Algorithms:</b>")
                 ),
                 tags$p(
-                  HTML("<b>1.</b> Default algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms")
+                  HTML("<b>1.</b> The <b>default</b> (a.k.a <i>weight01</i>) algorithm used by the topGO package is a mixture between the <i>elim</i> and <i>weight</i> algorithms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Classic algorithm performs functional analysis by testing the over-representation of GO terms within the group of diferentially expressed genes")
+                  HTML("<b>2.</b> The <b>classic</b> algorithm performs functional analysis by testing the over-representation of GO terms within the group of diferentially expressed genes")
                 ),
                 tags$p(
-                  HTML("<b>3.</b> Elim algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method")
+                  HTML("<b>3.</b> The <b>elim</b> algorithm is more conservative then the classic method and you may expect the p-values returned by the former method to be lower bounded by the p-values returned by the later method")
                 )
               ),
               column(
@@ -435,55 +420,85 @@ ui <- fluidPage(
                   HTML("<b>Available Test Statistics:</b>")
                 ),
                 tags$p(
-                  HTML("<b>1.</b> Fisher's exact test is based on gene counts and can be used to perform over representation analysis of GO terms")
+                  HTML("<b>1.</b> The <b>fisher</b>'s exact test is based on gene counts and can be used to perform over representation analysis of GO terms")
                 ),
                 tags$p(
-                  HTML("<b>2.</b> Kolmogorov-Smirnov (KS) like test computes enrichment or rank based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
+                  HTML("<b>2.</b> The <b>Kolmogorov-Smirnov</b> (<i>KS</i>) like test computes enrichment or rank based on gene scores and can be used to perform gene set enrichment analysis (GSEA)")
                 )
               )
             ),
             tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select P-Value Cut Off:"
+                ),
+                sliderInput(
+                  "pValCut",
+                  label = NULL,
+                  min = 0, 
+                  max = 0.1, 
+                  value=0.05 
+                ),
+                tags$p(
+                  "Note that the computed p-values are unadjusted for multiple testing."
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Click to Update Analysis:"
+                ),  
+                actionButton("inputsUpdate", "Update Analysis")
+              )
+            )
+          ),
+          
+          # Data Exploration tab
+          tabPanel(
+            "Data Exploration",
+            tags$br(),
             tags$p(
               align = "center",
-              HTML("<b>Helpful Tips</b>")
+              HTML("<b>Data Exploration</b>")
             ),
             tags$p(
-              HTML("<b>Tip 1:</b> Further details about the available types of enrichment tests can be found in the "), 
-              tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
-              " manual (e.g., section 6)."
+              "Begin exploring the functional analysis results by selecting a GO term category below."
             ),
-            tags$p(
-              HTML("<b>Tip 2:</b> It is possible to use both the fisher's and KS tests since each gene has a score, which represents how it is diferentially expressed.")
+            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select GO Term Category:"
+                ),
+                radioButtons(
+                  inputId = "ontologyLevel",
+                  label = NULL,
+                  choices = c("Biological Process" = "BP",
+                              "Molecular Function" = "MF",
+                              "Cellular Component" = "CC"),
+                  selected = "BP"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Click to Analyze:"
+                ),  
+                actionButton("levelUpdate", "Analyze")
+              )
             ),
-            tags$p(
-              HTML("<b>Tip 3:</b> Refer to the "),
-              tags$a("topGO", href = "https://bioconductor.org/packages/devel/bioc/vignettes/topGO/inst/doc/topGO.pdf"),
-              " manual for more information regarding the available algorithms and test statistics."
-            ),
-            # TO-DO: output table of top GO term IDs
+            # TO-DO: output lists of top GO term IDs
             tags$hr(),
             tags$p(
               align = "center",
               HTML("<b>Range of GO Term P-Values</b>")
             ),
             tags$br(),
-            #fluidRow(
-              #column(
-                #width = 4,
-                plotOutput(outputId = "PHist"),
-                downloadButton(outputId = "downloadPHist", label = "Download Plot"),
-              #),
-              #column(
-                #width = 4,
-                #plotOutput(outputId = "MFHist"),
-                #downloadButton(outputId = "downloadMFHist", label = "Download Plot")
-              #),
-              #column(
-                #width = 4,
-                #plotOutput(outputId = "CCHist"),
-                #downloadButton(outputId = "downloadCCHist", label = "Download Plot")
-              #)
-            #),
+            plotOutput(outputId = "PHist"),
+            downloadButton(outputId = "downloadPHist", label = "Download Plot"),
             tags$p(
               "The above histogram shows the range and frequency of p-values from the enrichment tests for the selected GO level (BP, MF, or CC)."
             ),
@@ -493,16 +508,28 @@ ui <- fluidPage(
               HTML("<b>Density Plots of GO Terms</b>")
             ),
             tags$br(),
-            tags$p(
-              "Enter GO Term ID:"
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Enter GO Term ID:"
+                ),
+                textInput(
+                  inputId = "ontologyTerm",
+                  label = NULL,
+                  value = "GO:0008150"
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  "Click to Analyze:"
+                ),  
+                actionButton("termUpdate", "Analyze")
+              )
             ),
-            textInput(
-              inputId = "ontologyTerm",
-              label = NULL,
-              value = "GO:0008150"
-            ),
-            conditionalPanel(
-              condition = "output.densityResultsCompleted",
+            #conditionalPanel(
+              #condition = "output.densityResultsCompleted",
               tags$br(),
               tags$p(
                 align = "center",
@@ -513,8 +540,8 @@ ui <- fluidPage(
               tags$br(),
               tags$p(
                 "The above density plot shows the distribution of the gene's rank for the top GO term of each GO level (BP, MF, or CC). The gene's rank is compared with the null distribution."
-              )
-            ),
+              ),
+            #),
             tags$br(),
             tags$p(
               align = "center",
@@ -530,29 +557,36 @@ ui <- fluidPage(
             # TO-DO: fix downloading of subgraphs
             tags$p(
               align = "center",
-              HTML("<b>Subgraphs of Most Significant GO Terms</b>")
+              HTML("<b>Subgraphs of Significant GO Terms</b>")
+            ),
+            tags$br(),
+            fluidRow(
+              column(
+                width = 6,
+                tags$p(
+                  "Select the Number of Nodes:"
+                ),
+                sliderInput(
+                  inputId = "sigNodes",
+                  label = NULL,
+                  min = 1,
+                  max = 10,
+                  value = 5,
+                  step = 1
+                )
+              ),
+              column(
+                width = 6,
+                tags$p(
+                  HTML("<b>Download Subgraphs:</b>")
+                ),
+                downloadButton(outputId = "downloadSubgraphs", label = "Download PDF")
+              )
             ),
             tags$br(),
             tags$p(
-              "Select the Number of Nodes:"
-            ),
-            sliderInput(
-              inputId = "sigNodes",
-              label = NULL,
-              min = 1,
-              max = 10,
-              value = 5,
-              step = 1
-            ),
-            tags$br(),
-            tags$p(
-              HTML("<b>Download Subgraphs:</b>")
-            ),
-            downloadButton(outputId = "downloadSubgraphs", label = "Download PDF"),
-            tags$br(),
-            tags$p(
-              "The subgraph induced by the selected number of top (most significant) GO terms identifed by the selected algorithm for scoring GO terms for enrichment.",
-              "Rectangles indicate the most signifcant terms with colors representing the relative signifcance, which ranges from dark red (most signifcant) to bright yellow (least signifcant).",
+              "The subgraph induced by the selected number of significant GO terms identifed by the selected algorithm for scoring GO terms for enrichment.",
+              "Rectangles indicate the signifcant terms with colors representing the relative signifcance, which ranges from dark red (most signifcant) to bright yellow (least signifcant).",
             ),
             tags$p(
               HTML("For each <i>node</i>, some basic information is displayed."),
@@ -575,35 +609,58 @@ ui <- fluidPage(
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Table of Enriched GO Terms</b>")
+              HTML("<b>Tables of Enriched GO Terms</b>")
             ),
-            downloadButton(outputId = "resultsDownload", label = "Download Table"),
+            fluidRow(
+              column(
+                width = 4,
+                downloadButton(outputId = "resultsDownloadBP", label = "Download BP Table")
+              ),
+              column(
+                width = 4,
+                downloadButton(outputId = "resultsDownloadMF", label = "Download MF Table")
+              ),
+              column(
+                width = 4,
+                downloadButton(outputId = "resultsDownloadCC", label = "Download CC Table")
+              )
+            ),
+            tags$p(
+              "Above are the unfiltered tables of enriched GO terms for each of the ontology categories."
+            ),
             tags$br(),
             tags$p(
-              "The unfiltered list of enriched GO terms for the selected ontology category."
+              HTML("<b>Tables of Significantly Enriched GO Terms</b>")
+            ),
+            fluidRow(
+              column(
+                width = 4,
+                downloadButton(outputId = "sigDownloadBP", label = "Download BP Table")
+              ),
+              column(
+                width = 4,
+                downloadButton(outputId = "sigDownloadMF", label = "Download MF Table")
+              ),
+              column(
+                width = 4,
+                downloadButton(outputId = "sigDownloadCC", label = "Download CC Table")
+              )
+            ),
+            tags$p(
+              "Above are the tables of significantly enriched GO terms for each ontology category filtered by the input p-value cut off."
             ),
             tags$br(),
             tags$p(
-              HTML("<b>Table of Significantly Enriched GO Terms</b>")
-            ),
-            downloadButton(outputId = "sigDownload", label = "Download Table"),
-            tags$br(),
-            tags$p(
-              "The list of significantly enriched GO terms filtered by the input p-value cut off and for the selected ontology category."
-            ),
-            tags$br(),
-            tags$p(
-              HTML("<b>Table of Gene-to-GO Annotation Mappings</b>")
+              HTML("<b>Formatted Gene-to-GO Term Mapping Tables</b>")
             ),
             downloadButton(outputId = "mappingsDownload", label = "Download Table"),
-            tags$br(),
             tags$p(
-              "The table of gene-to-GO term annotation mappings for each gene, which has been formatted for use with topGO."
+              "The above table of gene-to-GO term annotation mappings has been formatted for use with topGO."
             ),
             tags$hr(),
             tags$p(
               align = "center",
-              HTML("<b>Dot Plot of Most Significant GO Terms</b>")
+              HTML("<b>Dot Plot of Significant GO Terms</b>")
             ),
             tags$br(),
             plotOutput(outputId = "dotPlot"),
@@ -829,27 +886,30 @@ server <- function(input, output, session) {
   }
   outputOptions(output, 'dataUploaded', suspendWhenHidden=FALSE)
   
-  # TO-DO: add update button
-  # update input ontology term
-  observeEvent(input$runAnalysis, {
-    # retrieve top BP term
-    tmpTerm <- getSigTerm()
-    # update input
-    updateTextInput(
-      session,
-      inputId = "ontologyTerm",
-      value = tmpTerm
-    )
-  })
-  
-  
   ## 
   # GO Enrichment
   ##
   
+  # render table with input settings
+  output$inputSettings <- renderTable({
+    # require input data
+    req(input$testAlg, input$testStat, input$pValCut)
+    # create table with factor levels
+    settings <- data.frame(
+      Algorithm = input$testAlg,
+      Statistic = input$testStat,
+      PValue = input$pValCut
+    )
+    # return the settings
+    settings
+  })
+  
+  # setup reactive gene universe values
+  geneUniverse <- reactiveValues(list_data = NULL)
+    
   # function to create gene universe
-  createUniverse <- eventReactive(input$runAnalysis, {
-  #createUniverse <- reactive({
+  observeEvent(input$runAnalysis, {
+  #geneUniverse <- reactive({
     # require input
     req(input$scoreStat)
     # check for valid inputs
@@ -869,13 +929,13 @@ server <- function(input, output, session) {
     # the gene universe is set to be the list of all genes contained in the gene2GO list of annotated genes
     list_genes <- setNames(list_genes, rownames(resultsTable))
     list_genes_filtered <- list_genes[names(list_genes) %in% names(GO_maps)]
-    # return list
-    list_genes_filtered
-  })
+    # update list
+    geneUniverse$list_data <- list_genes_filtered
+  }, ignoreInit = TRUE)
   
   # check if results are complete
   output$resultsCompleted <- function(){
-    if(is.null(createUniverse())){
+    if(is.null(geneUniverse$list_data)){
       return(FALSE)
     }
     return(TRUE)
@@ -900,39 +960,76 @@ server <- function(input, output, session) {
   }
   
   # function to create and save BP, MF, or CC topGOdata objects
-  createOntology <- eventReactive(input$runAnalysis, {
+  createGO <- function(termsLevel){
     # retrieve gene universe
-    list_genes_filtered <- createUniverse()
+    list_genes_filtered <- geneUniverse$list_data
     # retrieve go mappings
     GO_maps <- inputMappings()
     # create topGOdata objects for enrichment analysis (1 for each ontology)
-    GO_data <- new('topGOdata', ontology = input$ontologyID, allGenes = list_genes_filtered, 
+    GO_data <- new('topGOdata', ontology = termsLevel, allGenes = list_genes_filtered, 
                    geneSel = retrieveInteresting(), nodeSize = 10, annot = annFUN.gene2GO, 
                    gene2GO = GO_maps)
-  })
+  }
   
   # TO-DO: double check the selection of interesting genes
   # The user needs to provide the gene universe, GO annotations and either a
   # criteria for selecting interesting genes (e.g. dierentially expressed genes) from the gene universe or a score
   # associated with each gene.
-  # function to perform and save BP, MF, or CC GO enrichment 
-  performGO <- eventReactive(input$runAnalysis, {
+  # function to perform BP, MF, or CC GO analysis 
+  performGO <- function(dataOntology){
     # require inputs
     req(input$testAlg, input$testStat)
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- dataOntology
     # perform GO enrichment using the topGOdata objects
-    GOResults <- runTest(GO_data, algorithm = input$testAlg, statistic = input$testStat)
-  })
+    GO_results <- runTest(GO_data, algorithm = input$testAlg, statistic = input$testStat)
+  }
+  
+  # setup reactive ontology values
+  dataGO <- reactiveValues(topGO_data = NULL)
+  
+  # setup reactive GO results values
+  resultsGO <- reactiveValues(results_data = NULL)
+    
+  # event to update GO analysis results 
+  observeEvent(list(input$runAnalysis, input$inputsUpdate, input$levelUpdate), {
+    # update GO data
+    dataGO$topGO_data <- createGO(input$ontologyLevel)
+    # update results
+    resultsGO$results_data <- performGO(dataGO$topGO_data)
+  }, ignoreInit = TRUE)
+  
+  # setup reactive ontology term value
+  selectTerm <- reactiveVal(defaultTerm)
+  
+  # get most significant BP term
+  observeEvent(input$runAnalysis, {
+    # retrieve top BP term
+    selectTerm(getSigTerm())
+    # update input
+    updateTextInput(
+      session,
+      inputId = "ontologyTerm",
+      value = selectTerm()
+    )
+  }, ignoreInit = TRUE)
+  
+  # update input ontology term
+  observeEvent(list(input$inputsUpdate, input$termUpdate), {
+    # retrieve input term
+    selectTerm(input$ontologyTerm)
+  }, ignoreInit = TRUE)
   
   # function to create BP, MF, or CC p-value histogram
   createPHist <- function(){
+    # require inputs
+    req(input$ontologyLevel)
     # retrieve results
-    GOResults <- performGO()
+    GO_results <- resultsGO$results_data
     # store p-values as named list...
-    pvalGO <- score(GOResults)
+    pvalGO <- score(GO_results)
     # create title
-    titleName <- paste("Range of", input$ontologyID, "P-Values", sep=" ")
+    titleName <- paste("Range of", input$ontologyLevel, "P-Values", sep=" ")
     # plot histogram to see range of p-values
     hist(pvalGO, 35, xlab = "p-values", main = titleName)
   }
@@ -946,7 +1043,7 @@ server <- function(input, output, session) {
   # download handler for the BP histogram
   output$downloadPHist <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "pValueRanges.png", sep = "_")
+      paste(input$ontologyLevel, "pValueRanges.png", sep = "_")
     },
     content = function(file) {
       # save the plot
@@ -957,37 +1054,37 @@ server <- function(input, output, session) {
   )
   
   # function to plot BP, MF, or CC subgraphs
-  createSubgraphs <- function(ontologyNodes){
+  createSubgraphs <- function(){
+    # require inputs
+    req(input$ontologyLevel, input$sigNodes)
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- dataGO$topGO_data
     # retrieve results
-    GOResults <- performGO()
-    # plot subgraphs induced by the most significant GO terms
-    printGraph(GO_data, GOResults, firstSigNodes = ontologyNodes, 
-               fn.prefix = paste(input$ontologyID, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
+    GO_results <- resultsGO$results_data
+    # plot subgraphs induced by the significant GO terms
+    printGraph(GO_data, GO_results, firstSigNodes = input$sigNodes, 
+               fn.prefix = paste(input$ontologyLevel, "sigGO_subgraphs", sep="_"), useInfo = "all", pdfSW = TRUE)
   }
   
   # TO-DO: fix, currently saves to working directory
   # download button for PDFs of subgraphs
   output$downloadSubgraphs <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "sigGO_subgraphs.pdf", sep = "_")
+      paste(input$ontologyLevel, "sigGO_subgraphs.pdf", sep = "_")
     },
     content = function(file) {
-      # require inputs
-      req(input$ontologyID, input$sigNodes)
       # create subgraph PDFs
-      createSubgraphs(input$ontologyID, input$sigNodes)
+      createSubgraphs()
     }
   )
   
   # TO-DO: fix extra column in output table
   # function to get statistics on BP, MF, or CC GO terms
-  getResults <- function(){
-    # retrieve topGOdata object
-    GO_data <- createOntology()
-    # retrieve results
-    GO_Results <- performGO()
+  getResults <- function(GO_data, GO_Results){
+    # check for valid inputs
+    if(is.null(dataGO$topGO_data)){
+      return(NULL)
+    }
     # retrieve statistics
     list_GO_terms <- usedGO(GO_data)
     # retrieve results table
@@ -996,36 +1093,40 @@ server <- function(input, output, session) {
   }
   
   # function to get significant BP, MF, or CC GO terms
-  getSigResults <- function(){
+  getSigResults <- function(GO_data, GO_Results){
     # require input
     req(input$pValCut)
     # retrieve stats
-    GO_Results_table <- getResults()
+    GO_Results_table <- getResults(GO_data, GO_Results)
     # create table of significant GO terms
     sigGO_Results_table <- GO_Results_table[GO_Results_table$weightFisher <= input$pValCut, ]
   }
   
   # function to get results for selected the top BP, MF, or CC GO terms
   getSigTerm <- function(){
+    # require processed data
+    req(dataGO$topGO_data, resultsGO$results_data)
     # retrieve stats
-    GO_results_table <- getResults()
+    GO_results_table <- getResults(dataGO$topGO_data, resultsGO$results_data)
     # retrieve results for selected GO term
     topSigID <- GO_results_table[1, 'GO.ID']
   }
   
   # function to get results for selected BP, MF, or CC GO terms
   getTerm <- function(){
+    # require processed data
+    req(dataGO$topGO_data, resultsGO$results_data)
     # retrieve stats
-    GO_results_table <- getResults()
+    GO_results_table <- getResults(dataGO$topGO_data, resultsGO$results_data)
     # retrieve results for selected GO term
-    topSigID <- GO_results_table[GO_results_table$GO.ID == input$ontologyTerm,1]
+    topSigID <- GO_results_table[GO_results_table$GO.ID == selectTerm(),1]
   }
   
   # function to create BP, MF, or CC density plots
   # default is most sig GO term
   createDensity <- function(){
     # retrieve topGOdata object
-    GO_data <- createOntology()
+    GO_data <- dataGO$topGO_data
     # retrieve term results
     termResults <- getTerm()
     # create density plot
@@ -1034,18 +1135,16 @@ server <- function(input, output, session) {
   
   # TO-DO: this causes additional function calls
   # check if results have completed
-  output$densityResultsCompleted <- function(){
-    if(is.null(createDensity())){
-      return(FALSE)
-    }
-    return(TRUE)
-  }
-  outputOptions(output, 'densityResultsCompleted', suspendWhenHidden=FALSE, priority=0)
+  #output$densityResultsCompleted <- function(){
+    #if(is.null(createDensity())){
+      #return(FALSE)
+    #}
+    #return(TRUE)
+  #}
+  #outputOptions(output, 'densityResultsCompleted', suspendWhenHidden=FALSE, priority=0)
   
   # render density plot
   output$densityPlot <- renderPlot({
-    # require inputs
-    req(input$ontologyID)
     # create plot
     createDensity()
   })
@@ -1054,11 +1153,9 @@ server <- function(input, output, session) {
   # download handler for the density plot
   output$downloadDensity <- downloadHandler(
     filename = function() {
-      paste(input$ontologyID, "density.png", sep = "_")
+      paste(input$ontologyLevel, "density.png", sep = "_")
     },
     content = function(file) {
-      # require inputs
-      req(input$ontologyID)
       # save the plot
       png(file, width = 12, height = 9, units="in", res=150)
       createDensity()
@@ -1067,18 +1164,23 @@ server <- function(input, output, session) {
   )
   
   # function to format data for use with dot plots
-  # default it top 5 most significant GO terms
   dotPlotSigData <- function(){
-    # require inputs
-    req(input$pValCut)
+    # create BP, MF, and CC GO data
+    GO_data_BP <- createGO("BP")
+    GO_data_MF <- createGO("MF")
+    GO_data_CC <- createGO("CC")
+    # perform BP, MF, and CC GO analysis
+    GO_Results_BP <- performGO(GO_data_BP)
+    GO_Results_MF <- performGO(GO_data_MF)
+    GO_Results_CC <- performGO(GO_data_CC)
     # retrieve ontology result tables
-    BPTable <- getSigResults()
-    MFTable <- getSigResults()
-    CCTable <- getSigResults()
+    BPTable <- getSigResults(GO_data_BP, GO_Results_BP)
+    MFTable <- getSigResults(GO_data_MF, GO_Results_MF)
+    CCTable <- getSigResults(GO_data_CC, GO_Results_CC)
     # subset the tables
-    BPTable <- BPTable[1:5, ]
-    MFTable <- MFTable[1:5, ]
-    CCTable <- CCTable[1:5, ]
+    #BPTable <- BPTable[1:5, ]
+    #MFTable <- MFTable[1:5, ]
+    #CCTable <- CCTable[1:5, ]
     # add column with ontology ID
     BPPlotTable <- cbind('ID' = 'BP', BPTable)
     MFPlotTable <- cbind('ID' = 'MF', MFTable)
@@ -1132,34 +1234,120 @@ server <- function(input, output, session) {
   )
   
   # function to download table of results
-  output$resultsDownload <- downloadHandler(
+  output$resultsDownloadBP <- downloadHandler(
     # retrieve file name
     filename = function() {
       # setup output file name
-      paste(input$resultsCategory, "GO_terms.csv", sep = "_")
+      paste(input$ontologyLevel, "GO_terms.csv", sep = "_")
     },
     # read in data
     content = function(file) {
-      # require input
-      req(input$resultsCategory)
+      # create BP GO data
+      GO_data <- createGO("BP")
+      # perform BP GO analysis
+      GO_Results <- performGO(GO_data)
       # retrieve results
-      GO_results_table <- getResults(input$resultsCategory)
+      GO_results_table <- getResults(GO_data, GO_Results)
+      # write table of GO terms to a CSV file
+      write.table(GO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of results
+  output$resultsDownloadMF <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$ontologyLevel, "GO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # create MF GO data
+      GO_data <- createGO("MF")
+      # perform MF GO analysis
+      GO_Results <- performGO(GO_data)
+      # retrieve results
+      GO_results_table <- getResults(GO_data, GO_Results)
+      # write table of GO terms to a CSV file
+      write.table(GO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of results
+  output$resultsDownloadCC <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$ontologyLevel, "GO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # create CC GO data
+      GO_data <- createGO("CC")
+      # perform CC GO analysis
+      GO_Results <- performGO(GO_data)
+      # retrieve results
+      GO_results_table <- getResults(GO_data, GO_Results)
       # write table of GO terms to a CSV file
       write.table(GO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
     }
   )
   
   # function to download table of significant results
-  output$sigDownload <- downloadHandler(
+  output$sigDownloadBP <- downloadHandler(
     # retrieve file name
     filename = function() {
       # setup output file name
-      paste(input$resultsCategory, input$pValCut, "sigGO_terms.csv", sep = "_")
+      paste(input$ontologyLevel, input$pValCut, "sigGO_terms.csv", sep = "_")
     },
     # read in data
     content = function(file) {
+      # create BP GO data
+      GO_data <- createGO("BP")
+      # perform BP GO analysis
+      GO_Results <- performGO(GO_data)
       # retrieve significant results
-      sigGO_results_table <- getSigResults()
+      sigGO_results_table <- getSigResults(GO_data, GO_Results)
+      # write table of significant GO terms to a CSV file
+      write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of significant results
+  output$sigDownloadMF <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$ontologyLevel, input$pValCut, "sigGO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # create MF GO data
+      GO_data <- createGO("MF")
+      # perform MF GO analysis
+      GO_Results <- performGO(GO_data)
+      # retrieve significant results
+      sigGO_results_table <- getSigResults(GO_data, GO_Results)
+      # write table of significant GO terms to a CSV file
+      write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
+    }
+  )
+  
+  # function to download table of significant results
+  output$sigDownloadCC <- downloadHandler(
+    # retrieve file name
+    filename = function() {
+      # setup output file name
+      paste(input$ontologyLevel, input$pValCut, "sigGO_terms.csv", sep = "_")
+    },
+    # read in data
+    content = function(file) {
+      # create CC GO data
+      GO_data <- createGO("CC")
+      # perform CC GO analysis
+      GO_Results <- performGO(GO_data)
+      # retrieve significant results
+      sigGO_results_table <- getSigResults(GO_data, GO_Results)
       # write table of significant GO terms to a CSV file
       write.table(sigGO_results_table, file, sep=",", row.names=FALSE, quote=FALSE)
     }
@@ -1170,7 +1358,7 @@ server <- function(input, output, session) {
     # retrieve file name
     filename = function() {
       # setup output file name
-      "PANNZER2_GO.fmt.txt"
+      "gene_to_GO_map.fmt.txt"
     },
     # read in data
     content = function(file) {

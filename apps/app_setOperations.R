@@ -1,5 +1,5 @@
 # creator: Elizabeth Brooks
-# updated: 2 April 2024
+# updated: 12 April 2024
 
 #### Setup ####
 
@@ -152,6 +152,7 @@ ui <- fluidPage(
           align="center",
           HTML("<b>Helpful Tips</b>")
         ),
+        tags$br(),
         tags$p(
           HTML("<b>Tip 1:</b> The first column of the <i>.csv</i> files are expected to contain the set values for comparison (e.g., gene IDs).")
         ),
