@@ -571,7 +571,8 @@ server <- function(input, output, session) {
   }
   
   
-  
+  # TO-DO: stat_sf(): requires the missing aestehtic geometry (windows issue?)
+  # https://stackoverflow.com/questions/76704893/r-stat-sf-requires-the-following-missing-aesthetics-geometry
   # function to create plot venn diagrams sets
   createVennSets <- function(dataList, labelList){
     # create venn diagram
