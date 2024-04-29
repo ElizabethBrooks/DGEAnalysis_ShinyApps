@@ -34,6 +34,7 @@ plotColors <- carto_pal(12, "Safe")
 defaultLFC <- 1.2
 defaultFDR <- 0.05
 
+# TO-DO: fix output table header, which is missing the "gene" column?
 # TO-DO: store data and results in reactiveVal and reactiveValues
 # TO-DO: add bar plots of gene counts and LFC
 # TO-DO: output example tables as csv

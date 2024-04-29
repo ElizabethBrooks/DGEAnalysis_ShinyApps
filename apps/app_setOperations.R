@@ -23,6 +23,8 @@ suppressPackageStartupMessages({
 # color blind safe plotting palettes
 plotColors <- carto_pal(12, "Safe")
 
+# TO-DO: make upload button appear after at least two sets are input
+# TO-DO: check if headers are accounted for
 # TO-DO: store data and results in reactiveVal and reactiveValues
 
 #### UI ####

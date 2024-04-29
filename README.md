@@ -180,4 +180,4 @@ Gao, C.-H., Chen, C., Akyol, T., Dușa, A., Yu, G., Cao, B., and Cai, P. (2024).
 
 The applications were created by [Elizabeth Brooks](https://www.linkedin.com/in/elizabethmbrooks/).
 
-This project was funded by the National Science Foundation grant "Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia"  (2220695/2324639  to Sen Xu and 2220696 to Michael E. Pfrender).
+This project was supported by the National Science Foundation grant "Collaborative Research: EDGE FGT: Genome-wide Knock-out mutant libraries for the microcrustacean Daphnia"  (2220695/2324639  to Sen Xu and 2220696 to Michael E. Pfrender).
