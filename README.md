@@ -47,6 +47,12 @@ Each of the applications produces multiple resulting plots and tables, which are
 
 ![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
 
+### Example Workflow
+
+A sample workflow using the R Shiny applications is shown below, along with example results produced by each application.
+
+![Analysis Results](images/shinyApps_exampleAnalysisResults.jpg)
+
 ## Tutorials
 
 > [!IMPORTANT]

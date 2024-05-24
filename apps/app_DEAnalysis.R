@@ -34,6 +34,7 @@ plotColors <- carto_pal(12, "Safe")
 defaultLFC <- 1.2
 defaultFDR <- 0.05
 
+# TO-DO: double check pheatmap display
 # TO-DO: fix check of design file length (requires new line to match counts header length)
 # TO-DO: fix output table header, which is missing the "gene" column?
 # TO-DO: store data and results in reactiveVal and reactiveValues
