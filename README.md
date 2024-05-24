@@ -1,8 +1,12 @@
 # DGEAnalysis_ShinyApps
 
+> [!IMPORTANT]
+> <i><b>Please see the [freeCount](https://github.com/ElizabethBrooks/freeCount) GitHub repository for the latest version of these R Shiny applications.</b></i>
+
 These are R shiny applications provide a framework for analyzing biological data produced by genomic sequencing technologies, such as RNA-seq. Users are guided through biological data assessment, processing and analysis. The different analyses available include differential expression (DE), network, and functional analysis.
 
 ## Shiny Applications & Features
+
 * <b>DE Analysis</b> with edgeR
 	* Clustering analysis using distance based PCA and MDS
 	* Filtering
@@ -41,17 +45,25 @@ The normalized data output by edgeR can also be input to WGCNA to begin the netw
 
 Results from the DE or network analyses can be used to perform downstream analyses, such as functional analysis or set operations.
 
-## Analysis Results
+### Analysis Results
 
 Each of the applications produces multiple resulting plots and tables, which are shown in the diagram below.
 
-![Analysis Results](images/shinyAppsFramework_resultsDiagram.jpg)
+![Analysis Results](images/shinyApps_resultsDiagram.jpg)
 
 ### Example Workflow
 
 A sample workflow using the R Shiny applications is shown below, along with example results produced by each application.
 
 ![Analysis Results](images/shinyApps_exampleAnalysisResults.jpg)
+
+### User Journey
+
+The following user journey diagram depicts the user-centered process of count data analysis through the R Shiny applications.
+
+![Analysis Framework](images/shinyApps_userJourneyDiagram_cropped.jpg)
+
+The typical user is a student or researcher who begins their journey as a novice analyst. In the first phase the novice analyst has received count data, but they are unsure how to proceed. The second phase is where the analyst completes our web tutorials and now has an idea how to proceed with analyzing their data. In the third phase the analyst uses our shiny applications to produce high-quality analysis results.
 
 ## Tutorials
 
